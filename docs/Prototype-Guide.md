@@ -61,6 +61,8 @@ Use the [roadmap](MVP-Roadmap.md) and its evidence gates before publishing farme
 
 ## Assets and tools
 
+Text colors in `apps/web/app/globals.css` use shared secondary, success, warning, danger, and light-on-dark tokens so helper text and status labels remain readable across the pale cards and green banners.
+
 Application code and field artwork are original project material under the repository's Apache-2.0 license. Lucide supplies icons; DM Sans and Manrope are loaded from Google Fonts with system fallbacks. Respect their upstream licenses when redistributing assets. NASA POWER data is credited in the app. No NASA or Space Apps logo is used and no endorsement is implied.
 
 AI assisted coding, fixture generation and documentation; project members must review and describe those contributions accurately in their eventual submission. See [Space Apps guidance](Space-Apps-Guidance.md).
