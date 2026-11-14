@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tagalog Localization"
+  short_description: "Translate English and Tagalog interface copy clearly"
+  default_prompt: "Use $tagalog-localization to translate and review this interface in clear Tagalog."

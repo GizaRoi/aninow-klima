@@ -36,6 +36,7 @@ The Playwright configuration uses locally installed Google Chrome. Configure an 
 - Optional synthetic yield/income scenario, editable prices, reason/assumption dialogs, and JSON export.
 - Saved comparisons in `sessionStorage`, including reopening after a reload in the same tab. No production account or cross-device storage is implied.
 - A data/challenge view with official links, known guideline gaps, implementation disclosure and source status.
+- A persistent English/Tagalog switch, with translations for navigation, forms, validation, crop comparisons, dialogs and source descriptions. See the [translation guide](Translation-Guide.md) for provenance and review limitations.
 
 ## Real data versus fixtures
 
@@ -55,7 +56,7 @@ The money scenario is a simplified full-cycle example with all assumed harvests/
 
 ## Production boundaries
 
-There is no Supabase authentication, private farm database, Python API, trained model, reviewed crop catalog, per-crop buyer input, full crop-history/soil-test capture, or complete Filipino translation. The prototype does not implement the production API contract. The formal decision specification remains the target for the next vertical slice; this module is deliberately named `demo` to prevent its fixtures being mistaken for approved rules.
+There is no Supabase authentication, private farm database, Python API, trained model, reviewed crop catalog, per-crop buyer input, or full crop-history/soil-test capture. The bundled Tagalog translation is AI-authored and still needs native-speaker and domain review. The prototype does not implement the production API contract. The formal decision specification remains the target for the next vertical slice; this module is deliberately named `demo` to prevent its fixtures being mistaken for approved rules.
 
 Use the [roadmap](MVP-Roadmap.md) and its evidence gates before publishing farmer recommendations. Do not collect real farmer records through this demo.
 

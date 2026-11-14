@@ -80,6 +80,6 @@ export type SavedPlan = { id: string; savedAt: string; inputs: Inputs };
 export function php(value: number): string {
   return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(value);
 }
-export function dateLabel(value: string): string {
-  return new Intl.DateTimeFormat('en-PH', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
+export function dateLabel(value: string, language: 'en' | 'tl' = 'en'): string {
+  return new Intl.DateTimeFormat(language === 'tl' ? 'fil-PH' : 'en-PH', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
 }
