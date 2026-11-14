@@ -2,7 +2,9 @@
 
 The November 2026 visual refresh follows the user's [Eloqwnt agriculture reference on Dribbble](https://dribbble.com/shots/27615353-AI-Powered-Low-Pesticide-Agriculture-Website): a misty floating farm, sage/olive surroundings, white sans-serif typography, translucent panels with corner accents, and restrained lime highlights. AniNow retains its branding, field inputs, comparison semantics, source labels and session saves. No reference screenshot is included in the website.
 
-The desktop navigation is horizontal. On mobile, the panels stack below the farm and navigation opens in a drawer. The climate sparkline plots all 30 archived daily maximum values in `power-sample.json`; its range and date are available to screen readers. The crop engine and fixtures are unchanged.
+The desktop navigation is horizontal. On mobile, the panels stack below the farm and navigation opens in a drawer. Hero copy and panels use CSS Grid with explicit gaps, so wrapped headings and browser zoom cannot move the field panel over the planting button. The page, hero overlay and glass panels use deeper forest-green tones. The climate sparkline plots all 30 archived daily maximum values in `power-sample.json`; its range and date are available to screen readers. The crop engine and fixtures are unchanged.
+
+Supporting typography uses 16px descriptions, 14–15px navigation/form labels, and 12–13px captions and source notes across viewport sizes. Cards, forms and comparison layouts wrap or stack as needed to accommodate readable text; responsive styles no longer reduce helper copy to 6–10px.
 
 ## Hero artwork
 
