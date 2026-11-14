@@ -2,11 +2,12 @@
 
 ## Project context
 
-AniNow Klima helps Filipino farmers choose climate-suitable crops and compare potential yields, costs, and income using NASA environmental data and predictive modeling.
+AniNow Klima helps Filipino rice farmers compare planting rice again with locally supported rotation crops after harvest. Combine NASA environmental evidence, crop history, soil/water conditions, farmer priorities, calendar constraints, and transparent financial scenarios. Rice is the baseline; the first pilot supports at most two alternatives on one field.
 
 - Requirements: [docs/AniNow-Klima-PRD.md](docs/AniNow-Klima-PRD.md)
 - Architecture: [docs/AniNow-Klima-Architecture.md](docs/AniNow-Klima-Architecture.md)
 - Documentation index: [docs/README.md](docs/README.md), including the data/model plan, roadmap, user flows, API contract, and database schema.
+- Decision semantics: [docs/Decision-Engine-Spec.md](docs/Decision-Engine-Spec.md); evidence and competitive context: [docs/Resources-and-Evidence.md](docs/Resources-and-Evidence.md).
 - Remote repository: https://github.com/GizaRoi/aninow-klima.git
 - Planned stack: Next.js, React, TypeScript, Supabase, and Vercel, with a separate Python training workflow and prediction service.
 
@@ -27,3 +28,5 @@ Keep planning documents in the repository's `docs/` folder (`main/docs/` from th
 ## Model integration
 
 Train models separately from application requests. Serve predictions through the Python API. Keep preprocessing consistent between training and prediction, record model versions and assumptions, and clearly label simulated outcomes and uncertainty.
+
+Deliver the rules/simulation decision prototype before claiming a predictive MVP. Both rice and an alternative need evaluated yield estimates for a validated comparison. Never invent crop thresholds, pilot coverage, model accuracy, soil-health scores, source measurements, or financial defaults. Hard feasibility constraints precede priority ordering. Follow the roadmap's evidence gates before publishing real recommendations.
