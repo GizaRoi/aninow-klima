@@ -397,9 +397,9 @@ main { max-width: 1392px; min-height: calc(100vh - 130px); padding: 38px; backgr
   .app-shell .evidence-orbit { position: static; float: right; margin-left: 12px; }
   .app-shell .form-grid { grid-template-columns: 1fr; }
   .app-shell .form-actions { flex-wrap: wrap; gap: 16px; }
-  .app-shell .timeline { flex-direction: column; gap: 20px; }
-  .app-shell .timeline::before { display: none; }
+  .app-shell .timeline { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .app-shell .timeline-step { padding-left: 32px; }
+  .app-shell .timeline-step:not(:last-child)::after { top: 30px; left: 11px; right: auto; bottom: -20px; width: 1px; height: auto; }
   .app-shell .timeline-step small { margin-top: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
