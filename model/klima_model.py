@@ -104,23 +104,39 @@ TEXTURE_CLASS = {
     "clay": "heavy", "silty clay": "heavy", "sandy clay": "heavy",
 }
 
-def read_soil_sample():
-    """Nearest measured soil sample to the field. Returns None if the file is
-    absent or nothing falls within MAX_SOIL_SAMPLE_KM, so the model says it has
-    no soil measurement rather than inventing one."""
-    if not os.path.exists(SARAI_FILE):
+PH_RANGE = (3.0, 10.0)        # spec section 2.5: drop samples outside this
+PH_LATLON_BOX = (4.0, 22.0, 116.0, 127.0)   # Philippines: lat min/max, lon min/max
+
+def read_soil_sample(lat=None, lon=None, max_km=None, path=None):
+    """Nearest measured soil sample to a point. Returns None if the file is absent
+    or nothing falls within max_km, so the model says it has no soil measurement
+    rather than inventing one. Takes the field location so it can be tested at any
+    point, not just the pilot's."""
+    lat = FIELD_LAT if lat is None else lat
+    lon = FIELD_LON if lon is None else lon
+    max_km = MAX_SOIL_SAMPLE_KM if max_km is None else max_km
+    path = SARAI_FILE if path is None else path
+    if not os.path.exists(path):
         return None
+    lat_lo, lat_hi, lon_lo, lon_hi = PH_LATLON_BOX
     best = None
-    with open(SARAI_FILE, newline="", encoding="utf-8-sig") as f:
+    with open(path, newline="", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
             try:
-                km = haversine_km(FIELD_LAT, FIELD_LON,
-                                  float(row["latitude"]), float(row["longitude"]))
-            except (TypeError, ValueError):
+                s_lat, s_lon = float(row["latitude"]), float(row["longitude"])
+                s_ph = float(row["soil_ph"])
+            except (TypeError, ValueError, KeyError):
                 continue
+            # Spec 2.5 cleaning: a sample outside the Philippines or with an
+            # impossible pH is a data error, not a measurement.
+            if not (lat_lo <= s_lat <= lat_hi and lon_lo <= s_lon <= lon_hi):
+                continue
+            if not (PH_RANGE[0] <= s_ph <= PH_RANGE[1]):
+                continue
+            km = haversine_km(lat, lon, s_lat, s_lon)
             if best is None or km < best[0]:
                 best = (km, row)
-    if best is None or best[0] > MAX_SOIL_SAMPLE_KM:
+    if best is None or best[0] > max_km:
         return None
     km, row = best
     texture_raw = (row.get("soil_texture_as_reported") or "").strip()
@@ -415,35 +431,80 @@ def window_options(c):
     return opts
 
 # ---------------- SEASONS ----------------
-SEASONS = []
-for y in range(FIRST_YEAR, LAST_YEAR + 1):
-    start = date(y, *HARVEST)
-    end = date(y if NEXT_PLANTING > HARVEST else y + 1, *NEXT_PLANTING) - timedelta(days=1)
-    wdays = days(start, (end - start).days + 1)
-    months = sorted({(d.year, d.month) for d in wdays})
-    anom = None
-    if nino and all(m in nino for m in months):
-        anom = sum(nino[m] for m in months) / len(months)
-    SEASONS.append(dict(year=y, start=start, end=end, n_days=len(wdays),
-                        window_rain=total(wdays, "PRECTOTCORR"), nino_mean=anom))
+def build_seasons(harvest, next_planting, first_year, last_year):
+    """One season per harvest year: harvest date through the day before the next
+    planting. Takes the farmer's two dates, so it can be tested on real answers
+    rather than only on the pilot's."""
+    if not (1 <= harvest[0] <= 12 and 1 <= next_planting[0] <= 12):
+        raise ValueError(f"month out of range: harvest {harvest}, planting {next_planting}")
+    if last_year < first_year:
+        raise ValueError(f"last_year {last_year} is before first_year {first_year}")
+    seasons = []
+    for y in range(first_year, last_year + 1):
+        try:
+            start = date(y, *harvest)
+            # A planting month-day at or before the harvest month-day belongs to the
+            # following year. Equal dates mean a whole year, not a zero-day window.
+            end = date(y if next_planting > harvest else y + 1, *next_planting) \
+                - timedelta(days=1)
+        except ValueError as e:
+            raise ValueError(f"bad date in season {y}: {e}") from e
+        if end < start:
+            raise ValueError(f"season {y} ends {end} before it starts {start}")
+        wdays = days(start, (end - start).days + 1)
+        months = sorted({(d.year, d.month) for d in wdays})
+        anom = None
+        if nino and all(m in nino for m in months):
+            anom = sum(nino[m] for m in months) / len(months)
+        seasons.append(dict(year=y, start=start, end=end, n_days=len(wdays),
+                            window_rain=total(wdays, "PRECTOTCORR"), nino_mean=anom))
+    if not seasons:
+        raise ValueError("no seasons in range")
+    return seasons
+
+def classify_seasons(seasons, dry_share=None, nino_threshold=None):
+    """Tag each season as dry / el_nino / normal. Mutates and returns `seasons`."""
+    dry_share = DRY_SHARE if dry_share is None else dry_share
+    nino_threshold = NINO_THRESHOLD if nino_threshold is None else nino_threshold
+    rated = [s for s in seasons if s["window_rain"] is not None]
+    n_dry = round(dry_share * len(rated))
+    driest = {id(s) for s in sorted(rated, key=lambda s: s["window_rain"])[:n_dry]}
+    for s in seasons:
+        s["all"] = True
+        s["dry"] = id(s) in driest
+        s["el_nino"] = s["nino_mean"] is not None and s["nino_mean"] >= nino_threshold
+        s["normal"] = not s["dry"] and not s["el_nino"]      # STAND-IN definition
+    return seasons
+
+SEASONS = classify_seasons(build_seasons(HARVEST, NEXT_PLANTING, FIRST_YEAR, LAST_YEAR))
 WINDOW_DAYS = min(s["n_days"] for s in SEASONS)
-n_dry = round(DRY_SHARE * len(SEASONS))
-driest = sorted(SEASONS, key=lambda s: s["window_rain"])[:n_dry]
-for s in SEASONS:
-    s["all"] = True
-    s["dry"] = s in driest
-    s["el_nino"] = s["nino_mean"] is not None and s["nino_mean"] >= NINO_THRESHOLD
-    s["normal"] = not s["dry"] and not s["el_nino"]      # STAND-IN definition
 
 # ---------------- SCORING ----------------
+DRAINAGE_ANSWERS = ("well_drained", "poorly_drained", "unknown")
+
+def hard_filters(c, window_days=None, drainage=None, apply_drainage=None):
+    """Spec section 5. Returns (reasons_to_exclude, flags). A crop with any reason
+    is reported as excluded and never scored. 'unknown' drainage does not exclude
+    anything but flags the result, because the farmer has not answered yet."""
+    window_days = WINDOW_DAYS if window_days is None else window_days
+    drainage = DRAINAGE if drainage is None else drainage
+    apply_drainage = USE_DRAINAGE_FILTER if apply_drainage is None else apply_drainage
+    if drainage not in DRAINAGE_ANSWERS:
+        raise ValueError(f"drainage must be one of {DRAINAGE_ANSWERS}, got {drainage!r}")
+    why, flags = [], []
+    if c["cycle_min"] > window_days:                               # F1 window fit
+        why.append("does_not_fit_window")
+    if apply_drainage and drainage == "poorly_drained" \
+            and c["drainage"].startswith("well"):                  # F2 drainage
+        why.append("needs_well_drained_soil")
+    if drainage == "unknown":
+        flags.append("drainage_unconfirmed")
+    return why, flags
+
 def evaluate(water):
     out, excluded = {}, {}
     for name, c in CROPS.items():
-        why = []
-        if c["cycle_min"] > WINDOW_DAYS:
-            why.append("does_not_fit_window")
-        if USE_DRAINAGE_FILTER and DRAINAGE == "poorly_drained" and c["drainage"].startswith("well"):
-            why.append("needs_well_drained_soil")
+        why, flags = hard_filters(c)
         if why:
             excluded[name] = why
             continue
@@ -485,6 +546,7 @@ def evaluate(water):
                     counts[p][scen][tag] = {"pass": k, "of": len(sel), "wilson95": wilson(k, len(sel))}
         both = [r for r in rows if r["imerg_mm"] is not None]
         out[name] = dict(
+            flags=flags,
             ecocrop_sheet=c["sheet"], scientific_name=c["scientific_name"],
             ph_crop_guide=ph_guide_for(c),
             cycle_days=[c["cycle_min"], c["cycle_max"]],
@@ -537,170 +599,175 @@ def evaluate(water):
 fields = {w: evaluate(w) for w in ("rain", "irrigation")}
 WINDOW_OPTIONS = {n: window_options(c) for n, c in CROPS.items() if c["kc"]}
 
-# ---------------- PRINTED REPORT ----------------
-def f(v):
-    return "    n/a" if v is None else f"{v:7.2f}"
+def main():
+    """Print the report and write results.json."""
+    # ---------------- PRINTED REPORT ----------------
+    def f(v):
+        return "    n/a" if v is None else f"{v:7.2f}"
 
-print("Files:", main_name, "|", imerg_name)
-print("Crops read from", CROPS_FILE + ":", ", ".join(CROPS))
-print("Days read:", len(daily), "from", min(daily), "to", max(daily))
-print("Satellite rain (IMERG) starts:", first_valid("IMERG_PRECTOT"))
-print("Sunlight (TOA_SW_DWN) starts:", first_valid("TOA_SW_DWN"))
-print("Seasons:", len(SEASONS), "| shortest window:", WINDOW_DAYS, "days")
-rains = [s["window_rain"] for s in SEASONS]
-print(f"Whole-window rain mm: min {min(rains):.0f}, median {median(rains):.0f}, max {max(rains):.0f}")
-print("Dry seasons:", sorted(s["year"] for s in SEASONS if s["dry"]))
-if nino:
-    found = [s["year"] for s in SEASONS if s["el_nino"]]
-    print("El Nino seasons:", found)
-    print("Matches hand check:", found == EXPECTED_NINO)
-else:
-    print("El Nino file not found: El Nino counts skipped.")
-print("Drainage answer:", DRAINAGE, "| soil texture:", SOIL_TEXTURE, "| soil pH:", SOIL_PH)
-if SOIL:
-    print(f"Soil from {SOIL['sample_id']}, {SOIL['distance_km']} km away: "
-          f"{SOIL['barangay']}, {SOIL['municipality']}, {SOIL['province']}, "
-          f"sampled {SOIL['sample_date']} under {SOIL['crop_at_sampling']}")
-    print(f"  pH {SOIL['ph']} ({SOIL['ph_class']}) | texture {SOIL['texture_as_reported']} "
-          f"-> {SOIL['texture_class']} | organic matter {SOIL['organic_matter_percent']}% "
-          f"({SOIL['organic_matter_class']})")
-    if SOIL["quality_flags"]:
-        print(f"  caveat: {SOIL['quality_flags']}")
-    if SOIL["province"] and EXPECTED_PROVINCE.lower() not in SOIL["province"].lower():
-        print(f"  NOTE: nearest sample is in {SOIL['province']}, not {EXPECTED_PROVINCE}. "
-              f"Check that the POWER point {FIELD_LAT}, {FIELD_LON} is the field you mean.")
-else:
-    print("No soil sample within", MAX_SOIL_SAMPLE_KM, "km.")
-print("Drainage is still the farmer's answer. bswm_soil_map_units.csv cannot refine it:")
-print("  its rows carry bounding boxes only, hundreds of km wide, so dozens of soil")
-print("  series 'contain' any point. The official shapefile is needed for a real lookup.")
+    print("Files:", main_name, "|", imerg_name)
+    print("Crops read from", CROPS_FILE + ":", ", ".join(CROPS))
+    print("Days read:", len(daily), "from", min(daily), "to", max(daily))
+    print("Satellite rain (IMERG) starts:", first_valid("IMERG_PRECTOT"))
+    print("Sunlight (TOA_SW_DWN) starts:", first_valid("TOA_SW_DWN"))
+    print("Seasons:", len(SEASONS), "| shortest window:", WINDOW_DAYS, "days")
+    rains = [s["window_rain"] for s in SEASONS]
+    print(f"Whole-window rain mm: min {min(rains):.0f}, median {median(rains):.0f}, max {max(rains):.0f}")
+    print("Dry seasons:", sorted(s["year"] for s in SEASONS if s["dry"]))
+    if nino:
+        found = [s["year"] for s in SEASONS if s["el_nino"]]
+        print("El Nino seasons:", found)
+        print("Matches hand check:", found == EXPECTED_NINO)
+    else:
+        print("El Nino file not found: El Nino counts skipped.")
+    print("Drainage answer:", DRAINAGE, "| soil texture:", SOIL_TEXTURE, "| soil pH:", SOIL_PH)
+    if SOIL:
+        print(f"Soil from {SOIL['sample_id']}, {SOIL['distance_km']} km away: "
+              f"{SOIL['barangay']}, {SOIL['municipality']}, {SOIL['province']}, "
+              f"sampled {SOIL['sample_date']} under {SOIL['crop_at_sampling']}")
+        print(f"  pH {SOIL['ph']} ({SOIL['ph_class']}) | texture {SOIL['texture_as_reported']} "
+              f"-> {SOIL['texture_class']} | organic matter {SOIL['organic_matter_percent']}% "
+              f"({SOIL['organic_matter_class']})")
+        if SOIL["quality_flags"]:
+            print(f"  caveat: {SOIL['quality_flags']}")
+        if SOIL["province"] and EXPECTED_PROVINCE.lower() not in SOIL["province"].lower():
+            print(f"  NOTE: nearest sample is in {SOIL['province']}, not {EXPECTED_PROVINCE}. "
+                  f"Check that the POWER point {FIELD_LAT}, {FIELD_LON} is the field you mean.")
+    else:
+        print("No soil sample within", MAX_SOIL_SAMPLE_KM, "km.")
+    print("Drainage is still the farmer's answer. bswm_soil_map_units.csv cannot refine it:")
+    print("  its rows carry bounding boxes only, hundreds of km wide, so dozens of soil")
+    print("  series 'contain' any point. The official shapefile is needed for a real lookup.")
 
-for water, res in fields.items():
-    print(f"\n=== Field watered by: {water} ===")
-    print(f"{'crop':10}{'days':>7}{'temp':>7}{'water':>7}{'pH':>7}{'tex':>7}{'S':>7}"
-          f"{'pass(all)':>11}{'dry':>8}{'nino':>8}{'short mm':>10}{'envelope':>10}")
-    for n, c in res["crops"].items():
-        for tag in ("short", "long"):
-            m, k = c["median_scores"][tag], c["counts"]["balanced"]
-            label = n if tag == "short" else ""
-            deficit = c["median_deficit_mm"][tag]
-            print(f"{label:10}{c['scored_days'][tag]:>6}d"
-                  f"{f(m['temp'])}{f(m['water'])}{f(m['ph'])}{f(m['texture'])}"
-                  f"{f(c['median_S'][tag]['balanced'])}"
-                  f"{k['all'][tag]['pass']:>8}/{k['all'][tag]['of']:<2}"
-                  f"{k['dry'][tag]['pass']:>5}/{k['dry'][tag]['of']:<2}"
-                  f"{k['el_nino'][tag]['pass']:>5}/{k['el_nino'][tag]['of']:<2}"
-                  f"{('n/a' if deficit is None else f'{deficit:.0f}'):>10}"
-                  f"{f(c['climate_envelope']['ecocrop_annual_score']):>10}")
-    for n, why in res["excluded"].items():
-        print(f"{n:10} excluded: {', '.join(why)}")
-    if res["crops"] and all((c["median_S"]["long"]["balanced"] or 0) == 0
-                            for c in res["crops"].values()):
-        print("  no crop reaches the pass mark: the order below is not meaningful")
-    for p, order in res["rankings"].items():
-        print(f"  {p:16}", " > ".join(order))
+    for water, res in fields.items():
+        print(f"\n=== Field watered by: {water} ===")
+        print(f"{'crop':10}{'days':>7}{'temp':>7}{'water':>7}{'pH':>7}{'tex':>7}{'S':>7}"
+              f"{'pass(all)':>11}{'dry':>8}{'nino':>8}{'short mm':>10}{'envelope':>10}")
+        for n, c in res["crops"].items():
+            for tag in ("short", "long"):
+                m, k = c["median_scores"][tag], c["counts"]["balanced"]
+                label = n if tag == "short" else ""
+                deficit = c["median_deficit_mm"][tag]
+                print(f"{label:10}{c['scored_days'][tag]:>6}d"
+                      f"{f(m['temp'])}{f(m['water'])}{f(m['ph'])}{f(m['texture'])}"
+                      f"{f(c['median_S'][tag]['balanced'])}"
+                      f"{k['all'][tag]['pass']:>8}/{k['all'][tag]['of']:<2}"
+                      f"{k['dry'][tag]['pass']:>5}/{k['dry'][tag]['of']:<2}"
+                      f"{k['el_nino'][tag]['pass']:>5}/{k['el_nino'][tag]['of']:<2}"
+                      f"{('n/a' if deficit is None else f'{deficit:.0f}'):>10}"
+                      f"{f(c['climate_envelope']['ecocrop_annual_score']):>10}")
+        for n, why in res["excluded"].items():
+            print(f"{n:10} excluded: {', '.join(why)}")
+        if res["crops"] and all((c["median_S"]["long"]["balanced"] or 0) == 0
+                                for c in res["crops"].values()):
+            print("  no crop reaches the pass mark: the order below is not meaningful")
+        for p, order in res["rankings"].items():
+            print(f"  {p:16}", " > ".join(order))
 
-# ---------------- WHEN TO PLANT (water balance) ----------------
-print("\n=== When to plant: crop water demand against rainfall ===")
-print(f"ETo: FAO-56 Eq.52 (Hargreaves) from T2M/T2M_MAX/T2M_MIN/TOA_SW_DWN, "
-      f"available from {first_valid('TOA_SW_DWN')}")
-no_kc = [n for n, c in CROPS.items() if not c["kc"]]
-if no_kc:
-    print("No sourced FAO-56 crop coefficients, so no water balance for:", ", ".join(no_kc))
-    print("  Add kc_ini, kc_mid, kc_end, stage_ini_d, stage_dev_d, stage_mid_d,")
-    print("  stage_late_d and kc_source to crops.csv. Do not guess these.")
-for name, opts in WINDOW_OPTIONS.items():
-    c = CROPS[name]
-    print(f"\n  {name}, {c['cycle_min']}-day cycle | Kc source: {c['kc_source']}")
-    print(f"    {'plant':>7}{'ETc':>8}{'rain':>8}{'short by':>10}{'RWS':>7}"
-          f"{'heat d':>8}{'wetness':>9}   seasons")
-    for o in opts:
-        print(f"    {o['plant_month_day']:>7}"
-              f"{o['median_etc_mm'] or 0:>8.0f}{o['median_rain_mm'] or 0:>8.0f}"
-              f"{o['median_deficit_mm'] or 0:>10.0f}{o['median_rws'] or 0:>7.2f}"
-              f"{o['median_heat_days'] or 0:>8.0f}{o['median_gwetroot'] or 0:>9.2f}"
-              f"   {o['scored_seasons']}/{o['of_seasons']}")
-    best = min((o for o in opts if o["median_deficit_mm"] is not None),
-               key=lambda o: o["median_deficit_mm"], default=None)
-    if best:
-        print(f"    smallest water shortfall: plant {best['plant_month_day']}, "
-              f"{best['median_deficit_mm']:.0f} mm short, "
-              f"{best['median_heat_days'] or 0:.0f} days over {HEAT_LIMIT_C:.0f}C")
-print("\n=== Philippine crop guide, evidence only ===")
-for name, c in CROPS.items():
-    g = ph_guide_for(c)
-    if not g:
-        print(f"  {name:9} not in {CROP_REQ_PH_FILE} (that file covers vegetables only)")
-        continue
-    lo, hi = g["days_to_first_harvest"]
-    # Several crops in the guide leave these blank, and others quote them from a
-    # basis like "days after flowering" that is not comparable at all.
-    span = "not quantified" if lo is None or hi is None else f"{lo:.0f}-{hi:.0f} d"
-    print(f"  {name:9} {g['local_name']} | first harvest {span} ({g['harvest_time_basis']})")
-    print(f"            establishment: {g['establishment_method']}")
-    print(f"            water/drainage: {g['water_and_drainage']}")
-    print(f"            season: {g['planting_season_context']}")
-    print(f"            guide pH {g['soil_ph_min']}-{g['soil_ph_max']} vs EcoCrop optimum "
-          f"{c['ph'][1]}-{c['ph'][2]} | guide air temp {g['air_temp_min_c']}-{g['air_temp_max_c']}C "
-          f"vs EcoCrop optimum {c['temp'][1]}-{c['temp'][2]}C")
-print("  Days to first harvest is NOT how long the crop holds the field, so it is not")
-print("  used as a cycle length. Reconcile with a local agriculturist before it is.")
+    # ---------------- WHEN TO PLANT (water balance) ----------------
+    print("\n=== When to plant: crop water demand against rainfall ===")
+    print(f"ETo: FAO-56 Eq.52 (Hargreaves) from T2M/T2M_MAX/T2M_MIN/TOA_SW_DWN, "
+          f"available from {first_valid('TOA_SW_DWN')}")
+    no_kc = [n for n, c in CROPS.items() if not c["kc"]]
+    if no_kc:
+        print("No sourced FAO-56 crop coefficients, so no water balance for:", ", ".join(no_kc))
+        print("  Add kc_ini, kc_mid, kc_end, stage_ini_d, stage_dev_d, stage_mid_d,")
+        print("  stage_late_d and kc_source to crops.csv. Do not guess these.")
+    for name, opts in WINDOW_OPTIONS.items():
+        c = CROPS[name]
+        print(f"\n  {name}, {c['cycle_min']}-day cycle | Kc source: {c['kc_source']}")
+        print(f"    {'plant':>7}{'ETc':>8}{'rain':>8}{'short by':>10}{'RWS':>7}"
+              f"{'heat d':>8}{'wetness':>9}   seasons")
+        for o in opts:
+            print(f"    {o['plant_month_day']:>7}"
+                  f"{o['median_etc_mm'] or 0:>8.0f}{o['median_rain_mm'] or 0:>8.0f}"
+                  f"{o['median_deficit_mm'] or 0:>10.0f}{o['median_rws'] or 0:>7.2f}"
+                  f"{o['median_heat_days'] or 0:>8.0f}{o['median_gwetroot'] or 0:>9.2f}"
+                  f"   {o['scored_seasons']}/{o['of_seasons']}")
+        best = min((o for o in opts if o["median_deficit_mm"] is not None),
+                   key=lambda o: o["median_deficit_mm"], default=None)
+        if best:
+            print(f"    smallest water shortfall: plant {best['plant_month_day']}, "
+                  f"{best['median_deficit_mm']:.0f} mm short, "
+                  f"{best['median_heat_days'] or 0:.0f} days over {HEAT_LIMIT_C:.0f}C")
+    print("\n=== Philippine crop guide, evidence only ===")
+    for name, c in CROPS.items():
+        g = ph_guide_for(c)
+        if not g:
+            print(f"  {name:9} not in {CROP_REQ_PH_FILE} (that file covers vegetables only)")
+            continue
+        lo, hi = g["days_to_first_harvest"]
+        # Several crops in the guide leave these blank, and others quote them from a
+        # basis like "days after flowering" that is not comparable at all.
+        span = "not quantified" if lo is None or hi is None else f"{lo:.0f}-{hi:.0f} d"
+        print(f"  {name:9} {g['local_name']} | first harvest {span} ({g['harvest_time_basis']})")
+        print(f"            establishment: {g['establishment_method']}")
+        print(f"            water/drainage: {g['water_and_drainage']}")
+        print(f"            season: {g['planting_season_context']}")
+        print(f"            guide pH {g['soil_ph_min']}-{g['soil_ph_max']} vs EcoCrop optimum "
+              f"{c['ph'][1]}-{c['ph'][2]} | guide air temp {g['air_temp_min_c']}-{g['air_temp_max_c']}C "
+              f"vs EcoCrop optimum {c['temp'][1]}-{c['temp'][2]}C")
+    print("  Days to first harvest is NOT how long the crop holds the field, so it is not")
+    print("  used as a cycle length. Reconcile with a local agriculturist before it is.")
 
-print(f"\n  'short by' is median irrigation needed, mm, over the cycle.")
-print(f"  'heat d' counts days over {HEAT_LIMIT_C:.0f}C: PLACEHOLDER threshold, evidence only,")
-print(f"  deliberately not scored. 'wetness' is POWER GWETROOT, 0-1, not converted to mm.")
+    print(f"\n  'short by' is median irrigation needed, mm, over the cycle.")
+    print(f"  'heat d' counts days over {HEAT_LIMIT_C:.0f}C: PLACEHOLDER threshold, evidence only,")
+    print(f"  deliberately not scored. 'wetness' is POWER GWETROOT, 0-1, not converted to mm.")
 
-# ---------------- RESULTS FILE ----------------
-def clean(o):
-    if isinstance(o, dict):
-        return {str(k): clean(v) for k, v in o.items()}
-    if isinstance(o, (list, tuple)):
-        return [clean(v) for v in o]
-    if isinstance(o, date):
-        return o.isoformat()
-    if isinstance(o, float):
-        return round(o, 3)
-    return o
+    # ---------------- RESULTS FILE ----------------
+    def clean(o):
+        if isinstance(o, dict):
+            return {str(k): clean(v) for k, v in o.items()}
+        if isinstance(o, (list, tuple)):
+            return [clean(v) for v in o]
+        if isinstance(o, date):
+            return o.isoformat()
+        if isinstance(o, float):
+            return round(o, 3)
+        return o
 
-latest = max(nino) if nino else None
-results = dict(
-    meta=dict(location_name=LOCATION_NAME, latitude=FIELD_LAT, longitude=FIELD_LON,
-              harvest=HARVEST, next_planting=NEXT_PLANTING,
-              window_days=WINDOW_DAYS, seasons=len(SEASONS), pass_mark=PASS_MARK,
-              drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE, soil_texture=SOIL_TEXTURE,
-              scored_lengths="EcoCrop cycle minimum and maximum, capped at the window",
-              planting_offsets=PLANTING_OFFSETS, heat_limit_c=HEAT_LIMIT_C,
-              placeholders=["window", "soil_texture", "texture_score", "normal_definition",
-                            "heat_limit_c"]),
-    method=dict(
-        eto="FAO-56 Eq.52 Hargreaves, from T2M, T2M_MAX, T2M_MIN and TOA_SW_DWN (Ra)",
-        eto_from=first_valid("TOA_SW_DWN"),
-        etc="FAO-56 single crop coefficient curve, stage lengths scaled to the cycle",
-        water_score="relative water supply, rain divided by ETc, capped at 1",
-        heat="days over heat_limit_c, reported as evidence only, not scored",
-        gwetroot="reported as a 0-1 wetness fraction, deliberately not converted to mm, "
-                 "which would need rooting depth and available water capacity",
-        ecocrop_rain="EcoCrop rainfall limits are ANNUAL (FAO datasheets label the row "
-                     "'Rainfall (annual)'); they are a regional climate envelope and are "
-                     "not used as a within-window water test"),
-    soil=dict(ph=SOIL_PH, texture=SOIL_TEXTURE, source=SOIL_SOURCE, sample=SOIL,
-              texture_mapping="USDA texture name grouped into light/medium/heavy; "
-                              "clay loam and sandy clay loam are called medium and sit "
-                              "on the boundary",
-              drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE,
-              bswm_note="bswm_soil_map_units.csv holds bounding boxes only, hundreds of "
-                        "km wide, so it cannot identify the soil series at a point. The "
-                        "official BSWM shapefile is needed before drainage can come from "
-                        "a map rather than from the farmer."),
-    nino34_latest=dict(year=latest[0], month=latest[1], anom=nino[latest]) if latest else None,
-    data_limits=dict(imerg_from=first_valid("IMERG_PRECTOT"), toa_from=first_valid("TOA_SW_DWN"),
-                     imerg_time="UTC", main_time="LST",
-                     imerg_note="POWER header labels IMERG_PRECTOT as MERRA-2; treated as IMERG"),
-    seasons=[{k: s[k] for k in ("year", "start", "end", "window_rain", "nino_mean",
-                                "dry", "el_nino", "normal")} for s in SEASONS],
-    fields=fields,
-    planting_dates=WINDOW_OPTIONS,
-    crop_coefficients={n: dict(kc=c["kc"], source=c["kc_source"]) for n, c in CROPS.items()})
-with open("results.json", "w") as out_file:
-    json.dump(clean(results), out_file, indent=1)
-print("\nSaved results.json")
+    latest = max(nino) if nino else None
+    results = dict(
+        meta=dict(location_name=LOCATION_NAME, latitude=FIELD_LAT, longitude=FIELD_LON,
+                  harvest=HARVEST, next_planting=NEXT_PLANTING,
+                  window_days=WINDOW_DAYS, seasons=len(SEASONS), pass_mark=PASS_MARK,
+                  drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE, soil_texture=SOIL_TEXTURE,
+                  scored_lengths="EcoCrop cycle minimum and maximum, capped at the window",
+                  planting_offsets=PLANTING_OFFSETS, heat_limit_c=HEAT_LIMIT_C,
+                  placeholders=["window", "soil_texture", "texture_score", "normal_definition",
+                                "heat_limit_c"]),
+        method=dict(
+            eto="FAO-56 Eq.52 Hargreaves, from T2M, T2M_MAX, T2M_MIN and TOA_SW_DWN (Ra)",
+            eto_from=first_valid("TOA_SW_DWN"),
+            etc="FAO-56 single crop coefficient curve, stage lengths scaled to the cycle",
+            water_score="relative water supply, rain divided by ETc, capped at 1",
+            heat="days over heat_limit_c, reported as evidence only, not scored",
+            gwetroot="reported as a 0-1 wetness fraction, deliberately not converted to mm, "
+                     "which would need rooting depth and available water capacity",
+            ecocrop_rain="EcoCrop rainfall limits are ANNUAL (FAO datasheets label the row "
+                         "'Rainfall (annual)'); they are a regional climate envelope and are "
+                         "not used as a within-window water test"),
+        soil=dict(ph=SOIL_PH, texture=SOIL_TEXTURE, source=SOIL_SOURCE, sample=SOIL,
+                  texture_mapping="USDA texture name grouped into light/medium/heavy; "
+                                  "clay loam and sandy clay loam are called medium and sit "
+                                  "on the boundary",
+                  drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE,
+                  bswm_note="bswm_soil_map_units.csv holds bounding boxes only, hundreds of "
+                            "km wide, so it cannot identify the soil series at a point. The "
+                            "official BSWM shapefile is needed before drainage can come from "
+                            "a map rather than from the farmer."),
+        nino34_latest=dict(year=latest[0], month=latest[1], anom=nino[latest]) if latest else None,
+        data_limits=dict(imerg_from=first_valid("IMERG_PRECTOT"), toa_from=first_valid("TOA_SW_DWN"),
+                         imerg_time="UTC", main_time="LST",
+                         imerg_note="POWER header labels IMERG_PRECTOT as MERRA-2; treated as IMERG"),
+        seasons=[{k: s[k] for k in ("year", "start", "end", "window_rain", "nino_mean",
+                                    "dry", "el_nino", "normal")} for s in SEASONS],
+        fields=fields,
+        planting_dates=WINDOW_OPTIONS,
+        crop_coefficients={n: dict(kc=c["kc"], source=c["kc_source"]) for n, c in CROPS.items()})
+    with open("results.json", "w") as out_file:
+        json.dump(clean(results), out_file, indent=1)
+    print("\nSaved results.json")
+
+if __name__ == "__main__":
+    main()
