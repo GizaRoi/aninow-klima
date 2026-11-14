@@ -1,20 +1,27 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, ArrowUpRight, ArrowLeft, Bookmark, CalendarDays, Check, CheckCircle2, ChevronDown, CircleHelp, CloudRain, Download, Droplets, ExternalLink, History, Info, LayoutDashboard, Leaf, MapPin, Menu, Plus, RotateCcw, Satellite, ShieldCheck, SlidersHorizontal, Sprout, Sun, Thermometer, Wallet, Wheat, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ArrowLeft, Bookmark, CalendarDays, Check, CheckCircle2, ChevronDown, CircleHelp, CloudRain, Download, Droplets, ExternalLink, History, Info, LayoutDashboard, Leaf, MapPin, Menu, Plus, RotateCcw, Satellite, ShieldCheck, SlidersHorizontal, Sprout, Sun, Thermometer, Users, Wallet, Wheat, X } from 'lucide-react';
 import { defaults, priorities, evaluate, validateInputs, php, dateLabel, type Inputs, type Result, type SavedPlan, type Priority } from '../lib/demo';
 
 import powerSample from '../lib/power-sample.json';
 import { LanguageProvider, LanguageSwitch, useLanguage } from '../lib/language';
 import { localizeResult } from '../lib/translations';
 
-type View = 'overview' | 'planner' | 'results' | 'history' | 'sources';
+type View = 'overview' | 'planner' | 'results' | 'history' | 'sources' | 'team';
 const nav = [
   { id: 'overview', label: 'My field', icon: LayoutDashboard },
   { id: 'planner', label: 'Plan next planting', icon: Sprout },
   { id: 'history', label: 'Saved comparisons', icon: History },
   { id: 'sources', label: 'Data & challenge', icon: Satellite },
+  { id: 'team', label: 'Our team', icon: Users },
 ] as const;
+const team = [
+  { name: 'Romano Franco Huraño', photo: 'romano-franco-hurano.webp' },
+  { name: 'Christian Paul Godilano', photo: 'christian-paul-godilano.webp' },
+  { name: 'Roimarc Bilbao', photo: 'roimarc-bilbao.png' },
+  { name: 'Yuan Yancey Labay', photo: 'yuan-yancey-labay.webp' },
+];
 const sourceLinks = [
   { name: 'Field Shift challenge', type: 'Verified challenge brief', url: 'https://www.spaceappschallenge.org/2026/challenges/field-shift-adapting-farms-with-nasa-data/', description: 'Use NASA Earth observations, local soil information, crop characteristics and farmer priorities to explore rotation strategies.' },
   { name: '2026 participation & submission', type: 'Verified event overview', url: 'https://www.spaceappschallenge.org/2026/', description: 'Register, select an event, form a team of at most six, and submit through the project tab. The event page lists November 14–15, 2026; confirm the applicable local deadline.' },
@@ -219,6 +226,11 @@ function Prototype() {
           <div className="session-notice"><Info size={17}/><p>{t("Demo history stays in this tab’s browser session. It is not an account or a production farm record.")}</p></div>
           {saved.length === 0 ? <div className="empty-state"><span><Bookmark size={34}/></span><h2>{t("A little space for your next idea.")}</h2><p>{t("Compare your planting options, then save a scenario to come back to it here.")}</p><button className="button primary" onClick={() => go('planner')}>{t("Create a comparison")} <ArrowRight size={17}/></button></div> : <div className="history-list">{saved.map((plan, index) => <article className="history-card" key={plan.id}><span className="history-icon"><Sprout size={22}/></span><div><p className="overline">{t("SYNTHETIC DEMO ·")} {t(plan.inputs.simulation ? 'SIMULATION ENABLED' : 'YIELD ESTIMATES OFF')}</p><h3>{t("Maligaya field · comparison")} {saved.length - index}</h3><p>{dateLabel(plan.inputs.plantingDate, language)} · {t(priorities.find(p => p.id === plan.inputs.priority)?.label ?? '')} · {php(plan.inputs.budget)}  {t("starting budget")}</p></div><button className="button secondary" onClick={() => { setApplied({ ...plan.inputs }); setInputs({ ...plan.inputs }); go('results'); }}>{t("Open")} <ArrowUpRight size={16}/></button></article>)}</div>}
         </>}
+
+        {view === 'team' && <section className="team-page" aria-labelledby="team-title">
+          <div className="team-heading"><span className="team-kicker"><Sprout size={16}/>{t('AniNow Klima')}</span><h1 id="team-title">{t('Our team')}</h1></div>
+          <div className="team-grid">{team.map(member => <article className="team-card" key={member.name}><img src={`/images/team/${member.photo}`} alt={member.name} loading="lazy"/><h2>{member.name}</h2></article>)}</div>
+        </section>}
 
         {view === 'sources' && <>
           <div className="page-heading"><div><p className="eyebrow">{t("TRANSPARENT BY DESIGN")}</p><h1>{t("The evidence behind the idea.")}</h1><p>{t("What the challenge asks, what this prototype does, and what comes next.")}</p></div><a className="button secondary" href={sourceLinks[0].url} target="_blank" rel="noreferrer">{t("Official challenge")} <ExternalLink size={16}/></a></div>

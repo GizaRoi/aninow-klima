@@ -423,7 +423,7 @@ html { scroll-padding-top: 120px; }
 .app-shell .sidebar nav { min-width: 0; }
 .app-shell .nav-item { white-space: normal; }
 .app-shell .brand { flex-shrink: 0; }
-@media (min-width: 681px) and (max-width: 1280px) {
+@media (min-width: 681px) and (max-width: 1500px) {
   html { scroll-padding-top: 170px; }
   .app-shell .site-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 20px; min-height: 0; padding: 18px 0; }
   .app-shell .site-header > .sidebar { display: contents; }
@@ -446,3 +446,14 @@ html { scroll-padding-top: 120px; }
 @media (max-width: 360px) {
   .app-shell .mobile-header-brand .brand-icon { display: none; }
 }
+
+.app-shell .team-page { max-width: 1392px; margin: 0 auto; padding: 48px 0 80px; }
+.app-shell .team-heading { margin-bottom: 36px; }
+.app-shell .team-kicker { display: inline-flex; align-items: center; gap: 9px; color: #d5ed8c; font-size: 14px; font-weight: 600; }
+.app-shell .team-heading h1 { margin: 16px 0 0; color: #f6f8ed; font-size: clamp(42px, 5vw, 68px); letter-spacing: -.05em; line-height: 1.05; }
+.app-shell .team-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.app-shell .team-card { min-width: 0; overflow: hidden; background: #394d3e; border: 1px solid #d7e8bd38; border-radius: 16px; }
+.app-shell .team-card img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: center top; background: #526653; }
+.app-shell .team-card h2 { margin: 0; padding: 20px; color: #f6f8ed; font-size: clamp(17px, 1.4vw, 21px); line-height: 1.3; }
+@media (max-width: 900px) { .app-shell .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .app-shell .team-page { padding-top: 28px; } .app-shell .team-grid { gap: 12px; } .app-shell .team-card h2 { padding: 14px; font-size: 16px; } }
