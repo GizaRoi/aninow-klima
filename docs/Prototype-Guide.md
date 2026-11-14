@@ -30,7 +30,7 @@ The Playwright configuration uses locally installed Google Chrome. Configure an 
 
 ## What works
 
-- Responsive field overview, illustrated map and archived NASA climate cards.
+- Responsive field overview with an original floating-farm illustration, translucent field/climate panels, illustrated planner map and archived NASA climate cards. The hero sparkline plots the archived daily maximum temperatures; it does not show a forecast or a crop score.
 - Planning form for field area, planting/return dates, irrigation scenario, drainage, starting budget, buyer access and farmer priority.
 - Rice/mungbean comparison with explicit pass/fail/unknown checks. Hard failures remain failures regardless of the chosen priority. Priority selection frames the comparison; no best-crop ranking is claimed with this one-alternative fixture.
 - Optional synthetic yield/income scenario, editable prices, reason/assumption dialogs, and JSON export.
@@ -63,6 +63,6 @@ Use the [roadmap](MVP-Roadmap.md) and its evidence gates before publishing farme
 
 Text colors in `apps/web/app/globals.css` use shared secondary, success, warning, danger, and light-on-dark tokens so helper text and status labels remain readable across the pale cards and green banners.
 
-Application code and field artwork are original project material under the repository's Apache-2.0 license. Lucide supplies icons; DM Sans and Manrope are loaded from Google Fonts with system fallbacks. Respect their upstream licenses when redistributing assets. NASA POWER data is credited in the app. No NASA or Space Apps logo is used and no endorsement is implied.
+Application code and SVG field artwork are original project material under the repository's Apache-2.0 license. The hero image is AI-generated concept artwork, not satellite imagery. Its prompt, saved asset and visual reference are recorded in [Visual Design](Visual-Design.md). Lucide supplies icons; DM Sans and Manrope are loaded from Google Fonts with system fallbacks. Respect their upstream licenses when redistributing assets. NASA POWER data is credited in the app. No NASA or Space Apps logo is used and no endorsement is implied.
 
 AI assisted coding, fixture generation and documentation; project members must review and describe those contributions accurately in their eventual submission. See [Space Apps guidance](Space-Apps-Guidance.md).

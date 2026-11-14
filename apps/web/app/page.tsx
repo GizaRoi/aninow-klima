@@ -65,6 +65,23 @@ function Status({ result }: { result: Result }) {
   return <span className={`status ${result.feasibility}`}><span/>{label}</span>;
 }
 
+function ClimateChart() {
+  const values = Object.values(powerSample.raw.properties.parameter.T2M_MAX);
+  const low = Math.floor(Math.min(...values));
+  const high = Math.ceil(Math.max(...values));
+  const points = values.map((value, index) => `${8 + index * 264 / (values.length - 1)},${78 - (value - low) * 60 / (high - low)}`).join(' ');
+  return <div className="climate-chart">
+    <svg viewBox="0 0 280 104" role="img" aria-label={`Archived daily maximum temperatures, 1 to 30 January 2024, ranging from ${Math.min(...values).toFixed(1)} to ${Math.max(...values).toFixed(1)} degrees Celsius.`}>
+      <defs><linearGradient id="climate-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#d5ef7d" stopOpacity=".4"/><stop offset="100%" stopColor="#d5ef7d" stopOpacity="0"/></linearGradient></defs>
+      <path d="M8 26H272 M8 54H272 M8 82H272" className="chart-grid"/>
+      <polygon points={`8,88 ${points} 272,88`} fill="url(#climate-fill)"/>
+      <polyline points={points} fill="none" stroke="#f4f5e8" strokeWidth="1.8" strokeLinejoin="round"/>
+      {values.map((value, index) => index % 5 === 0 && <circle key={index} cx={8 + index * 264 / (values.length - 1)} cy={78 - (value - low) * 60 / (high - low)} r="2.5" fill="#d5ef7d"/>)}
+      <text x="8" y="102">01 Jan</text><text x="123" y="102">15 Jan</text><text x="242" y="102">30 Jan</text>
+    </svg>
+  </div>;
+}
+
 export default function Home() {
   const [view, setView] = useState<View>('overview');
   const [inputs, setInputs] = useState<Inputs>({ ...defaults });
@@ -122,7 +139,7 @@ export default function Home() {
   };
   const clearSaved = () => { try { sessionStorage.removeItem('aninow-demo-plans-v1'); setSaved([]); setToast('Demo session history cleared.'); } catch { setToast('Browser storage is unavailable.'); } };
 
-  return <div className="app-shell">
+  return <div className={`app-shell view-${view}`}>
     <a className="skip-link" href="#main">Skip to main content</a>
     {mobileNav && <button className="nav-scrim" aria-label="Close navigation" onClick={() => setMobileNav(false)}/>}
     <aside className={`sidebar ${mobileNav ? 'open' : ''}`}>
@@ -137,8 +154,17 @@ export default function Home() {
       <header className="topbar"><div className="breadcrumb"><button className="mobile-menu icon-button" aria-label="Open navigation" onClick={() => setMobileNav(true)}><Menu size={22}/></button><span>MY FARM</span><ChevronRight size={13}/><strong>{view === 'results' ? 'PLANTING COMPARISON' : nav.find(n => n.id === view)?.label.toUpperCase()}</strong></div><div className="topbar-right"><span className="prototype-pill"><span/> Interactive prototype</span><span className="language-label">EN</span></div></header>
       <main id="main" tabIndex={-1}>
         {view === 'overview' && <>
-          <div className="page-heading"><div><p className="eyebrow">A LITTLE EVIDENCE. A CLEARER DECISION.</p><h1>Let’s grow what comes next.</h1><p>Explore the possibilities for your field, one planting at a time.</p></div><button className="button primary" onClick={() => go('planner')}><Plus size={18}/> Plan next planting</button></div>
-          <section className="hero"><div className="hero-copy"><span className="hero-kicker"><span/> ROOTED IN YOUR REALITY</span><h2>Your field.<br/>Your next chapter.</h2><p>A familiar crop or a fresh rotation?<br/>Find the questions worth asking before you plant.</p><button className="button cream" onClick={() => go('planner')}>Explore planting options <ArrowUpRight size={18}/></button><span className="hero-footnote">Built for Filipino rice farmers</span></div><div className="hero-art"><FieldMap dark/><div className="hero-field-tag"><span className="mini-icon"><Sprout size={17}/></span><span><strong>A new possibility starts here.</strong><small>Your next planting, in perspective.</small></span></div></div></section>
+          <section className="landscape-hero" aria-label="Your next planting">
+            <img className="landscape-image" src="/images/farm-diorama.png" alt="An artistic three-dimensional rice farm with green and golden crop plots floating in soft mist." fetchPriority="high"/>
+            <div className="landscape-shade"/>
+            <div className="landscape-copy"><span className="scene-kicker"><Sprout size={13}/> A new season of possibilities</span><h1>Let’s grow<br/>what comes next.</h1><p>Your field. A little evidence.<br/>A clearer path to your next planting.</p><button className="button scene-cta" onClick={() => go('planner')}>Plan next planting <ArrowUpRight size={17}/></button></div>
+            <span className="scene-location"><MapPin size={13}/> Tarlac, Philippines <span>15.48° N · 120.59° E</span></span>
+            <section className="glass-panel field-glass"><div className="glass-title"><h2>Your field, in focus.</h2><button className="glass-icon" aria-label="Edit sample field details" onClick={() => go('planner')}><ArrowUpRight size={18}/></button></div><p className="glass-caption">Maligaya field <span>Sample field · 01</span></p><div className="glass-field-metrics"><div><span>Field area</span><strong>{applied.area.toFixed(1)}<small> ha</small></strong></div><div><span>Previous crop</span><strong>Rice<small> / Palay</small></strong></div></div><div className="glass-field-footer"><span className="lime-dot"/>{applied.water === 'limited' ? 'Limited irrigation' : applied.water === 'reliable' ? 'Reliable irrigation' : 'No irrigation'}<span>Demo scenario</span></div></section>
+            <section className="glass-panel climate-glass"><div className="glass-title"><h2>A little climate context.</h2><Satellite size={17}/></div><p className="glass-caption">Daily maximum temperature <span>Archived</span></p><div className="glass-temperature"><strong>{powerSample.meanDailyMaximumC.toFixed(1)}<small>°C</small></strong><span>Mean daily maximum<br/>1–30 Jan 2024 · UTC</span></div><ClimateChart/><a className="glass-source" href={powerSample.sourceUrl} target="_blank" rel="noreferrer">NASA POWER <ArrowUpRight size={12}/><span>Regional context</span></a></section>
+            <div className="scene-bottom"><span><span className="lime-dot"/> Interactive prototype <span className="scene-art-note">· Concept artwork, not satellite imagery</span></span><a href="#field-snapshot">Scroll to explore <ChevronDown size={15}/></a></div>
+          </section>
+          <div className="overview-intro"><span className="scene-kicker"><Leaf size={13}/> Rooted in your reality</span><h2>Every next season<br/>starts with <em>your field.</em></h2><p>A familiar crop or a fresh rotation? Explore what fits your water, budget, and planting window before you decide.</p></div>
+          <div id="field-snapshot" className="snapshot-anchor"/>
           <div className="section-heading"><div><span className="section-index">01</span><h2>A snapshot of your field</h2></div><span className="muted-small">Example location · Tarlac, Central Luzon</span></div>
           <div className="field-grid"><section className="field-card"><div className="field-card-heading"><span className="field-icon"><Wheat size={22}/></span><span><p className="overline">YOUR SAMPLE FIELD</p><h3>Maligaya field <span>01</span></h3></span><button className="icon-button edit-field" aria-label="Edit sample field details" onClick={() => go('planner')}><SlidersHorizontal size={17}/></button></div><div className="field-facts"><div><span>Field area</span><strong>{applied.area.toFixed(1)} <small>hectare{applied.area !== 1 ? 's' : ''}</small></strong></div><div><span>Previous crop</span><strong>Rice <small>Palay</small></strong></div><div><span>Water access</span><strong>{applied.water === 'limited' ? 'Limited' : applied.water === 'reliable' ? 'Reliable' : 'None'} <small>irrigation</small></strong></div></div><div className="field-card-bottom"><MapPin size={14}/><span>Illustrative field · no approved pilot yet</span></div></section>
           <div className="condition-card"><div className="condition-icon warm"><Thermometer size={21}/></div><span className="overline">MEAN DAILY MAXIMUM</span><strong>{powerSample.meanDailyMaximumC.toFixed(1)}<span>°C</span></strong><p>1–30 Jan 2024 · UTC</p><a className="sample-tag" href={powerSample.sourceUrl} target="_blank" rel="noreferrer">NASA POWER · archived ↗</a></div><div className="condition-card"><div className="condition-icon blue"><CloudRain size={21}/></div><span className="overline">TOTAL PRECIPITATION</span><strong>{powerSample.precipitationTotalMm}<span> mm</span></strong><p>1–30 Jan 2024 · UTC</p><a className="sample-tag" href={powerSample.sourceUrl} target="_blank" rel="noreferrer">NASA POWER · archived ↗</a></div></div>
