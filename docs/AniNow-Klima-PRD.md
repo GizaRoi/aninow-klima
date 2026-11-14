@@ -1,6 +1,6 @@
 # AniNow Klima — Product Requirements
 
-Planning revision: 2026-11-14. Intended for NASA Space Apps **Field Shift: Adapting Farms with NASA Data**. Implementation has not started.
+Planning revision: 2026-11-14. Intended for NASA Space Apps **Field Shift: Adapting Farms with NASA Data**. An initial frontend interaction prototype is implemented; production services and reviewed advisory rules remain planned. See [Prototype guide](Prototype-Guide.md).
 
 ## Product promise
 

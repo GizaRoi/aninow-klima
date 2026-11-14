@@ -11,6 +11,10 @@ AniNow Klima helps Filipino rice farmers compare planting rice again with locall
 - Remote repository: https://github.com/GizaRoi/aninow-klima.git
 - Planned stack: Next.js, React, TypeScript, Supabase, and Vercel, with a separate Python training workflow and prediction service.
 
+## Current prototype
+
+The Next.js static prototype is in `apps/web`; synthetic evaluation fixtures are isolated in `apps/web/lib/demo.ts`. `power-sample.json` is an archived public NASA response used only for context cards. See [docs/Prototype-Guide.md](docs/Prototype-Guide.md). Run `npm run typecheck`, `npm test`, and `npm run build`; Windows PowerShell may need `npm.cmd`. Never promote demo numbers into production agronomic rules. No Python service or Supabase backend is deployed.
+
 ## Git worktree workflow
 
 Use Git worktrees for development in this workspace. The workspace contains two sibling directories: `main/` holds the main repository checkout, and `worktrees/` holds additional checkouts at `worktrees/<task-name>/`, each on its own task branch. The workspace container itself is not a Git repository.

@@ -1,6 +1,6 @@
 # AniNow Klima — Resources and Evidence
 
-Research date: 2026-11-14. This register translates the supplied Space Apps resource list into implementation priorities. Sources are candidates unless an ingestion artifact and review record say otherwise; none are integrated yet. The project has no NASA endorsement. Preserve each publisher's attribution and usage terms, including non-NASA resources.
+Research date: 2026-11-14. This register translates the supplied Space Apps resource list into implementation priorities. Sources are candidates unless an ingestion artifact and review record say otherwise; the visual prototype includes one archived POWER sample. Production ingestion and decision integration are not complete; see [Prototype guide](Prototype-Guide.md). The project has no NASA endorsement. Preserve each publisher's attribution and usage terms, including non-NASA resources.
 
 ## Challenge and product fit
 

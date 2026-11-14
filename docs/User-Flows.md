@@ -1,6 +1,6 @@
 # AniNow Klima — User Flows
 
-Status: proposed rice-farmer behavior, revised 2026-11-14. These journeys implement the [PRD](AniNow-Klima-PRD.md) and [decision specification](Decision-Engine-Spec.md); no app screens exist yet.
+Status: proposed rice-farmer behavior, revised 2026-11-14. These journeys implement the [PRD](AniNow-Klima-PRD.md) and [decision specification](Decision-Engine-Spec.md); the visual prototype implements a subset with synthetic crop fixtures. See [Prototype guide](Prototype-Guide.md) for the current boundary.
 
 ## Scope and entry
 

@@ -1,6 +1,6 @@
 # AniNow Klima — MVP Roadmap
 
-Status: implementation plan, revised 2026-11-14. No milestone is complete. Owners are roles to assign, not named commitments. Build the decision prototype first; validated comparative prediction and real-farmer rollout have additional gates.
+Status: implementation plan, revised 2026-11-14. No full production milestone is complete. A browser prototype, source sample and initial software checks now implement part of the scaffold/UI work; see [Prototype guide](Prototype-Guide.md). Owners are roles to assign, not named commitments. Build the decision prototype first; validated comparative prediction and real-farmer rollout have additional gates.
 
 ## Decisions set for implementation
 

@@ -4,7 +4,7 @@ AniNow Klima helps Filipino rice farmers decide what to consider planting after 
 
 ## Status and delivery boundary
 
-Planning revision: 2026-11-14. This repository contains documentation and a license. The app, database migrations, data integrations, and predictive models are not implemented. Contracts describe intended behavior, not deployed services.
+Planning revision: 2026-11-14. A Next.js visual prototype now exists in `apps/web`, with archived NASA POWER context, synthetic crop checks and browser-session history. Production database migrations, ingestion adapters and predictive models are not implemented. Contracts describe the target production behavior; the demo module is not that API.
 
 The first release is a **decision prototype** for one Philippine pilot area, with rice as the baseline and one or two alternatives. It checks feasibility, compares calendar/water/soil considerations, and calculates finances only from supported or explicitly simulated assumptions. A later **predictive MVP** requires validated yield estimates for rice and at least one alternative. Finishing the prototype does not complete that model milestone.
 
@@ -14,6 +14,8 @@ The pilot location, alternative crop/variety profiles, numerical agronomic thres
 
 | Document | Purpose |
 |---|---|
+| [Prototype guide](Prototype-Guide.md) | Local run commands, working interactions, real-data/fixture boundary and current limits |
+| [Space Apps guidance](Space-Apps-Guidance.md) | Verified challenge/event information and guide details needing confirmation |
 | [Product requirements](AniNow-Klima-PRD.md) | Target user, next-planting scope, user value and acceptance |
 | [Decision engine specification](Decision-Engine-Spec.md) | Canonical inputs, feasibility, priorities, calendar and financial semantics |
 | [User flows](User-Flows.md) | Screens, farmer questions, comparisons and recovery behavior |
@@ -52,7 +54,7 @@ aninow-klima-worktree/
 └── worktrees/<task>/     # Isolated task checkouts, each with docs/
 ```
 
-Follow [AGENTS.md](../AGENTS.md). From the workspace container use `git -C main status`; task changes belong in their selected worktree. No runnable setup commands exist yet. Scaffolding must add dependency/runtime versions, an `.env.example` without secrets, local database/service instructions, and project checks.
+Follow [AGENTS.md](../AGENTS.md). From the workspace container use `git -C main status`; task changes belong in their selected worktree. Run the prototype using the [prototype guide](Prototype-Guide.md). The current frontend needs no secrets. Add an `.env.example`, local database/service instructions and runtime configuration when those services are actually implemented.
 
 ## License and attribution
 

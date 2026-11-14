@@ -1,0 +1,56 @@
+import { test, expect } from '@playwright/test';
+
+test('desktop comparison, constraints, simulation and saved session flow', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Let’s grow what comes next.' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/overview-desktop.png', fullPage: true });
+  await page.getByRole('button', { name: 'Plan next planting', exact: true }).last().click();
+  await page.getByRole('combobox', { name: 'Field drainage', exact: true }).selectOption('well_drained');
+  await page.getByRole('combobox', { name: /Buyer access for both demo crops/ }).selectOption('available');
+  await page.getByLabel('Include an illustrative harvest & income scenario', { exact: false }).check();
+  await page.getByRole('button', { name: 'Compare planting options' }).click();
+  await expect(page.getByRole('heading', { name: 'A clearer comparison.' })).toBeVisible();
+  await expect(page.locator('.result-card.mungbean .status')).toHaveText('Fits this demo');
+  await expect(page.locator('.result-card.rice .status')).toHaveText('Constraint found');
+  await page.getByLabel('Mungbean selling price').fill('70');
+  await expect(page.locator('.result-card.mungbean')).toContainText('36,000');
+  await page.locator('.result-card.mungbean').getByRole('button', { name: 'See reasons & assumptions' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Save comparison', exact: true }).click();
+  await page.getByRole('button', { name: /Saved comparisons/ }).click();
+  await expect(page.locator('.history-card')).toHaveCount(1);
+  await page.reload();
+  await page.getByRole('button', { name: /Saved comparisons/ }).click();
+  await expect(page.locator('.history-card')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Open', exact: false }).last().click();
+  await page.getByRole('button', { name: 'Adjust inputs' }).click();
+  await page.getByLabel('Field must be ready for rice again by', { exact: false }).fill('2027-02-01');
+  await page.getByRole('button', { name: 'Compare planting options' }).click();
+  await expect(page.locator('.result-card.mungbean .status')).toHaveText('Constraint found');
+  await expect(page.getByText('No confirmed fit yet—and that’s useful to know.')).toBeVisible();
+  await expect(page.locator('body')).not.toHaveJSProperty('scrollWidth', 0);
+  expect(errors).toEqual([]);
+});
+
+test('mobile navigation, readable layout and official sources', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Let’s grow what comes next.' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/overview-mobile.png', fullPage: true });
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await page.getByRole('button', { name: 'Data & challenge', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'The evidence behind the idea.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Official challenge', exact: false })).toHaveAttribute('href', /spaceappschallenge.org/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await page.getByRole('button', { name: 'Plan next planting', exact: true }).click();
+  await page.getByRole('button', { name: 'Compare planting options' }).click();
+  await expect(page.getByRole('heading', { name: 'A clearer comparison.' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/comparison-mobile.png', fullPage: true });
+});

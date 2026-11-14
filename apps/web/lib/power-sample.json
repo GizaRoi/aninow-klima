@@ -1,0 +1,122 @@
+{
+  "source": "NASA POWER Daily API",
+  "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX%2CPRECTOTCORR&community=AG&longitude=120.59&latitude=15.48&start=20240101&end=20240130&format=JSON&time-standard=UTC",
+  "retrievedAt": "2026-11-14T08:01:07.027Z",
+  "start": "2024-01-01",
+  "end": "2024-01-30",
+  "timeStandard": "UTC",
+  "latitude": 15.48,
+  "longitude": 120.59,
+  "meanDailyMaximumC": 32,
+  "precipitationTotalMm": 17.7,
+  "note": "Archived regional climate context only. Not a field measurement, forecast, or input to the synthetic crop comparison.",
+  "raw": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        120.59,
+        15.48,
+        107.63
+      ]
+    },
+    "properties": {
+      "parameter": {
+        "T2M_MAX": {
+          "20240101": 33.14,
+          "20240102": 32.46,
+          "20240103": 32.7,
+          "20240104": 32.87,
+          "20240105": 32.52,
+          "20240106": 32.94,
+          "20240107": 32.6,
+          "20240108": 32.22,
+          "20240109": 33.41,
+          "20240110": 33.64,
+          "20240111": 32.21,
+          "20240112": 31.48,
+          "20240113": 32.29,
+          "20240114": 31.69,
+          "20240115": 31.99,
+          "20240116": 30.14,
+          "20240117": 30.24,
+          "20240118": 31.85,
+          "20240119": 32.52,
+          "20240120": 32.67,
+          "20240121": 33.96,
+          "20240122": 32.77,
+          "20240123": 31.91,
+          "20240124": 30.46,
+          "20240125": 31.65,
+          "20240126": 30.76,
+          "20240127": 30.63,
+          "20240128": 30.45,
+          "20240129": 30.96,
+          "20240130": 32.06
+        },
+        "PRECTOTCORR": {
+          "20240101": 0.54,
+          "20240102": 0.1,
+          "20240103": 0.08,
+          "20240104": 0.12,
+          "20240105": 0.02,
+          "20240106": 0,
+          "20240107": 0.03,
+          "20240108": 0.72,
+          "20240109": 0.07,
+          "20240110": 0.09,
+          "20240111": 0.1,
+          "20240112": 0.09,
+          "20240113": 0.02,
+          "20240114": 0.1,
+          "20240115": 0.21,
+          "20240116": 0.14,
+          "20240117": 0.04,
+          "20240118": 1.19,
+          "20240119": 0.19,
+          "20240120": 0.29,
+          "20240121": 0.05,
+          "20240122": 0.14,
+          "20240123": 12.29,
+          "20240124": 0.69,
+          "20240125": 0.1,
+          "20240126": 0.01,
+          "20240127": 0.03,
+          "20240128": 0.12,
+          "20240129": 0,
+          "20240130": 0.11
+        }
+      }
+    },
+    "header": {
+      "title": "NASA/POWER Source Native Resolution Daily Data",
+      "api": {
+        "version": "v2.10.3",
+        "name": "POWER Daily API"
+      },
+      "sources": [
+        "MERRA2",
+        "POWER"
+      ],
+      "fill_value": -999,
+      "time_standard": "UTC",
+      "start": "20240101",
+      "end": "20240130"
+    },
+    "messages": [],
+    "parameters": {
+      "T2M_MAX": {
+        "units": "C",
+        "longname": "Temperature at 2 Meters Maximum"
+      },
+      "PRECTOTCORR": {
+        "units": "mm/day",
+        "longname": "Precipitation Corrected"
+      }
+    },
+    "times": {
+      "data": 0.318,
+      "process": 0.01
+    }
+  }
+}
