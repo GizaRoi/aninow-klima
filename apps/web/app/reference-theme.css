@@ -406,13 +406,15 @@ main { max-width: 1392px; min-height: calc(100vh - 130px); padding: 38px; backgr
   html { scroll-behavior: auto; }
 }
 
-html { scroll-padding-top: 220px; }
-.app-shell .site-header { position: sticky; top: 0; z-index: 40; max-width: 1392px; margin: 0 auto; background: #2e4035; isolation: isolate; }
-.app-shell .language-bar { position: relative; z-index: 24; max-width: 1392px; margin: 0 auto; padding: 12px 0; min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #f4f6e9; background: #2e4035; border-bottom: 1px solid #d7e8bd33; }
-.app-shell .language-label-visible { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 550; }
-.app-shell .language-label-visible > svg { color: #d5ed8c; }
-.app-shell .language-buttons { display: flex; gap: 4px; padding: 4px; border: 1px solid #d5ed8c66; border-radius: 8px; background: #1e3128; }
-.app-shell .language-buttons button { min-height: 44px; padding: 10px 17px; border-radius: 5px; color: #e8f1d5; font-size: 15px; font-weight: 600; }
+html { scroll-padding-top: 120px; }
+.app-shell .site-header { position: sticky; top: 0; z-index: 40; max-width: 1392px; min-height: 92px; margin: 0 auto 22px; display: flex; align-items: center; gap: 22px; background: #2e4035; border-bottom: 1px solid #d7e8bd24; isolation: isolate; }
+.app-shell .site-header > .sidebar { position: relative; inset: auto; flex: 1 1 auto; min-width: 0; width: auto; height: 92px; margin: 0; }
+.app-shell .site-header .profile { display: none; }
+.app-shell .header-menu, .app-shell .mobile-header-brand { display: none; }
+.app-shell .language-bar { position: relative; z-index: 24; flex: 0 0 auto; margin: 0; padding: 0; min-height: 0; display: flex; align-items: center; color: #f4f6e9; background: transparent; border: 0; }
+.app-shell .language-label-visible { display: none; }
+.app-shell .language-buttons { display: flex; gap: 3px; padding: 4px; border: 1px solid #d5ed8c55; border-radius: 9px; background: #26392e; }
+.app-shell .language-buttons button { min-height: 42px; padding: 9px 14px; border-radius: 6px; color: #e8f1d5; font-size: 14px; font-weight: 600; }
 .app-shell .language-buttons button[aria-pressed=true] { background: #d5ed8c; color: #233728; }
 .app-shell .language-buttons button:hover { background: #ffffff20; }
 .app-shell .language-buttons button[aria-pressed=true]:hover { background: #e2f4af; }
@@ -420,11 +422,26 @@ html { scroll-padding-top: 220px; }
 .app-shell .sidebar nav { min-width: 0; }
 .app-shell .nav-item { white-space: normal; }
 .app-shell .brand { flex-shrink: 0; }
+@media (min-width: 681px) and (max-width: 1280px) {
+  html { scroll-padding-top: 170px; }
+  .app-shell .site-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 20px; min-height: 0; padding: 18px 0; }
+  .app-shell .site-header > .sidebar { display: contents; }
+  .app-shell .sidebar .brand { grid-column: 1; grid-row: 1; }
+  .app-shell .sidebar nav { grid-column: 1 / -1; grid-row: 2; width: 100%; margin: 0; justify-content: space-between; gap: 8px; }
+  .app-shell .language-bar { grid-column: 2; grid-row: 1; }
+}
 @media (max-width: 680px) {
   html { scroll-padding-top: 90px; }
-  .app-shell .language-bar { gap: 10px; padding: 8px 0; min-height: 62px; }
-  .app-shell .language-label-en { display: none; }
-  .app-shell .language-label-visible { font-size: 14px; gap: 7px; }
-  .app-shell .language-buttons button { font-size: 14px; padding: 10px 14px; }
+  .app-shell .site-header { display: flex; min-height: 76px; gap: 8px; margin-bottom: 16px; }
+  .app-shell .site-header > .sidebar { display: flex; position: fixed; inset: 0 auto 0 0; flex: none; width: 270px; max-width: 82vw; height: 100dvh; margin: 0; }
+  .app-shell .site-header .profile { display: flex; }
+  .app-shell .header-menu { display: grid; flex: 0 0 44px; width: 44px; height: 44px; color: #f1f4e5; }
+  .app-shell .mobile-header-brand { display: flex; align-items: center; gap: 6px; color: #f4f6e9; font: 800 19px 'Manrope', sans-serif; letter-spacing: -.8px; white-space: nowrap; }
+  .app-shell .mobile-header-brand .brand-icon { width: 28px; height: 28px; }
+  .app-shell .language-bar { margin-left: auto; }
+  .app-shell .language-buttons button { min-height: 42px; font-size: 14px; padding: 9px 8px; }
   .app-shell .sidebar .nav-item { width: 100%; }
+}
+@media (max-width: 360px) {
+  .app-shell .mobile-header-brand .brand-icon { display: none; }
 }
