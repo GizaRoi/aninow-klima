@@ -8,6 +8,8 @@ HARVEST = (11, 15)            # month, day. PLACEHOLDER window, Franco to confir
 NEXT_PLANTING = (5, 31)
 FIRST_YEAR, LAST_YEAR = 1981, 2024      # harvest years
 FIELD_LAT, FIELD_LON = 15.72, 120.90    # the POWER download point
+LOCATION_NAME = "Munoz, Nueva Ecija"    # pilot site; the prototype's "Tarlac" was wrong
+EXPECTED_PROVINCE = "Nueva Ecija"       # warn if the nearest soil sample is elsewhere
 DRAINAGE = "well_drained"     # well_drained / poorly_drained / unknown (farmer)
 DRAINAGE_SOURCE = "farmer"    # farmer or map; farmer for now
 USE_DRAINAGE_FILTER = True
@@ -564,9 +566,9 @@ if SOIL:
           f"({SOIL['organic_matter_class']})")
     if SOIL["quality_flags"]:
         print(f"  caveat: {SOIL['quality_flags']}")
-    if SOIL["province"] and "tarlac" not in SOIL["province"].lower():
-        print(f"  NOTE: this point is in {SOIL['province']}, not Tarlac. Check that the "
-              f"POWER download at {FIELD_LAT}, {FIELD_LON} is the field you mean.")
+    if SOIL["province"] and EXPECTED_PROVINCE.lower() not in SOIL["province"].lower():
+        print(f"  NOTE: nearest sample is in {SOIL['province']}, not {EXPECTED_PROVINCE}. "
+              f"Check that the POWER point {FIELD_LAT}, {FIELD_LON} is the field you mean.")
 else:
     print("No soil sample within", MAX_SOIL_SAMPLE_KM, "km.")
 print("Drainage is still the farmer's answer. bswm_soil_map_units.csv cannot refine it:")
@@ -662,7 +664,8 @@ def clean(o):
 
 latest = max(nino) if nino else None
 results = dict(
-    meta=dict(latitude=15.72, longitude=120.90, harvest=HARVEST, next_planting=NEXT_PLANTING,
+    meta=dict(location_name=LOCATION_NAME, latitude=FIELD_LAT, longitude=FIELD_LON,
+              harvest=HARVEST, next_planting=NEXT_PLANTING,
               window_days=WINDOW_DAYS, seasons=len(SEASONS), pass_mark=PASS_MARK,
               drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE, soil_texture=SOIL_TEXTURE,
               scored_lengths="EcoCrop cycle minimum and maximum, capped at the window",
