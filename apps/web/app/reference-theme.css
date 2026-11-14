@@ -407,7 +407,8 @@ main { max-width: 1392px; min-height: calc(100vh - 130px); padding: 38px; backgr
 }
 
 html { scroll-padding-top: 120px; }
-.app-shell .site-header { position: sticky; top: 0; z-index: 40; max-width: 1392px; min-height: 92px; margin: 0 auto 22px; display: flex; align-items: center; gap: 22px; background: #2e4035; border-bottom: 1px solid #d7e8bd24; isolation: isolate; }
+.app-shell .site-header { position: sticky; top: 0; z-index: 40; max-width: 1392px; min-height: 92px; margin: 0 auto 22px; display: flex; align-items: center; gap: 22px; background: transparent; border-bottom: 1px solid #d7e8bd24; isolation: isolate; transition: background .2s ease; }
+.app-shell .site-header.is-scrolled { background: #2e4035f0; }
 .app-shell .site-header > .sidebar { position: relative; inset: auto; flex: 1 1 auto; min-width: 0; width: auto; height: 92px; margin: 0; }
 .app-shell .site-header .profile { display: none; }
 .app-shell .header-menu, .app-shell .mobile-header-brand { display: none; }

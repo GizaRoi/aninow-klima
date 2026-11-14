@@ -99,11 +99,18 @@ function Prototype() {
   const [saved, setSaved] = useState<SavedPlan[]>([]);
   const [detail, setDetail] = useState<string | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
   const [toast, setToast] = useState('');
   const [error, setError] = useState('');
   const dialogRef = useRef<HTMLElement>(null);
   const results = evaluate(applied).map(result => localizeResult(result, applied, language));
   const selected = results.find(r => r.id === detail);
+  useEffect(() => {
+    const updateHeader = () => setHeaderScrolled(window.scrollY > 4);
+    updateHeader();
+    window.addEventListener('scroll', updateHeader, { passive: true });
+    return () => window.removeEventListener('scroll', updateHeader);
+  }, []);
   useEffect(() => {
     try {
       const raw: unknown = JSON.parse(sessionStorage.getItem('aninow-demo-plans-v1') ?? '[]');
@@ -151,7 +158,7 @@ function Prototype() {
 
   return <div className={`app-shell view-${view}`}>
     <a className="skip-link" href="#main">{t("Skip to main content")}</a>
-    <header className="site-header">
+    <header className={`site-header${headerScrolled ? ' is-scrolled' : ''}`}>
     <button className="header-menu icon-button" aria-label={t("Open navigation")} onClick={() => setMobileNav(true)}><Menu size={22}/></button>
     <div className="mobile-header-brand"><span className="brand-icon"><Sprout size={19}/></span><strong>AniNow</strong></div>
     {mobileNav && <button className="nav-scrim" aria-label={t("Close navigation")} onClick={() => setMobileNav(false)}/>}
