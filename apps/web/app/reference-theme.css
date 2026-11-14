@@ -406,7 +406,9 @@ main { max-width: 1392px; min-height: calc(100vh - 130px); padding: 38px; backgr
   html { scroll-behavior: auto; }
 }
 
-.app-shell .language-bar { position: sticky; top: 0; z-index: 24; max-width: 1392px; margin: 0 auto; padding: 12px 0; min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #f4f6e9; background: #2e4035f2; border-bottom: 1px solid #d7e8bd33; backdrop-filter: blur(16px); }
+html { scroll-padding-top: 220px; }
+.app-shell .site-header { position: sticky; top: 0; z-index: 40; max-width: 1392px; margin: 0 auto; background: #2e4035; isolation: isolate; }
+.app-shell .language-bar { position: relative; z-index: 24; max-width: 1392px; margin: 0 auto; padding: 12px 0; min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #f4f6e9; background: #2e4035; border-bottom: 1px solid #d7e8bd33; }
 .app-shell .language-label-visible { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 550; }
 .app-shell .language-label-visible > svg { color: #d5ed8c; }
 .app-shell .language-buttons { display: flex; gap: 4px; padding: 4px; border: 1px solid #d5ed8c66; border-radius: 8px; background: #1e3128; }
@@ -419,6 +421,7 @@ main { max-width: 1392px; min-height: calc(100vh - 130px); padding: 38px; backgr
 .app-shell .nav-item { white-space: normal; }
 .app-shell .brand { flex-shrink: 0; }
 @media (max-width: 680px) {
+  html { scroll-padding-top: 90px; }
   .app-shell .language-bar { gap: 10px; padding: 8px 0; min-height: 62px; }
   .app-shell .language-label-en { display: none; }
   .app-shell .language-label-visible { font-size: 14px; gap: 7px; }

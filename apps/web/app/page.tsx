@@ -150,8 +150,9 @@ function Prototype() {
   const clearSaved = () => { try { sessionStorage.removeItem('aninow-demo-plans-v1'); setSaved([]); setToast('Demo session history cleared.'); } catch { setToast('Browser storage is unavailable.'); } };
 
   return <div className={`app-shell view-${view}`}>
-    <LanguageSwitch/>
     <a className="skip-link" href="#main">{t("Skip to main content")}</a>
+    <header className="site-header">
+    <LanguageSwitch/>
     {mobileNav && <button className="nav-scrim" aria-label={t("Close navigation")} onClick={() => setMobileNav(false)}/>}
     <aside className={`sidebar ${mobileNav ? 'open' : ''}`}>
       <button className="brand" onClick={() => go('overview')} aria-label={t("AniNow Klima home")}><span className="brand-icon"><Sprout size={25}/></span><span>AniNow<span className="brand-sub">KLIMA</span></span></button>
@@ -160,6 +161,7 @@ function Prototype() {
       <div className="sidebar-bottom"><div className="orbit-icon"><Satellite size={22}/></div><p>{t("From space.")}<br/><strong>{t("To your field.")}</strong></p><span>NASA Space Apps 2026<br/>{t("Field Shift project")}</span><div className="sidebar-divider"/><button className="help-link" onClick={() => go('sources')}><CircleHelp size={17}/>  {t("About this prototype")} <ArrowUpRight size={14}/></button></div>
       <div className="profile"><span className="avatar">DF</span><span><strong>{t("Demo farmer")}</strong><small>{t("Explore your sample field")}</small></span><span className="profile-dot"/></div>
     </aside>
+    </header>
 
     <div className="main-shell">
       <header className="topbar"><div className="breadcrumb"><button className="mobile-menu icon-button" aria-label={t("Open navigation")} onClick={() => setMobileNav(true)}><Menu size={22}/></button><span>{t("MY FARM")}</span><ChevronRight size={13}/><strong>{t(view === 'results' ? 'PLANTING COMPARISON' : t(nav.find(n => n.id === view)?.label ?? '').toUpperCase())}</strong></div><div className="topbar-right"><span className="prototype-pill"><span/>  {t("Interactive prototype")}</span></div></header>

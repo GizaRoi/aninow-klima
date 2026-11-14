@@ -1,6 +1,6 @@
 # English and Tagalog
 
-The prominent **English / Tagalog** control stays at the top of every view. It uses language names, selected-state semantics and keyboard-accessible buttons. Selection is remembered in local storage when available; language switching continues to work if storage is unavailable. The document language and title update with the selection.
+The prominent **English / Tagalog** control stays at the top of every view. The language row and desktop navigation share one sticky header so they remain in separate rows while scrolling. It uses language names, selected-state semantics and keyboard-accessible buttons. Selection is remembered in local storage when available; language switching continues to work if storage is unavailable. The document language and title update with the selection.
 
 The UI uses a bundled, AI-authored Tagalog catalog at `apps/web/lib/messages.tl.json`. No Google service, API key or network translation request is used. The copy has not received native-speaker or agricultural-expert review and should be reviewed with the intended users before a production farmer-advisory release.
 
