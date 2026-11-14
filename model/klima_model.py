@@ -7,11 +7,15 @@ from statistics import median
 HARVEST = (11, 15)            # month, day. PLACEHOLDER window, Franco to confirm
 NEXT_PLANTING = (5, 31)
 FIRST_YEAR, LAST_YEAR = 1981, 2024      # harvest years
+FIELD_LAT, FIELD_LON = 15.72, 120.90    # the POWER download point
 DRAINAGE = "well_drained"     # well_drained / poorly_drained / unknown (farmer)
 DRAINAGE_SOURCE = "farmer"    # farmer or map; farmer for now
-SOIL_TEXTURE = "heavy"        # light / medium / heavy. DEMO INPUT
 USE_DRAINAGE_FILTER = True
-SOIL_PH = 6.3                 # SARAI_098, 17 Jul 2018, about 3.4 km (hand lookup)
+# Soil pH and texture are looked up from the nearest SARAI sample, below. Set
+# either of these to override the lookup; leave as None to use the sample.
+SOIL_PH_OVERRIDE = None
+SOIL_TEXTURE_OVERRIDE = None            # light / medium / heavy
+MAX_SOIL_SAMPLE_KM = 10.0     # refuse to use a sample further away than this
 PASS_MARK = 0.6
 DRY_SHARE = 0.20
 # Candidate planting dates, days after harvest. The window is ~197 days, so the
@@ -26,6 +30,8 @@ HEAT_LIMIT_C = 35.0
 NINO_THRESHOLD = 0.5
 NINO_FILE = "detrend.nino34.ascii.txt"
 CROPS_FILE = "crops.csv"
+SARAI_FILE = "sarai_soil_samples.csv"           # measured soil samples, SARAI
+CROP_REQ_PH_FILE = "crop_requirements_ph.csv"   # DA crop guides, Philippine conditions
 EXPECTED_NINO = [1982, 1986, 1991, 1994, 1997, 2002, 2004, 2009, 2014, 2015, 2018, 2019, 2023]
 
 WEIGHTS = {"balanced":     {"temp": 1, "water": 1, "ph": 1, "texture": 1},
@@ -48,6 +54,7 @@ def read_crops():
                 return [t.strip() for t in row[key].split("|") if t.strip()]
             out[name] = dict(
                 sheet=int(row["ecocrop_sheet"]),
+                scientific_name=(row.get("scientific_name") or "").strip(),
                 temp=nums("temp_abs_min", "temp_opt_min", "temp_opt_max", "temp_abs_max"),
                 rain=nums("rain_abs_min", "rain_opt_min", "rain_opt_max", "rain_abs_max"),
                 ph=nums("ph_abs_min", "ph_opt_min", "ph_opt_max", "ph_abs_max"),
@@ -77,6 +84,110 @@ def fao56(row):
                 # 0 for upland crops. Must be sourced, not assumed.
                 percolation=float(row.get("percolation_mm_day") or 0.0)),
         kc_source=(row.get("kc_source") or "").strip() or None)
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    r1, r2 = math.radians(lat1), math.radians(lat2)
+    dlat, dlon = math.radians(lat2 - lat1), math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(r1) * math.cos(r2) * math.sin(dlon / 2) ** 2
+    return 2 * 6371.0 * math.asin(math.sqrt(a))
+
+# USDA texture names grouped into the three classes crops.csv uses. FAO's
+# Irrigation Water Management manuals work in the same three classes (sand /
+# loam / clay). Clay loam and sandy clay loam sit on the medium-to-heavy
+# boundary and are called medium here; flag them if a field turns up one.
+TEXTURE_CLASS = {
+    "sand": "light", "loamy sand": "light", "sandy loam": "light",
+    "loam": "medium", "silt": "medium", "silt loam": "medium",
+    "silty clay loam": "medium", "clay loam": "medium", "sandy clay loam": "medium",
+    "clay": "heavy", "silty clay": "heavy", "sandy clay": "heavy",
+}
+
+def read_soil_sample():
+    """Nearest measured soil sample to the field. Returns None if the file is
+    absent or nothing falls within MAX_SOIL_SAMPLE_KM, so the model says it has
+    no soil measurement rather than inventing one."""
+    if not os.path.exists(SARAI_FILE):
+        return None
+    best = None
+    with open(SARAI_FILE, newline="", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            try:
+                km = haversine_km(FIELD_LAT, FIELD_LON,
+                                  float(row["latitude"]), float(row["longitude"]))
+            except (TypeError, ValueError):
+                continue
+            if best is None or km < best[0]:
+                best = (km, row)
+    if best is None or best[0] > MAX_SOIL_SAMPLE_KM:
+        return None
+    km, row = best
+    texture_raw = (row.get("soil_texture_as_reported") or "").strip()
+    def num(key):
+        try:
+            return float(row[key])
+        except (KeyError, TypeError, ValueError):
+            return None
+    return dict(
+        sample_id=row.get("sample_id"), distance_km=round(km, 2),
+        province=row.get("province"), municipality=row.get("municipality"),
+        barangay=row.get("barangay"), sample_date=row.get("sample_date"),
+        crop_at_sampling=row.get("crop_at_sampling"),
+        ph=num("soil_ph"), ph_class=row.get("soil_ph_class"),
+        organic_matter_percent=num("organic_matter_percent"),
+        organic_matter_class=row.get("organic_matter_class"),
+        nitrogen_percent=num("nitrogen_percent"),
+        phosphorus_ppm=num("phosphorus_ppm"),
+        potassium_cmolc_per_kg=num("potassium_cmolc_per_kg"),
+        texture_as_reported=texture_raw,
+        texture_class=TEXTURE_CLASS.get(texture_raw.lower()),
+        sampling_depth_cm=row.get("sampling_depth_cm") or None,
+        quality_flags=row.get("quality_flags"), source_url=row.get("source_url"))
+
+def read_crop_requirements_ph():
+    """Philippine crop guide figures, keyed by scientific name. Carried as
+    EVIDENCE only. The harvest figures are days to FIRST harvest from the stated
+    basis (mostly transplanting), not how long the crop occupies the field, so
+    they are deliberately not used as a cycle length: that is the same kind of
+    units mismatch as scoring cycle rain against annual rainfall limits."""
+    if not os.path.exists(CROP_REQ_PH_FILE):
+        return {}
+    out = {}
+    with open(CROP_REQ_PH_FILE, newline="", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            for sci in (row.get("scientific_name") or "").split(";"):
+                sci = sci.strip().lower()
+                if sci:
+                    out[sci] = row
+    return out
+
+def ph_guide_for(c):
+    """Philippine crop guide row for this crop, as labelled evidence. Returns None
+    when the crop is not in the guide, which is the case for rice and mungbean:
+    the DA file compiled here covers vegetables only."""
+    row = CROP_REQ_PH.get(c["scientific_name"].lower())
+    if not row:
+        return None
+    def num(key):
+        try:
+            return float(row[key])
+        except (KeyError, TypeError, ValueError):
+            return None
+    return dict(
+        crop_id=row.get("crop_id"), local_name=row.get("local_name"),
+        soil_ph_min=num("soil_ph_min"), soil_ph_max=num("soil_ph_max"),
+        soil_ph_basis=row.get("soil_ph_basis"),
+        air_temp_min_c=num("growth_air_temp_min_c"),
+        air_temp_max_c=num("growth_air_temp_max_c"),
+        soil_texture_or_condition=row.get("soil_texture_or_condition"),
+        water_and_drainage=row.get("water_and_drainage"),
+        planting_season_context=row.get("planting_season_context"),
+        establishment_method=row.get("establishment_method"),
+        days_to_first_harvest=[num("harvest_days_min"), num("harvest_days_max")],
+        harvest_time_basis=row.get("harvest_time_basis"),
+        source_url=row.get("source_url"), notes=row.get("notes"),
+        caution="days_to_first_harvest is time to the FIRST pick from the stated "
+                "basis, not how long the crop holds the field. Not used as a cycle "
+                "length. Reconcile with a local agriculturist before it is.")
 
 def read_power(pattern):
     files = sorted(glob.glob(pattern))
@@ -108,6 +219,20 @@ main, main_name = read_power("POWER_Point_Daily_*_LST.csv")
 imerg, imerg_name = read_power("POWER_Point_Daily_*_UTC.csv")
 daily = {d: {**v, **imerg.get(d, {})} for d, v in main.items()}
 nino = read_nino()
+SOIL = read_soil_sample()
+CROP_REQ_PH = read_crop_requirements_ph()
+
+# Soil pH and texture: measured sample first, explicit override second, and if
+# neither exists the model says so instead of filling in a plausible number.
+SOIL_PH = SOIL_PH_OVERRIDE if SOIL_PH_OVERRIDE is not None else (SOIL or {}).get("ph")
+SOIL_TEXTURE = (SOIL_TEXTURE_OVERRIDE if SOIL_TEXTURE_OVERRIDE is not None
+                else (SOIL or {}).get("texture_class"))
+SOIL_SOURCE = ("override" if SOIL_PH_OVERRIDE is not None or SOIL_TEXTURE_OVERRIDE is not None
+               else f"{SOIL['sample_id']} at {SOIL['distance_km']} km" if SOIL else "none")
+if SOIL_PH is None or SOIL_TEXTURE is None:
+    sys.exit("No soil pH or texture: no SARAI sample within "
+             f"{MAX_SOIL_SAMPLE_KM} km of {FIELD_LAT}, {FIELD_LON} and no override set. "
+             "Set SOIL_PH_OVERRIDE and SOIL_TEXTURE_OVERRIDE, or widen MAX_SOIL_SAMPLE_KM.")
 
 # ---------------- HELPERS ----------------
 def days(start, n):
@@ -358,7 +483,9 @@ def evaluate(water):
                     counts[p][scen][tag] = {"pass": k, "of": len(sel), "wilson95": wilson(k, len(sel))}
         both = [r for r in rows if r["imerg_mm"] is not None]
         out[name] = dict(
-            ecocrop_sheet=c["sheet"], cycle_days=[c["cycle_min"], c["cycle_max"]],
+            ecocrop_sheet=c["sheet"], scientific_name=c["scientific_name"],
+            ph_crop_guide=ph_guide_for(c),
+            cycle_days=[c["cycle_min"], c["cycle_max"]],
             scored_days=lengths, legume=c["legume"], drainage_requirement=c["drainage"],
             median_scores={tag: {k: med(r["by_length"][tag]["scores"].get(k) for r in rows)
                                  for k in ("temp", "water", "ph", "texture")} for tag in lengths},
@@ -428,6 +555,23 @@ if nino:
 else:
     print("El Nino file not found: El Nino counts skipped.")
 print("Drainage answer:", DRAINAGE, "| soil texture:", SOIL_TEXTURE, "| soil pH:", SOIL_PH)
+if SOIL:
+    print(f"Soil from {SOIL['sample_id']}, {SOIL['distance_km']} km away: "
+          f"{SOIL['barangay']}, {SOIL['municipality']}, {SOIL['province']}, "
+          f"sampled {SOIL['sample_date']} under {SOIL['crop_at_sampling']}")
+    print(f"  pH {SOIL['ph']} ({SOIL['ph_class']}) | texture {SOIL['texture_as_reported']} "
+          f"-> {SOIL['texture_class']} | organic matter {SOIL['organic_matter_percent']}% "
+          f"({SOIL['organic_matter_class']})")
+    if SOIL["quality_flags"]:
+        print(f"  caveat: {SOIL['quality_flags']}")
+    if SOIL["province"] and "tarlac" not in SOIL["province"].lower():
+        print(f"  NOTE: this point is in {SOIL['province']}, not Tarlac. Check that the "
+              f"POWER download at {FIELD_LAT}, {FIELD_LON} is the field you mean.")
+else:
+    print("No soil sample within", MAX_SOIL_SAMPLE_KM, "km.")
+print("Drainage is still the farmer's answer. bswm_soil_map_units.csv cannot refine it:")
+print("  its rows carry bounding boxes only, hundreds of km wide, so dozens of soil")
+print("  series 'contain' any point. The official shapefile is needed for a real lookup.")
 
 for water, res in fields.items():
     print(f"\n=== Field watered by: {water} ===")
@@ -480,6 +624,26 @@ for name, opts in WINDOW_OPTIONS.items():
         print(f"    smallest water shortfall: plant {best['plant_month_day']}, "
               f"{best['median_deficit_mm']:.0f} mm short, "
               f"{best['median_heat_days'] or 0:.0f} days over {HEAT_LIMIT_C:.0f}C")
+print("\n=== Philippine crop guide, evidence only ===")
+for name, c in CROPS.items():
+    g = ph_guide_for(c)
+    if not g:
+        print(f"  {name:9} not in {CROP_REQ_PH_FILE} (that file covers vegetables only)")
+        continue
+    lo, hi = g["days_to_first_harvest"]
+    # Several crops in the guide leave these blank, and others quote them from a
+    # basis like "days after flowering" that is not comparable at all.
+    span = "not quantified" if lo is None or hi is None else f"{lo:.0f}-{hi:.0f} d"
+    print(f"  {name:9} {g['local_name']} | first harvest {span} ({g['harvest_time_basis']})")
+    print(f"            establishment: {g['establishment_method']}")
+    print(f"            water/drainage: {g['water_and_drainage']}")
+    print(f"            season: {g['planting_season_context']}")
+    print(f"            guide pH {g['soil_ph_min']}-{g['soil_ph_max']} vs EcoCrop optimum "
+          f"{c['ph'][1]}-{c['ph'][2]} | guide air temp {g['air_temp_min_c']}-{g['air_temp_max_c']}C "
+          f"vs EcoCrop optimum {c['temp'][1]}-{c['temp'][2]}C")
+print("  Days to first harvest is NOT how long the crop holds the field, so it is not")
+print("  used as a cycle length. Reconcile with a local agriculturist before it is.")
+
 print(f"\n  'short by' is median irrigation needed, mm, over the cycle.")
 print(f"  'heat d' counts days over {HEAT_LIMIT_C:.0f}C: PLACEHOLDER threshold, evidence only,")
 print(f"  deliberately not scored. 'wetness' is POWER GWETROOT, 0-1, not converted to mm.")
@@ -516,7 +680,15 @@ results = dict(
         ecocrop_rain="EcoCrop rainfall limits are ANNUAL (FAO datasheets label the row "
                      "'Rainfall (annual)'); they are a regional climate envelope and are "
                      "not used as a within-window water test"),
-    soil=dict(ph=SOIL_PH, flag="soil_ph_from_area_sample", sample="SARAI_098", distance_km=3.4),
+    soil=dict(ph=SOIL_PH, texture=SOIL_TEXTURE, source=SOIL_SOURCE, sample=SOIL,
+              texture_mapping="USDA texture name grouped into light/medium/heavy; "
+                              "clay loam and sandy clay loam are called medium and sit "
+                              "on the boundary",
+              drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE,
+              bswm_note="bswm_soil_map_units.csv holds bounding boxes only, hundreds of "
+                        "km wide, so it cannot identify the soil series at a point. The "
+                        "official BSWM shapefile is needed before drainage can come from "
+                        "a map rather than from the farmer."),
     nino34_latest=dict(year=latest[0], month=latest[1], anom=nino[latest]) if latest else None,
     data_limits=dict(imerg_from=first_valid("IMERG_PRECTOT"), toa_from=first_valid("TOA_SW_DWN"),
                      imerg_time="UTC", main_time="LST",
