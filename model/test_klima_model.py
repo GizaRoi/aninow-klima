@@ -7,8 +7,10 @@ Standard library only, to match the model. Run from anywhere:
 Importing klima_model runs the data load (about 16,000 days of POWER), so it is
 imported once here and takes a few seconds. It writes nothing on import.
 """
+import contextlib
 import csv
 import importlib.util
+import io
 import os
 import tempfile
 import unittest
@@ -371,6 +373,59 @@ class PilotRegression(unittest.TestCase):
         for name, c in K.CROPS.items():
             self.assertIsNotNone(c["kc"], f"{name} has no Kc")
             self.assertTrue(c["kc_source"], f"{name} has no Kc source")
+
+
+class CommandLine(unittest.TestCase):
+    """The farmer's answers arrive as command-line options, so bad answers have to
+    be refused at the edge rather than quietly producing a wrong window."""
+
+    def test_defaults_are_the_pilot(self):
+        a = K.parse_args([])
+        self.assertEqual((a.lat, a.lon), (15.72, 120.90))
+        self.assertEqual(a.harvest, (11, 15))
+        self.assertEqual(a.next_planting, (5, 31))
+        self.assertEqual(a.drainage, "well_drained")
+        self.assertIsNone(a.soil_ph)
+        self.assertEqual(a.out, "results.json")
+
+    def test_dates_keep_only_month_and_day(self):
+        a = K.parse_args(["--harvest", "2026-12-01", "--next-planting", "2027-03-15"])
+        self.assertEqual(a.harvest, (12, 1))
+        self.assertEqual(a.next_planting, (3, 15))
+
+    def test_any_year_gives_the_same_window(self):
+        a = K.parse_args(["--harvest", "1999-12-01"])
+        b = K.parse_args(["--harvest", "2030-12-01"])
+        self.assertEqual(a.harvest, b.harvest)
+
+    def _refused(self, argv):
+        """argparse prints usage to stderr before exiting; swallow it so a failing
+        answer does not look like a broken test run."""
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                K.parse_args(argv)
+
+    def test_a_date_that_is_not_a_date_is_refused(self):
+        for bad in ["15-11-2026", "2026/11/15", "next tuesday", "2026-13-01", ""]:
+            with self.subTest(bad=bad):
+                self._refused(["--harvest", bad])
+
+    def test_drainage_answer_must_be_one_of_the_three(self):
+        self._refused(["--drainage", "soggy"])
+        for good in ["well_drained", "poorly_drained", "unknown"]:
+            self.assertEqual(K.parse_args(["--drainage", good]).drainage, good)
+
+    def test_soil_test_overrides(self):
+        a = K.parse_args(["--soil-ph", "4.8", "--soil-texture", "heavy"])
+        self.assertEqual(a.soil_ph, 4.8)
+        self.assertEqual(a.soil_texture, "heavy")
+
+    def test_texture_must_be_a_known_class(self):
+        self._refused(["--soil-texture", "loam"])        # a name, not a class
+
+    def test_drainage_filter_switch(self):
+        self.assertFalse(K.parse_args([]).no_drainage_filter)
+        self.assertTrue(K.parse_args(["--no-drainage-filter"]).no_drainage_filter)
 
 
 if __name__ == "__main__":
