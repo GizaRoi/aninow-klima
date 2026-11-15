@@ -24,7 +24,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -216,10 +216,9 @@ def create_app(origins: list[str] | None = None) -> FastAPI:
         return error_response(request, exc.status_code, codes.get(exc.status_code, "request_failed"),
                               str(exc.detail), headers=exc.headers)
 
-    @app.get("/")
+    @app.get("/", include_in_schema=False, response_class=RedirectResponse)
     def index():
-        return {"service": "AniNow Klima comparison API", "health": "/health", "docs": "/docs",
-                "catalog": "/api/v1/catalog", "compare": "/api/v1/compare"}
+        return RedirectResponse("https://aninow-klima.vercel.app/", status_code=307)
 
     @app.get("/health")
     def health():

@@ -47,6 +47,8 @@ The current frontend is `https://aninow-klima.vercel.app` and its model service 
 `https://aninow-klima.onrender.com`. The API defaults and Blueprint allow the exact
 frontend origin plus localhost ports 3000 and 4173. `CORS_ORIGINS` replaces that
 list when set; for example `https://aninow-klima.vercel.app,http://localhost:3000`.
+Opening the model service's root URL redirects visitors to the Vercel app with
+HTTP 307. API routes, `/health`, `/docs` and `/openapi.json` remain on Render.
 Do not use a wildcard for all Vercel preview domains. Add an exact preview origin
 when needed. CORS controls browser access; it is not authentication.
 
