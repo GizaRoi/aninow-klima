@@ -6,7 +6,7 @@ import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { messages } from '../../lib/messages';
 import type { Language } from '../../lib/preview';
 
-function BrandLogo() {
+export function BrandLogo() {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   // Adapt only the dark lettering for the dark page; keep the source PNG unchanged.
   return <svg className="brand-logo" viewBox="199 414 1635 1128" role="img" aria-label="AniNow Klima" width="1635" height="1128">

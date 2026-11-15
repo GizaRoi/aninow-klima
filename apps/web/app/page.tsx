@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, CircleHelp, CloudRain, Download, Droplets, Earth, Info, Leaf, MapPin, RotateCcw, ShieldCheck, SlidersHorizontal, Sprout, Sun, Thermometer, Waves, Wheat } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, CircleHelp, CloudRain, Download, Droplets, Earth, Info, Leaf, MapPin, RotateCcw, ShieldCheck, SlidersHorizontal, Sprout, Sun, Thermometer, Waves, Wheat } from 'lucide-react';
 import { messages, type Messages } from '../lib/messages';
 import { useLanguagePreference } from '../lib/language';
 import { SiteFooter, SiteHeader } from './components/site-shell';
+import { AppIntro } from './components/app-intro';
 import { compare, cropOptions, dateLabel, defaults, format, getCatalog, ModelError, validateInputs, windowDays, type Catalog, type Comparison, type FieldInputs, type Language, type Priority, type Season } from '../lib/model';
 
 type View = 'field' | 'results';
@@ -127,25 +128,21 @@ export default function Home() {
     setTimeout(() => URL.revokeObjectURL(url), 1000); setToast(true);
   }
 
-  return <div id="top" className="app-shell">
+  return <AppIntro language={language}><div id="top" className="app-shell planner-shell">
     <a className="skip-link" href="#planner">{m.navPlan}</a>
     <SiteHeader language={language} ready={ready} onLanguageChange={setLanguage} onPlan={showForm}/>
 
     <main>
-      <section className="landscape-hero" aria-labelledby="hero-title">
-        <img className="landscape-image" src="/images/farm-diorama.png" alt="" fetchPriority="high"/>
-        <div className="landscape-shade"/>
-        <div className="hero-copy"><span className="scene-kicker"><span className="lime-dot"/>{m.kicker}</span><h1 id="hero-title">{language === 'en' ? <>What can you plant <em>after harvest?</em></> : <>Ano ang puwedeng itanim <em>pagkatapos ng ani?</em></>}</h1><p>{m.heroCopy}</p><button className="button lime" onClick={showForm}>{m.start}<ArrowUpRight size={19}/></button></div>
-        <div className="hero-location"><MapPin size={15}/><span>Muñoz, Nueva Ecija<small>{m.pilot}</small></span></div>
-        <div className="glass-panel"><div className="glass-heading"><Sprout size={22}/><ArrowUpRight size={17}/></div><h2>{m.fieldCard}</h2><p>{m.fieldCopy}</p><div className="glass-metrics"><div><strong>{catalog ? String(catalog.crops.length).padStart(2, '0') : '—'}</strong><span>{m.cropOptions}</span></div><div><strong>02</strong><span>{m.languages}</span></div></div><div className="glass-foot"><span className="lime-dot"/>{m.modelLabel}</div></div>
-        <div className="hero-footer"><span><Leaf size={15}/>{m.tagline}</span><a href="#planner" onClick={event => { event.preventDefault(); showForm(); }}>{m.explore}<ArrowDown size={16}/></a></div><span className="artwork-label">{m.artwork}</span>
+      <section className="planner-intro" aria-labelledby="hero-title">
+        <h1 id="hero-title">{m.heroTitle} <em>{m.heroEmphasis}</em></h1>
+        <p>{m.heroCopy}</p>
       </section>
 
       <section className="planner-section" id="planner" aria-labelledby="planner-title">
         <div className="section-navigation"><div className="steps"><span className={view === 'field' ? 'active' : 'complete'}><b>{view === 'results' ? <Check size={14}/> : '01'}</b>{m.stepOne}</span><i/><span className={view === 'results' ? 'active' : ''}><b>02</b>{m.stepTwo}</span></div><span className="model-label"><span/>{m.modelLabel}</span></div>
 
         {view === 'field' || !comparison ? <>
-          <div className="section-heading"><div><span className="eyebrow">{m.formKicker}</span><h2 id="planner-title" tabIndex={-1} ref={formHeading}>{m.formIntro}</h2><p>{m.formCopy}</p></div><Sprout className="heading-sprout" size={45} strokeWidth={1}/></div>
+          <h2 id="planner-title" className="sr-only" tabIndex={-1} ref={formHeading}>{m.stepOne}</h2>
           {(loadingCatalog || pending) && <p className="model-status" role="status">{pending ? m.calculating : m.loadingCatalog}</p>}
           {serviceError && <div className="form-error" role="alert" tabIndex={-1} ref={errorRef}><Info size={19}/><div><strong>{m.errors[serviceError.kind]}</strong>{serviceError.requestId && <small>{serviceError.requestId}</small>}{serviceError.kind === 'validation' && <ul>{Object.entries(serviceError.fields).map(([field, messages]) => <li key={field}>{field}: {messages.join(' ')}</li>)}</ul>}{!catalog && <button type="button" className="button secondary" onClick={() => setCatalogAttempt(value => value + 1)}>{m.retry}</button>}</div></div>}
           <div className="form-layout"><form onSubmit={submit} noValidate aria-busy={!ready || pending || loadingCatalog}><fieldset className="interactive-fields" disabled={!ready || pending || loadingCatalog}>
@@ -183,5 +180,5 @@ export default function Home() {
     </main>
     <SiteFooter language={language}/>
     {toast && <div className="toast" role="status"><Check size={18}/>{m.downloaded}</div>}
-  </div>;
+  </div></AppIntro>;
 }
