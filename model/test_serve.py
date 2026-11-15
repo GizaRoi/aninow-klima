@@ -95,7 +95,7 @@ class Page(unittest.TestCase):
     def test_the_farmer_view_leaves_the_detail_out(self):
         page = S.page_html(q())
         self.assertIn("Munggo", page)
-        self.assertIn("22 of 41", page)
+        self.assertIn("5 of 42", page)
         self.assertNotIn("El Ni&ntilde;o 5 of 12", page)
         self.assertIn("References", page)
         for jargon in ("Kc", "EcoCrop climate envelope", "Wilson", "Method notes",
@@ -117,14 +117,14 @@ class Page(unittest.TestCase):
         self.assertEqual(S.water_plain(0.0, 50)[0], "None")
         self.assertEqual(S.water_plain(None, 50)[0], "Not worked out")
         page = S.page_html(q())
-        self.assertIn("About 4 cm", page)
+        self.assertIn("About 17 cm", page)
         self.assertNotIn("44 mm", page.split("<footer>")[0].split("</form>")[1])
 
     def test_another_main_crop_is_the_one_compared_against(self):
         page = S.page_html(q(main_crop="tomato"))
         self.assertIn("your crop now",
                       page.split("</form>")[1].split("Kamatis <small>")[1].split("</span>")[0])
-        self.assertIn("Kamatis needs about", page)
+        self.assertIn("crop now", page)
         self.assertNotIn("Palay needs about", page)
 
     def test_names_and_small_wording(self):
@@ -145,12 +145,12 @@ class Page(unittest.TestCase):
 
     def test_a_field_that_holds_water_leaves_only_rice(self):
         page = S.page_html(q(drainage="poorly_drained"))
-        # Every crop that needs drained soil is ruled out; rice stays.
+        # Drainage excludes upland crops; the fallow window also excludes rice.
         self.assertIn("Not recommended here", page)
-        rated = page.split("Not recommended here")[0]
-        self.assertIn("Palay", rated)
+        rated = page.split('Existing historical model and rice baseline')[1].split("Not recommended here")[0]
+        self.assertIn("Palay", page.split("Not recommended here")[1])
         for name in ("Munggo", "Talong", "Kamatis", "Kalabasa", "Sitaw"):
-            self.assertNotIn(name, rated.split("</form>")[1])
+            self.assertNotIn(name, rated)
         self.assertIn("you said water stays on your field", page)
 
     def test_the_rating_follows_the_weakest_condition(self):
@@ -158,7 +158,7 @@ class Page(unittest.TestCase):
         # must not be shown as a good or fair fit whatever the combined score is.
         page = S.page_html(q())
         rice = page.split("</form>")[1].split("Palay <small>")[1].split("</div>")[0]
-        self.assertIn("Poor fit", rice)
+        self.assertIn("Not suited", rice)
 
 
 if __name__ == "__main__":

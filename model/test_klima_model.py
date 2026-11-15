@@ -341,6 +341,19 @@ class PilotRegression(unittest.TestCase):
     """Pins the numbers the pitch quotes. If one of these moves, the change was
     either a real improvement worth re-quoting or a mistake; either way, say so."""
 
+    @classmethod
+    def setUpClass(cls):
+        # Preserve the original published pilot as an explicit no-fallow fixture.
+        # Production always applies fallow; test_rotation pins that new policy.
+        cls.saved = K.SEASONS, K.WINDOW_DAYS, K.fields
+        K.SEASONS = K.classify_seasons(K.build_seasons(K.HARVEST, K.NEXT_PLANTING, 1981, 2024))
+        K.WINDOW_DAYS = 197
+        K.fields = {w: K.evaluate(w) for w in ('rain', 'irrigation')}
+
+    @classmethod
+    def tearDownClass(cls):
+        K.SEASONS, K.WINDOW_DAYS, K.fields = cls.saved
+
     def test_pilot_soil(self):
         self.assertEqual(K.SOIL_PH, 6.3)
         self.assertEqual(K.SOIL_TEXTURE, "medium")
@@ -549,7 +562,7 @@ class CommandLine(unittest.TestCase):
 
     def test_any_year_gives_the_same_window(self):
         a = K.parse_args(["--harvest", "1999-12-01"])
-        b = K.parse_args(["--harvest", "2030-12-01"])
+        b = K.parse_args(["--harvest", "2030-12-01", '--next-planting', '2031-05-31'])
         self.assertEqual(a.harvest, b.harvest)
 
     def _refused(self, argv):

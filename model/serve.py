@@ -25,6 +25,7 @@ import tempfile
 import urllib.parse
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from rotation import add_months, compare
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODEL = os.path.join(HERE, "klima_model.py")
@@ -115,6 +116,7 @@ DEFAULTS = dict(place=next(iter(PLACES)), main_crop="rice", harvest="2026-11-15"
                 next_planting="2027-05-31", drainage="well_drained",
                 water="rain", priority="balanced", soil_test="", soil_ph="",
                 soil_texture="", advanced="", pass_mark="0.6", turnaround="0")
+DEFAULTS.update(preparation='', picking='', clearance='')
 
 CSS = """
 /* Tokens taken from the Klima prototype so the harness sits in the same design
@@ -293,6 +295,19 @@ def to_args(q):
             args += ["--soil-ph", repr(num(g("soil_ph"), 3.0, 10.0, "Soil pH"))]
         if texture:
             args += ["--soil-texture", texture]
+    for key, flag in [('preparation', '--preparation-days'), ('picking', '--picking-days'),
+                      ('clearance', '--clearance-days')]:
+        if g(key):
+            value = num(g(key), 0, 365, key.title() + ' days')
+            if value != int(value):
+                raise ValueError(f'{key}: give whole days')
+            args += [flag, str(int(value))]
+    if g('clearance'):
+        # Use the same clearance buffer in both planners.
+        if '--turnaround-days' in args:
+            i = args.index('--turnaround-days')
+            del args[i:i + 2]
+        args += ['--turnaround-days', str(int(float(g('clearance'))))]
     return args
 
 
@@ -407,6 +422,22 @@ def form_html(q):
                   value="{g('turnaround')}">
            <span class="hint">Days kept free before your next planting. We use 0
              until a local figure is agreed.</span></div>
+    </div>
+  </div>
+  <div class="opt">
+    <p><strong>Fixed fallow: three calendar months crop-free after harvest.</strong>
+    All sowing, cuttings and nursery work for this plan begin after that period.</p>
+    <div class="grid">
+      <div><label for="preparation">Preparation after fallow (days)</label>
+        <input id="preparation" name="preparation" type="text" inputmode="numeric" value="{g('preparation')}">
+        <span class="hint">Blank = unknown; enter 0 only if you explicitly plan none.</span></div>
+      <div><label for="picking">Additional picking days / early termination</label>
+        <input id="picking" name="picking" type="text" inputmode="numeric" value="{g('picking')}">
+        <span class="hint">Optional common plan for all profiles. Blank uses a sourced picking period
+        or leaves repeated picking unresolved. Enter 0 only to end at first harvest.</span></div>
+      <div><label for="clearance">Crop removal and rice preparation (days)</label>
+        <input id="clearance" name="clearance" type="text" inputmode="numeric" value="{g('clearance')}">
+        <span class="hint">Required to confirm full-window timing. Overrides the advanced buffer.</span></div>
     </div>
   </div>
   <button class="go" type="submit">Compare crops</button>
@@ -528,7 +559,7 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
         best_html = "not worked out"
     else:
         m, d = best["plant_month_day"].split()
-        best_html = (f'{"Right after harvest" if best["offset_days"] == 0 else f"{int(d)} {m}"}'
+        best_html = (f'{"After fallow and preparation" if best["offset_days"] == 0 else f"{int(d)} {m}"}'
                      f'<small>{"around " + str(int(d)) + " " + m if best["offset_days"] == 0 else "smallest water gap"}</small>')
     extra_label = "Irrigation needed" if ctx["water"] == "irrigation" else "Extra water needed"
     extra, extra_small = water_plain(c["median_deficit_mm"][tag], days_lo,
@@ -554,7 +585,7 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
   <div class="top"><span class="name"><span class="rank">{rank}</span>{label}</span>
     <span class="fit {FIT_CLASS[b]}">{RATING[b]} fit</span></div>
   <p class="sub">Grows in {grows}. Figures below are for the {days_lo}-day crop, planted
-    right after harvest.</p>
+    after fallow and preparation.</p>
   <dl class="facts">
     <div><dt>Rain covers</dt><dd>{covers}<small>of the water it needs</small></dd></div>
     <div><dt>{extra_label}</dt><dd>{esc(extra)}<small>{esc(extra_small)}</small></dd></div>
@@ -634,10 +665,12 @@ def results_html(r, water, priority, advanced):
 </ul></div>"""
     return f"""
 <div class="window">
-  <strong>{meta['window_days']} days between harvest and your next planting</strong>
+  <strong>{meta['window_days']} growing days after the fixed three-month fallow</strong>
   {esc(meta['location_name'])} &middot; {day_month(meta['harvest'])} to
   {day_month(meta['next_planting'])} &middot; {answers}
   <p>{soil_line}</p>
+  <p>Nearby soil tests are historical context, not a measurement of your plot.
+  A soil-map bounding box does not verify a soil series.</p>
 </div>
 <p class="eyebrow">Crop options <span>Ranked by: {esc(dict(PRIORITY)[priority]).lower()}</span></p>
 {cards}
@@ -677,12 +710,65 @@ def choice(q, key, allowed):
     return v if v in dict(allowed) else DEFAULTS[key]
 
 
+def rotation_html(report):
+    policy = report['rotation_policy']
+    cards = []
+    for result in report['rotation_profiles']:
+        p, s = result['provenance'], result['schedule']
+        def status(key):
+            return s[key].replace('_', ' ')
+        scope = result['suitability_context']
+        context = ('unavailable' if scope['index'] is None else f"{scope['index']:.2f}")
+        coverage = ('unavailable' if scope['coverage'] is None else f"{scope['coverage']:.0%}")
+        cards.append(f'''<article class="crop">
+          <div class="name">{esc(p['crop_name'])} <small>{esc(p['local_name'])}</small></div>
+          <p>{esc(p['cultivar_or_type'])} · {esc(p['harvested_part'])}</p>
+          <p>First harvest: {p['start_to_first_harvest_days_min']}–{p['start_to_first_harvest_days_max']}
+          days from {esc(p['cycle_start_event'])}. Strict under-90-day timing screen:
+          {'passes' if result['under_90_days_first_harvest'] else 'fails'}.</p>
+          <dl class="facts"><div><dt>First harvest in window</dt><dd>{status('first_harvest_fit')}</dd></div>
+          <div><dt>Picking and clearance fit</dt><dd>{status('full_window_fit')}</dd></div></dl>
+          <p>Latest first harvest: {esc(s['first_harvest_latest'] or 'unresolved')};
+          field clear: {esc(s['field_clear_date'] or 'unresolved')}.</p>
+          <p>Preparation: {esc(s['preparation_days'])}; additional picking: {esc(s['additional_picking_days'])};
+          clearance: {esc(s['clearing_and_rice_preparation_days'])} days. Nursery range:
+          {esc(s['nursery_days'])}, already included in the first-harvest range; no overlap assumed.</p>
+          <p><strong>{esc(result['status'])}</strong> — {esc(', '.join(result['failures']) or 'site suitability remains unverified')}.</p>
+          <details><summary>Sources, derivation and missing evidence</summary>
+          <p>{esc(p['timing_conversion'])}</p><p>{esc(p['rotation_notes'])}</p>
+          <p>{esc(p['quality_flags'])}</p><p>Critical gaps: {esc(', '.join(result['critical_gaps']))}</p>
+          <p>Crop-level context index: {context}; evidence coverage: {coverage}.
+          Equal weights for pH, temperature, water and texture. This is not a success probability,
+          and does not validate this cultivar. Missing checks are not zero scores.</p>
+          <pre>{esc(json.dumps(result['evidence'], indent=2))}</pre>
+          <p><a href="{esc(p['timing_source_url'])}">{esc(p['timing_source_org'])}: {esc(p['timing_source_title'])}</a>
+          — {esc(p['timing_source_locator'])}</p></details></article>''')
+    return f'''<p class="eyebrow">New timing profiles · 24 options, including one pulse</p>
+    <div class="window"><strong>Crop-free until {esc(policy['crop_free_until'])}</strong>
+    Three calendar months after harvest. Propagation starts after fallow; no nursery overlap.
+    A finish on the rice planting date is allowed; work beyond it fails.
+    Blank scheduling assumptions leave the full-window fit unresolved.</div>
+    {''.join(cards)}
+    <p class="eyebrow">Existing historical model and rice baseline</p>
+    <p class="src">The generic crop cycles below are separate from cultivar first-harvest timings above.
+    Historical pass frequencies are not forecasts. Historical soil samples are context, not plot tests.</p>'''
+
+
 def page_html(q):
     """The whole page for one request. Split out so it can be tested without a socket."""
     body = ""
     if q:
         try:
-            body = results_html(run_model(to_args(q)), choice(q, "water", WATER),
+            args = to_args(q)
+            harvest = date.fromisoformat(answer(q, 'harvest'))
+            next_rice = date.fromisoformat(answer(q, 'next_planting'))
+            if add_months(harvest) >= next_rice:
+                report = dict(rotation_policy=dict(crop_free_until=add_months(harvest).isoformat()),
+                              rotation_profiles=compare(harvest, next_rice))
+                return PAGE.format(css=CSS, form=form_html(q), body=rotation_html(report) +
+                                   '<p>No historical growing window remains after fallow.</p>')
+            report = run_model(args)
+            body = rotation_html(report) + results_html(report, choice(q, "water", WATER),
                                 choice(q, "priority", PRIORITY), bool(answer(q, "advanced")))
         except ValueError as e:
             body = f'<div class="err">{esc(e)}</div>'

@@ -8,6 +8,7 @@ Try a different farmer's field:      python klima_model.py --drainage poorly_dra
 import argparse, csv, glob, json, math, os, sys
 from datetime import date, timedelta
 from statistics import median
+from rotation import add_months, compare
 
 def month_day(text):
     """A farmer gives a real date; the model applies its month and day across all
@@ -31,9 +32,9 @@ def parse_args(argv):
     f.add_argument("--place", default="Munoz, Nueva Ecija", help="name for the report")
     f.add_argument("--province", default="Nueva Ecija",
                    help="warn if the nearest soil sample is outside this province")
-    f.add_argument("--harvest", type=month_day, default="2026-11-15",
+    f.add_argument("--harvest", type=date.fromisoformat, default="2026-11-15",
                    help="rice harvest date, YYYY-MM-DD (default 2026-11-15)")
-    f.add_argument("--next-planting", type=month_day, default="2027-05-31",
+    f.add_argument("--next-planting", type=date.fromisoformat, default="2027-05-31",
                    help="next rice planting date, YYYY-MM-DD (default 2027-05-31)")
     f.add_argument("--main-crop", default="rice",
                    help="the crop the farmer grows now; other crops are compared with it "
@@ -59,7 +60,20 @@ def parse_args(argv):
                    help="score every crop even on a poorly drained field")
     s.add_argument("--out", default="results.json", help="where to write the results")
     s.add_argument("--quiet", action="store_true", help="write the file, print nothing")
-    return p.parse_args(argv)
+    s.add_argument('--preparation-days', type=int, default=None)
+    s.add_argument('--picking-days', type=int, default=None,
+                   help='explicit picking/early termination plan; otherwise use sourced period if available')
+    s.add_argument('--clearance-days', type=int, default=None)
+    args = p.parse_args(argv)
+    args.harvest_date, args.next_planting_date = args.harvest, args.next_planting
+    if args.next_planting_date <= args.harvest_date:
+        p.error('Next planting must be after harvest')
+    for value in (args.preparation_days, args.picking_days, args.clearance_days):
+        if value is not None and value < 0:
+            p.error('Planning days cannot be negative')
+    args.harvest = (args.harvest.month, args.harvest.day)
+    args.next_planting = (args.next_planting.month, args.next_planting.day)
+    return args
 
 # Imported for tests: take the defaults rather than unittest's command line.
 ARGS = parse_args(None if __name__ == "__main__" else [])
@@ -81,7 +95,7 @@ SOIL_TEXTURE_OVERRIDE = ARGS.soil_texture
 MAX_SOIL_SAMPLE_KM = ARGS.max_soil_sample_km   # refuse a sample further away than this
 # Days the field must be clear before the next rice planting. No published local
 # figure has been found, so the default is 0 and the farmer or adviser supplies it.
-TURNAROUND_DAYS = ARGS.turnaround_days
+TURNAROUND_DAYS = ARGS.clearance_days if ARGS.clearance_days is not None else ARGS.turnaround_days
 if TURNAROUND_DAYS < 0:
     sys.exit("--turnaround-days cannot be negative.")
 PASS_MARK = ARGS.pass_mark
@@ -621,7 +635,20 @@ def classify_seasons(seasons, dry_share=None, nino_threshold=None):
         s["normal"] = not s["dry"] and not s["el_nino"]      # STAND-IN definition
     return seasons
 
-SEASONS = classify_seasons(build_seasons(HARVEST, NEXT_PLANTING, FIRST_YEAR, LAST_YEAR))
+SEASONS = build_seasons(HARVEST, NEXT_PLANTING, FIRST_YEAR, LAST_YEAR)
+# User planning policy: leave the plot crop-free for three calendar months.
+# Historical crop periods, weather totals and planting offsets all start after
+# this interval, so no candidate can use weather from the reserved fallow.
+for season in SEASONS:
+    season['start'] = add_months(season['start']) + timedelta(days=ARGS.preparation_days or 0)
+    season['n_days'] = max(0, (season['end'] - season['start']).days + 1)
+    season['window_rain'] = total(days(season['start'], season['n_days']), 'PRECTOTCORR')
+    months = sorted({(d.year, d.month) for d in days(season['start'], season['n_days'])})
+    season['nino_mean'] = (sum(nino[m] for m in months) / len(months)
+                           if months and all(m in nino for m in months) else None)
+if not all(s['n_days'] > 0 for s in SEASONS):
+    sys.exit('The three-calendar-month crop-free fallow leaves no growing window.')
+SEASONS = classify_seasons(SEASONS)
 WINDOW_DAYS = min(s["n_days"] for s in SEASONS)
 
 # ---------------- SCORING ----------------
@@ -923,6 +950,8 @@ def report():
         meta=dict(location_name=LOCATION_NAME, latitude=FIELD_LAT, longitude=FIELD_LON,
                   harvest=HARVEST, next_planting=NEXT_PLANTING,
                   window_days=WINDOW_DAYS, seasons=len(SEASONS), pass_mark=PASS_MARK,
+                  fallow_months=3, fallow_policy='user-required crop-free calendar months after harvest',
+                  growing_start=[SEASONS[0]['start'].month, SEASONS[0]['start'].day],
                   drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE, soil_texture=SOIL_TEXTURE,
                   scored_lengths="EcoCrop cycle minimum and maximum, capped at the window",
                   planting_offsets=PLANTING_OFFSETS, heat_limit_c=HEAT_LIMIT_C,
@@ -972,6 +1001,16 @@ def report():
         seasons=[{k: s[k] for k in ("year", "start", "end", "window_rain", "nino_mean",
                                     "dry", "el_nino", "normal")} for s in SEASONS],
         fields=fields,
+        rotation_profiles=compare(ARGS.harvest_date, ARGS.next_planting_date,
+                                  ARGS.preparation_days, ARGS.picking_days, ARGS.clearance_days,
+                                  SOIL_PH, None, DRAINAGE),
+        rotation_policy=dict(version='rotation-timing-v1',
+                             harvest=ARGS.harvest_date.isoformat(),
+                             next_rice=ARGS.next_planting_date.isoformat(),
+                             crop_free_until=add_months(ARGS.harvest_date).isoformat(),
+                             scoring='equal-weight crop-level range-screen context only; not ranked',
+                             date_convention='[start, finish); finish on next planting date permitted',
+                             historical_model='separate legacy weakest-condition model; generic crop cycles'),
         planting_dates=WINDOW_OPTIONS,
         crop_coefficients={n: dict(kc=c["kc"], source=c["kc_source"]) for n, c in CROPS.items()})
     with open(ARGS.out, "w") as out_file:

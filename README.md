@@ -1,5 +1,12 @@
 # AniNow Klima
 
+**This branch adds a mandatory three-calendar-month crop-free fallow after harvest**
+and the supplied 24-profile first-harvest timing supplement. All propagation in
+the default plan starts after fallow. See [rotation planning](docs/Rotation-Planning.md)
+for inputs, assumptions and remaining data gaps. The original pilot tables and
+charts below describe the previous **no-fallow** scenario; they are retained as
+historical documentation, not results for this branch's default policy.
+
 AniNow Klima helps Filipino rice farmers compare what to plant after harvest: rice again or a locally supported rotation crop. It combines NASA environmental evidence, local agricultural knowledge, and farmer priorities to explain the risks, requirements, and potential returns of each option.
 
 Planned for NASA Space Apps [Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/field-shift-adapting-farms-with-nasa-data/).
