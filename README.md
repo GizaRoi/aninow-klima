@@ -89,7 +89,7 @@ Faded dots are dry seasons, rings are El Niño seasons. Water is the only condit
 
 ## How far the numbers can be trusted
 
-The arithmetic is verified: reference ET reproduces an independent hand calculation to the decimal across seven months, crop water demand agrees with FAO's published per-cycle figures, and 106 tests cover the farmer-facing inputs and the statistics. The statistics are weaker, and two problems are material.
+The arithmetic is verified: reference ET reproduces an independent hand calculation to the decimal across seven months, crop water demand agrees with FAO's published per-cycle figures, and 107 tests cover the farmer-facing inputs and the statistics. The statistics are weaker, and two problems are material.
 
 ### The record is not one climate
 
@@ -142,7 +142,7 @@ python sensitivity.py                 # how far the chosen crop values move the 
 python insights.py                    # every place, side by side
 python charts.py                      # the charts above, as SVG
 python serve.py                       # a local form at 127.0.0.1:8000
-python -m unittest discover . -v      # 106 tests
+python -m unittest discover . -v      # 107 tests
 ```
 
 Standard library only: no NumPy, no matplotlib, no internet at run time. `serve.py` runs the real model as a subprocess per submission, so the browser exercises the same code path as the command line.

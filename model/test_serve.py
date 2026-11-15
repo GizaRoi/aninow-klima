@@ -127,6 +127,16 @@ class Page(unittest.TestCase):
         self.assertIn("Kamatis needs about", page)
         self.assertNotIn("Palay needs about", page)
 
+    def test_names_and_small_wording(self):
+        page = S.page_html(q())
+        self.assertIn("Sitaw <small>Yardlong bean", page)
+        self.assertIn("Habichuelas <small>Snap bean", page)
+        self.assertIn("3.4 km away", page)
+        batac = S.page_html(q(place="Batac, Ilocos Norte"))
+        self.assertIn("from a soil sample tested at this place", batac)
+        self.assertNotIn("0.0 km", batac)
+        self.assertNotIn("soil ph.", S.page_html(q(place="Maramag, Bukidnon", water="irrigation")))
+
     def test_a_guide_crop_outside_its_range_says_why(self):
         page = S.page_html(q())
         out = page.split("Not recommended here")[1]

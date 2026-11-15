@@ -50,7 +50,7 @@ Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonic
 | `serve.py` | A local form at `127.0.0.1:8000`. Runs the real model per submission. A farmer view by default; soil test values and the pass mark sit behind switches, and "Advanced view" adds scores, ranges and sources. |
 | `places.csv` | Seven places the form offers, each at the coordinates of the SARAI soil sample it uses. **Add a row only together with a POWER download for that point**; a test checks every row has weather and soil. |
 | `test_klima_model.py` | 88 tests: farmer inputs, scoring primitives, the water balance, the statistics, crops, places. |
-| `test_serve.py` | 18 tests: what the form sends to the model and what each view shows. |
+| `test_serve.py` | 19 tests: what the form sends to the model and what each view shows. |
 | `POWER_Point_Daily_*_LST.csv` | NASA POWER daily, 1981–2025, one file for each of the seven places in `places.csv`. The model picks the file whose header coordinates share the field's weather cell. The `_UTC.csv` file (second rainfall column) exists for the pilot only. |
 | `oni.ascii.txt` | NOAA Oceanic Niño Index. Used for the El Niño flag. |
 | `detrend.nino34.ascii.txt` | Niño 3.4 monthly anomaly. The fallback if the ONI file is missing. |
@@ -71,7 +71,7 @@ python sensitivity.py                 # how far the chosen crop values move the 
 python insights.py                    # every place, side by side
 python charts.py --out ../docs/images # the published charts
 python serve.py                       # the local form
-python -m unittest discover . -v      # 106 tests
+python -m unittest discover . -v      # 107 tests
 ```
 
 `results.json` and `model/charts/` are gitignored and rebuilt in about a second. `docs/images/` is committed, because the README has to be able to show its charts.
