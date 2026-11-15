@@ -23,7 +23,7 @@ The inputs are pilot location (Muñoz, fixed), soil type (including unknown), st
 
 The farm illustration was reused from `feat/visual-prototype`; it depicts no measured field. The browser stores only language preference. Field values and comparisons stay in memory until reload. Downloads contain a JSON comparison labeled `mode: sample`. Nothing is submitted to a server. Both languages preserve machine identifiers and input values; additional interface translations are AI-authored drafts awaiting farmer/agriculturist review.
 
-The app supports phone and desktop layouts, keyboard navigation, input validation, document language, optional browser storage, expanded explanations, and reduced motion. The preview is a separate private Site, declared in `.openai/hosting.json`.
+The app supports phone and desktop layouts, keyboard navigation, input validation, document language, optional browser storage, expanded explanations, and reduced motion. The active hosting target is Vercel, using the planner-to-`prod` Git workflow. The private ChatGPT Site declared in `.openai/hosting.json` is a legacy preview; do not update or deploy it unless the user explicitly requests it. Local previews remain available for verification.
 
 ## Team and detailed results
 
