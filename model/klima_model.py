@@ -1,25 +1,80 @@
-"""AniNow Klima model, local run. Standard library only, no internet."""
-import csv, glob, json, math, os, sys
+"""AniNow Klima model, local run. Standard library only, no internet.
+
+Run with the pilot's answers:        python klima_model.py
+See every answer it accepts:         python klima_model.py --help
+Try a different farmer's field:      python klima_model.py --drainage poorly_drained \
+                                         --harvest 2026-12-01 --next-planting 2027-06-15
+"""
+import argparse, csv, glob, json, math, os, sys
 from datetime import date, timedelta
 from statistics import median
 
-# ---------------- SETTINGS (edit here) ----------------
-HARVEST = (11, 15)            # month, day. PLACEHOLDER window, Franco to confirm
-NEXT_PLANTING = (5, 31)
-FIRST_YEAR, LAST_YEAR = 1981, 2024      # harvest years
-FIELD_LAT, FIELD_LON = 15.72, 120.90    # the POWER download point
-LOCATION_NAME = "Munoz, Nueva Ecija"    # pilot site; the prototype's "Tarlac" was wrong
-EXPECTED_PROVINCE = "Nueva Ecija"       # warn if the nearest soil sample is elsewhere
-DRAINAGE = "well_drained"     # well_drained / poorly_drained / unknown (farmer)
-DRAINAGE_SOURCE = "farmer"    # farmer or map; farmer for now
-USE_DRAINAGE_FILTER = True
-# Soil pH and texture are looked up from the nearest SARAI sample, below. Set
-# either of these to override the lookup; leave as None to use the sample.
-SOIL_PH_OVERRIDE = None
-SOIL_TEXTURE_OVERRIDE = None            # light / medium / heavy
-MAX_SOIL_SAMPLE_KM = 10.0     # refuse to use a sample further away than this
-PASS_MARK = 0.6
-DRY_SHARE = 0.20
+def month_day(text):
+    """A farmer gives a real date; the model applies its month and day across all
+    the historical years, so only the month and day are used."""
+    try:
+        d = date.fromisoformat(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"{text!r} is not a date in YYYY-MM-DD form") from None
+    return (d.month, d.day)
+
+def parse_args(argv):
+    p = argparse.ArgumentParser(
+        description="Compare planting rice again with rotation crops, for one field.",
+        epilog="Only the month and day of --harvest and --next-planting are used: "
+               "the window is replayed against every season from --first-year to "
+               "--last-year.")
+    f = p.add_argument_group("the field, as the farmer would answer")
+    f.add_argument("--lat", type=float, default=15.72, help="field latitude")
+    f.add_argument("--lon", type=float, default=120.90, help="field longitude")
+    f.add_argument("--place", default="Munoz, Nueva Ecija", help="name for the report")
+    f.add_argument("--province", default="Nueva Ecija",
+                   help="warn if the nearest soil sample is outside this province")
+    f.add_argument("--harvest", type=month_day, default="2026-11-15",
+                   help="rice harvest date, YYYY-MM-DD (default 2026-11-15)")
+    f.add_argument("--next-planting", type=month_day, default="2027-05-31",
+                   help="next rice planting date, YYYY-MM-DD (default 2027-05-31)")
+    f.add_argument("--drainage", default="well_drained",
+                   choices=["well_drained", "poorly_drained", "unknown"],
+                   help='answer to "does water stay on the field for days after rain?"')
+    f.add_argument("--soil-ph", type=float, default=None,
+                   help="from the farmer's soil test; overrides the sample lookup")
+    f.add_argument("--soil-texture", default=None, choices=["light", "medium", "heavy"],
+                   help="from the farmer's soil test; overrides the sample lookup")
+    s = p.add_argument_group("settings, normally left alone")
+    s.add_argument("--first-year", type=int, default=1981)
+    s.add_argument("--last-year", type=int, default=2024)
+    s.add_argument("--pass-mark", type=float, default=0.6)
+    s.add_argument("--dry-share", type=float, default=0.20)
+    s.add_argument("--heat-limit-c", type=float, default=35.0)
+    s.add_argument("--max-soil-sample-km", type=float, default=10.0)
+    s.add_argument("--no-drainage-filter", action="store_true",
+                   help="score every crop even on a poorly drained field")
+    s.add_argument("--out", default="results.json", help="where to write the results")
+    s.add_argument("--quiet", action="store_true", help="write the file, print nothing")
+    return p.parse_args(argv)
+
+# Imported for tests: take the defaults rather than unittest's command line.
+ARGS = parse_args(None if __name__ == "__main__" else [])
+
+# ---------------- SETTINGS (from the command line; --help lists them) ----------------
+HARVEST = ARGS.harvest
+NEXT_PLANTING = ARGS.next_planting
+FIRST_YEAR, LAST_YEAR = ARGS.first_year, ARGS.last_year
+FIELD_LAT, FIELD_LON = ARGS.lat, ARGS.lon
+LOCATION_NAME = ARGS.place               # pilot site; the prototype's "Tarlac" was wrong
+EXPECTED_PROVINCE = ARGS.province        # warn if the nearest soil sample is elsewhere
+DRAINAGE = ARGS.drainage                 # well_drained / poorly_drained / unknown (farmer)
+DRAINAGE_SOURCE = "farmer"               # farmer or map; farmer for now
+USE_DRAINAGE_FILTER = not ARGS.no_drainage_filter
+# Soil pH and texture are looked up from the nearest SARAI sample, below. The
+# farmer's own soil test, if they have one, overrides the lookup.
+SOIL_PH_OVERRIDE = ARGS.soil_ph
+SOIL_TEXTURE_OVERRIDE = ARGS.soil_texture
+MAX_SOIL_SAMPLE_KM = ARGS.max_soil_sample_km   # refuse a sample further away than this
+PASS_MARK = ARGS.pass_mark
+DRY_SHARE = ARGS.dry_share
 # Candidate planting dates, days after harvest. The window is ~197 days, so the
 # crop does not have to go in on harvest day: when it goes in is the biggest lever
 # the farmer actually controls, and rainfall inside the window is very uneven.
@@ -28,7 +83,7 @@ PLANTING_OFFSETS = list(range(0, 151, 15))
 # specific and stage specific (flowering is the sensitive stage), so this single
 # number is reported as evidence and is NOT folded into the suitability score.
 # Do not promote it to a score until per-crop values are sourced locally.
-HEAT_LIMIT_C = 35.0
+HEAT_LIMIT_C = ARGS.heat_limit_c
 NINO_THRESHOLD = 0.5
 NINO_FILE = "detrend.nino34.ascii.txt"
 CROPS_FILE = "crops.csv"
@@ -233,9 +288,9 @@ def read_nino():
     return table
 
 CROPS = read_crops()
-main, main_name = read_power("POWER_Point_Daily_*_LST.csv")
+power_main, main_name = read_power("POWER_Point_Daily_*_LST.csv")
 imerg, imerg_name = read_power("POWER_Point_Daily_*_UTC.csv")
-daily = {d: {**v, **imerg.get(d, {})} for d, v in main.items()}
+daily = {d: {**v, **imerg.get(d, {})} for d, v in power_main.items()}
 nino = read_nino()
 SOIL = read_soil_sample()
 CROP_REQ_PH = read_crop_requirements_ph()
@@ -599,8 +654,8 @@ def evaluate(water):
 fields = {w: evaluate(w) for w in ("rain", "irrigation")}
 WINDOW_OPTIONS = {n: window_options(c) for n, c in CROPS.items() if c["kc"]}
 
-def main():
-    """Print the report and write results.json."""
+def report():
+    """Print the full report and write the results file."""
     # ---------------- PRINTED REPORT ----------------
     def f(v):
         return "    n/a" if v is None else f"{v:7.2f}"
@@ -765,9 +820,19 @@ def main():
         fields=fields,
         planting_dates=WINDOW_OPTIONS,
         crop_coefficients={n: dict(kc=c["kc"], source=c["kc_source"]) for n, c in CROPS.items()})
-    with open("results.json", "w") as out_file:
+    with open(ARGS.out, "w") as out_file:
         json.dump(clean(results), out_file, indent=1)
-    print("\nSaved results.json")
+    print("\nSaved " + ARGS.out)
+
+def main():
+    """Print the report and write the results file. --quiet writes only the file."""
+    if ARGS.quiet:
+        import io, contextlib
+        with contextlib.redirect_stdout(io.StringIO()):
+            report()
+        print("Saved " + ARGS.out)
+    else:
+        report()
 
 if __name__ == "__main__":
     main()
