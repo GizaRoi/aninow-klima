@@ -15,7 +15,7 @@ test('field-to-results flow, filters, explanations, editing, and download', asyn
   await expect(mung).toContainText('36 of 44');
   await mung.getByText('Show why', { exact: true }).click();
   await expect(mung.getByText('Soil pH (no soil test)', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Dry year', exact: true }).click();
+  await page.getByRole('button', { name: 'Dry season', exact: true }).click();
   await expect(mung).toContainText('6 of 9 past dry seasons');
   await page.getByRole('button', { name: 'Saving water', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Saving water', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -73,7 +73,7 @@ test('phone layout and Tagalog results fit within the viewport', async ({ page }
   await page.locator('nav').getByRole('button', { name: 'Planuhin ang susunod na tanim', exact: true }).click();
   await page.getByRole('button', { name: 'Tingnan ang mga pagpipilian', exact: true }).click();
   await expect(page.locator('.crop-card')).toHaveCount(4);
-  await page.getByRole('button', { name: 'Taon ng El Niño', exact: true }).click();
+  await page.getByRole('button', { name: 'Panahon ng El Niño', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/mobile-results.png', fullPage: true });
 });
@@ -89,7 +89,7 @@ test('more detailed opens the HTML explanations and preserves mode across filter
   await expect(mung.getByRole('heading', { name: 'For your soil', exact: true })).toBeVisible();
   await expect(mung.getByRole('heading', { name: 'We could not check', exact: true })).toBeVisible();
   await expect(mung.getByRole('heading', { name: 'Ask your agriculturist first', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Dry year', exact: true }).click();
+  await page.getByRole('button', { name: 'Dry season', exact: true }).click();
   await page.getByRole('button', { name: 'Saving water', exact: true }).click();
   await expect(page.locator('.crop-details[open]')).toHaveCount(4);
   await page.getByRole('button', { name: 'Tagalog', exact: true }).click();
