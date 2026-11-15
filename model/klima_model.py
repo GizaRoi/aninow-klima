@@ -789,7 +789,10 @@ def report():
                   drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE, soil_texture=SOIL_TEXTURE,
                   scored_lengths="EcoCrop cycle minimum and maximum, capped at the window",
                   planting_offsets=PLANTING_OFFSETS, heat_limit_c=HEAT_LIMIT_C,
-                  placeholders=["window", "soil_texture", "texture_score", "normal_definition",
+                  # soil_texture has left this list: it is measured now, from the
+                  # nearest SARAI sample. texture_score stays, because mapping a
+                  # class onto 1 / 0.5 / 0 is our choice, not a source's.
+                  placeholders=["window", "texture_score", "normal_definition",
                                 "heat_limit_c"]),
         method=dict(
             eto="FAO-56 Eq.52 Hargreaves, from T2M, T2M_MAX, T2M_MIN and TOA_SW_DWN (Ra)",
