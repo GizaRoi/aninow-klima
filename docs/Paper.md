@@ -504,8 +504,9 @@ imply NASA endorsement.
 
 ## Acknowledgements
 
-AI assistants were used for coding, editing and data analysis. The model contains no
-machine learning, and all figures are plotted from its output.
+Most of the code, the analysis scripts and the text of this paper were drafted with an
+AI assistant (Claude, Anthropic), directed and reviewed by the team. The model contains
+no machine learning, and all figures are plotted by code from its output.
 
 ## References
 

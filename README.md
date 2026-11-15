@@ -100,9 +100,26 @@ constants are our own.
 
 ## Use of Super Intelligence (SI)
 
-AI assistants were used for coding and debugging, writing and editing, data analysis,
-and research. The model contains no AI or machine learning, and no figure is
-AI-generated.
+AI tools were used throughout this project, directed and reviewed by the team.
+
+| Where | How |
+|---|---|
+| Code: model, tests, analysis and figure scripts | Largely drafted and debugged with Claude (Anthropic) |
+| Writing: this README and the paper | Drafted and edited with Claude |
+| Data analysis | Statistical scripts and their interpretation drafted with Claude; every number comes from running the committed code on the committed data |
+| Research | AI-assisted search for sources; the FAO pages used are archived in `model/sources/` |
+| Idea and approach | Brainstormed with AI tools |
+| Web app front end | Built with AI assistance (`ADD TOOL`) |
+| Logo | AI-generated (`ADD TOOL`) |
+| Slides and demo | Prepared with AI assistance (`ADD TOOL`) |
+
+Not AI: the model has no machine learning, the app has no AI feature, and the figures
+are plots drawn by code from the model's output, not generated images.
+
+Form options that apply: Coding, Debugging, or Troubleshooting · Writing, Editing, or
+Translation · Data Analysis and Interpretation · Research or Information Gathering ·
+Ideation or Brainstorming · Visual Design or Image Creation · Presentation, Video, or
+Audio.
 
 ## NASA Data
 
