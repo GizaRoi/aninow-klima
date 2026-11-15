@@ -22,6 +22,9 @@ test('live Render service calculates a comparison through the browser', async ({
   await expect(page.locator('.crop-card').first()).toHaveAttribute('data-crop', body.ranking[0]);
   const counts = body.results.fields.rain.crops.mungbean.counts.balanced.all.short;
   await expect(page.locator('[data-crop="mungbean"]')).toContainText(`${counts.pass} of ${counts.of}`);
+  const rating = body.results.fields.rain.crops.mungbean.median_S.short.balanced;
+  await expect(page.locator('[data-crop="mungbean"] .model-rating strong')).toHaveText(`${rating.toFixed(2)} / 1`);
+  await expect(page.locator('.result-window .model-context')).toContainText('Water supply: Rain only');
   await expect(page.locator('body')).not.toContainText(/prototype|sample results|not connected|interactive demo/i);
   await page.screenshot({ path: 'test-results/live-render-results.png', fullPage: true });
   expect(errors).toEqual([]);

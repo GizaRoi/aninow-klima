@@ -159,3 +159,32 @@ On 2026-11-15 the live Render health, catalogue, comparison, production-origin
 CORS, and a local browser-to-Render flow passed. Automated contract/browser tests
 also cover service failure, catalogue retry, all crops excluded, language changes,
 phone overflow, and model downloads.
+
+## Compact results workspace
+
+The desktop form/results surface is capped at 1,140 px. Preparation, picking,
+and clearing allowances live inside Advanced settings with the pass mark. The
+results window says "days between harvest and your next planting"; resting fields
+use "days until your next planting." Submitted water, drainage, crop and soil
+answers and schedule allowances are grouped inside the same green window panel.
+Expandable model notes retain the soil source and historical assumptions.
+
+The Explore your options sidebar contains the Simple/More detailed view controls,
+season and priority filters, and a fixed Start over footer. On desktop it sticks
+within the viewport; its controls scroll independently when they exceed the
+available height. The crop-count heading includes the selected season, priority
+and water-supply labels. The previous detail-helper text, separate order label,
+and bottom information section have been removed, along with its navigation link.
+
+Each rated card displays the API's `median_S.short.balanced` next to the fit label,
+formatted from 0 to 1. It is the median historical suitability for the shortest
+cycle, not a success probability. It does not change when selecting a historical
+season view or priority. Older responses without the field do not acquire an
+invented score. Excluded crops have no score; missing-condition warnings remain.
+
+All 29 crop cards have local, lazy-loaded 720x360 crop photos. See
+[Crop-Photo-Credits.md](Crop-Photo-Credits.md) for original sources, creators,
+licenses, and modifications. Creator and license links are visible in each card.
+Crop references in Show why use APA 7; see
+[Model-Reference-Formatting.md](Model-Reference-Formatting.md) for verified
+bibliographic metadata and handling of unrecognized future source strings.

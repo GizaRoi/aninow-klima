@@ -1,0 +1,234 @@
+{
+  "rice": {
+    "src": "/images/crops/rice.webp",
+    "author": "Deeporaj",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rice_Crop_at_it%27s_ripen_stage..JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "title": "Rice Crop at it's ripen stage..JPG"
+  },
+  "mungbean": {
+    "src": "/images/crops/mungbean.webp",
+    "author": "Ivar Leidus",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mung_beans_(Vigna_radiata).jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "title": "Mung beans (Vigna radiata).jpg"
+  },
+  "eggplant": {
+    "src": "/images/crops/eggplant.webp",
+    "author": "rdesai",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Eggplant.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "title": "Eggplant.jpg"
+  },
+  "tomato": {
+    "src": "/images/crops/tomato.webp",
+    "author": "Wilfredor",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tomatoes.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Tomatoes.jpg"
+  },
+  "squash": {
+    "src": "/images/crops/squash.webp",
+    "author": "Obsidian Soul",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kalabasa_(Calabaza)_squash_from_the_Philippines.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Kalabasa (Calabaza) squash from the Philippines.jpg"
+  },
+  "sitaw": {
+    "src": "/images/crops/sitaw.webp",
+    "author": "David",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Long_Bean.JPG",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Long_Bean.JPG#Licensing",
+    "title": "Long Bean.JPG"
+  },
+  "snapbean": {
+    "src": "/images/crops/snapbean.webp",
+    "author": "Aldrina A Manashe",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Phaseolus_Vulgaris.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Phaseolus Vulgaris.jpg"
+  },
+  "cabbage": {
+    "src": "/images/crops/cabbage.webp",
+    "author": "Jeffery Martin",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cabbage_in_a_stack.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Cabbage in a stack.jpg"
+  },
+  "lettuce": {
+    "src": "/images/crops/lettuce.webp",
+    "author": "Jeffery Martin",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lettuce_in_a_stack.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Lettuce in a stack.jpg"
+  },
+  "potato": {
+    "src": "/images/crops/potato.webp",
+    "author": "Ruslan V. Albitsky aka pauk",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Potato_tubers_in_pail.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "title": "Potato tubers in pail.jpg"
+  },
+  "maize": {
+    "src": "/images/crops/maize.webp",
+    "author": "Jon Sullivan",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dried_corn_cobs.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Dried_corn_cobs.jpg#Licensing",
+    "title": "Dried corn cobs.jpg"
+  },
+  "sweetcorn": {
+    "src": "/images/crops/sweetcorn.webp",
+    "author": "Rasbak at Dutch Wikipedia",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Suikermais.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "title": "Suikermais.jpg"
+  },
+  "peanut": {
+    "src": "/images/crops/peanut.webp",
+    "author": "Pollinator",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Peanut_9417.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "title": "Peanut 9417.jpg"
+  },
+  "soybean": {
+    "src": "/images/crops/soybean.webp",
+    "author": "Scott Bauer / U.S. Department of Agriculture",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Multi_colored_soybeans.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Multi_colored_soybeans.jpg#Licensing",
+    "title": "Multi colored soybeans.jpg"
+  },
+  "sweetpotato": {
+    "src": "/images/crops/sweetpotato.webp",
+    "author": "Iyinolamercy",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sweet_potato_in_Nigeria.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Sweet potato in Nigeria.jpg"
+  },
+  "cassava": {
+    "src": "/images/crops/cassava.webp",
+    "author": "Myrmux",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Nahaufnahme_von_Cassavawurzeln_auf_dem_Feld_nach_der_Ernte.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "title": "Nahaufnahme von Cassavawurzeln auf dem Feld nach der Ernte.jpg"
+  },
+  "onion": {
+    "src": "/images/crops/onion.webp",
+    "author": "Colin",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Red_Onion_on_White.JPG",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "title": "Red Onion on White.JPG"
+  },
+  "sweetpepper": {
+    "src": "/images/crops/sweetpepper.webp",
+    "author": "Nikodem Nijaki",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capsicum_annuum_fruits_IMGP0049.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "title": "Capsicum annuum fruits IMGP0049.jpg"
+  },
+  "watermelon": {
+    "src": "/images/crops/watermelon.webp",
+    "author": "Gaurav Dhwaj Khadka",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Watermelon_3.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "title": "Watermelon 3.jpg"
+  },
+  "melon": {
+    "src": "/images/crops/melon.webp",
+    "author": "Scott Bauer / U.S. Department of Agriculture",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cucumis_melo_var._reticulatus_(photo_by_Scott_Bauer).jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Cucumis_melo_var._reticulatus_(photo_by_Scott_Bauer).jpg#Licensing",
+    "title": "Cantaloupes.jpg"
+  },
+  "carrot": {
+    "src": "/images/crops/carrot.webp",
+    "author": "domdomegg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Carrots_at_Ljubljana_Central_Market.JPG",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "title": "Carrots at Ljubljana Central Market.JPG"
+  },
+  "sesame": {
+    "src": "/images/crops/sesame.webp",
+    "author": "Sanjay ach",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sa_white_sesame_seeds.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "title": "Sa white sesame seeds.jpg"
+  },
+  "sweetsorghum": {
+    "src": "/images/crops/sweetsorghum.webp",
+    "author": "Mothusi Sekhomba",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sweet_Sorghum_plants.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "title": "Sweet Sorghum plants.jpg"
+  },
+  "broccoli": {
+    "src": "/images/crops/broccoli.webp",
+    "author": "U.S. Department of Agriculture",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fire-Tuscarora_Organic_Growers_-_Broccoli_head.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Fire-Tuscarora_Organic_Growers_-_Broccoli_head.jpg#Licensing",
+    "title": "Fire-Tuscarora Organic Growers - Broccoli head.jpg"
+  },
+  "cucumber": {
+    "src": "/images/crops/cucumber.webp",
+    "author": "WiseMan42",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cucumber_from_Denmark.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Cucumber from Denmark.jpg"
+  },
+  "radish": {
+    "src": "/images/crops/radish.webp",
+    "author": "Chris 73",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Daikon.Japan.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "title": "Daikon.Japan.jpg"
+  },
+  "gardenpea": {
+    "src": "/images/crops/gardenpea.webp",
+    "author": "Geo Lightspeed7",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Peas_for_stir_fry.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "title": "Peas for stir fry.jpg"
+  },
+  "cauliflower": {
+    "src": "/images/crops/cauliflower.webp",
+    "author": "Jeffery Martin",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Stack_of_cauliflower_heads.jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Stack of cauliflower heads.jpg"
+  },
+  "cowpea": {
+    "src": "/images/crops/cowpea.webp",
+    "author": "Fumikas Sagisavas",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Patterned_cowpea_(20240714).jpg",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "title": "Patterned cowpea (20240714).jpg"
+  }
+}

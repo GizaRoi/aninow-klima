@@ -1,6 +1,10 @@
 // AI-authored Tagalog, pending farmer/agriculturist review.
 export const expandedModelCopy = {
   en: {
+    win: '{n} days between harvest and your next planting', fallowWin: '{n} days until your next planting',
+    calculationNotes: 'Model notes & soil source', currentCrop: 'Current or last crop', scoreLabel: 'Model score', sourceNote: 'Model source note', sourceNotes: 'Model assumptions & source notes',
+    scoreHint: 'Median suitability across all historical seasons for the shortest growing cycle, from 0 to 1. Not a probability of success.',
+    selectedFilters: 'Selected filters', photo: 'Photo', imageLicense: 'License', photoEdited: 'Cropped & resized',
     fallow: 'Fallow / resting field', fieldAvailable: 'Field available from',
     scheduleTitle: 'Plan the whole planting window',
     scheduleHint: 'All three allowances start at 0. Enter the time your field and crop need; the model reserves it around the growing period.',
@@ -22,6 +26,10 @@ export const expandedModelCopy = {
     plantingStart: 'Start', waterGap: 'Water gap', rainCoverage: 'Rain / crop demand', seasonsChecked: 'Seasons checked',
   },
   tl: {
+    win: '{n} araw mula sa ani hanggang sa susunod mong tanim', fallowWin: '{n} araw bago ang susunod mong tanim',
+    calculationNotes: 'Mga paliwanag ng modelo at pinagmulan ng lupa', currentCrop: 'Kasalukuyan o huling pananim', scoreLabel: 'Score ng modelo', sourceNote: 'Tala ng sanggunian sa modelo', sourceNotes: 'Mga palagay at tala ng sanggunian sa modelo',
+    scoreHint: 'Median na score sa lahat ng nakaraang panahon para sa pinakamaikling siklo, mula 0 hanggang 1. Hindi ito posibilidad ng tagumpay.',
+    selectedFilters: 'Mga napiling filter', photo: 'Larawan', imageLicense: 'Lisensiya', photoEdited: 'Kinrop at pinaliit',
     fallow: 'Nakapahingang bukid / walang tanim', fieldAvailable: 'Puwede nang gamitin ang bukid mula',
     scheduleTitle: 'Planuhin ang buong bakanteng panahon',
     scheduleHint: 'Nagsisimula sa 0 ang tatlong bilang. Ilagay ang araw na kailangan ng bukid at pananim; ilalaan ito bago at pagkatapos ng paglaki.',
