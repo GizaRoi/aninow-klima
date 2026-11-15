@@ -1,5 +1,9 @@
 # AniNow Klima — API Contract
 
+The implemented stateless comparison API is documented in [Model-API.md](Model-API.md).
+It exposes the existing historical rules model for frontend integration and is
+separate from the proposed authenticated and persisted application contract below.
+
 Status: proposed v1 contract for Filipino rice farmers, revised 2026-11-14. No endpoints are deployed. Next.js owns finances, final feasibility/order, and persistence; Python supplies agronomic checks and supported yield inference. [Decision engine specification](Decision-Engine-Spec.md) defines the canonical manifests, enums and policies.
 
 ## Conventions

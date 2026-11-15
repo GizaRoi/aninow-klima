@@ -35,7 +35,7 @@ Deliver the rules/simulation decision prototype before claiming a predictive MVP
 
 # What exists now
 
-State as of 2026-11-15, on `feat/klima-model` (was `yancey-branch`). [docs/HANDOFF.md](docs/HANDOFF.md) is the current summary of what exists, what changed and what is open. The decision model is **built and running**. The web application, database and predictive model are not.
+State as of 2026-11-15, on `feat/klima-model` (was `yancey-branch`). [docs/HANDOFF.md](docs/HANDOFF.md) is the current summary of what exists, what changed and what is open. The decision model is **built and running**. A stateless comparison API is implemented in `model/api.py`; see [docs/Model-API.md](docs/Model-API.md) for its contract, tests and Render settings. The frontend lives on separate branches and is not connected yet; database and predictive model work remain pending.
 
 Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonical account of the method, the results, and the problems, with the charts. [docs/Model-Explained.md](docs/Model-Explained.md) works every formula by hand for a newcomer, and [docs/Audit-and-Decision-Checklist.md](docs/Audit-and-Decision-Checklist.md) lists the findings and the decisions still open.
 
@@ -48,6 +48,7 @@ Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonic
 | `diagnostics.py` | Seven checks on how far the numbers can be trusted. Changes no score. |
 | `charts.py` | Writes eleven SVG charts plus a self-contained `index.html`. |
 | `serve.py` | A local form at `127.0.0.1:8000`. Runs the real model per submission. A farmer view by default; soil test values and the pass mark sit behind switches, and "Advanced view" adds scores, ranges and sources. |
+| `api.py` | Stateless FastAPI catalogue, comparison and health endpoints. Uses an isolated CLI process per calculation. See `docs/Model-API.md`. |
 | `places.csv` | Seven places the form offers, each at the coordinates of the SARAI soil sample it uses. **Add a row only together with a POWER download for that point**; a test checks every row has weather and soil. |
 | `test_klima_model.py` | 88 tests: farmer inputs, scoring primitives, the water balance, the statistics, crops, places. |
 | `test_serve.py` | 19 tests: what the form sends to the model and what each view shows. |
@@ -60,7 +61,9 @@ Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonic
 | `insights.py` | Runs the model once per place and puts the results side by side. Changes nothing. |
 | `bswm_soil_map_units.csv` | Committed but **deliberately unused**; see below. |
 
-Standard library only. No NumPy, no matplotlib, no internet at run time.
+The core model and local form use the standard library only. The HTTP API requires
+`model/requirements.txt`; API tests also require `model/requirements-dev.txt`.
+There is no NumPy, matplotlib, or internet access at model run time.
 
 ```bash
 cd model
@@ -71,8 +74,11 @@ python sensitivity.py                 # how far the chosen crop values move the 
 python insights.py                    # every place, side by side
 python charts.py --out ../docs/images # the published charts
 python serve.py                       # the local form
-python -m unittest discover . -v      # 107 tests
+python -m unittest test_klima_model test_serve -v # 107 standard-library model/form tests
 ```
+
+With `requirements-dev.txt` installed, `python -m unittest discover . -v` also
+runs the HTTP API tests. Run this full suite before publishing API changes.
 
 `results.json` and `model/charts/` are gitignored and rebuilt in about a second. `docs/images/` is committed, because the README has to be able to show its charts.
 

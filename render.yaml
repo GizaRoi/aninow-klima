@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: aninow-klima-model
+    runtime: python
+    plan: free
+    branch: feat/klima-model
+    rootDir: model
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: CORS_ORIGINS
+        value: https://aninow-klima.vercel.app,http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173

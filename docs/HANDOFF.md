@@ -2,6 +2,11 @@
 
 Branch: `feat/klima-model` (was `yancey-branch`). Date: 2026-11-15.
 
+The stateless comparison API in `model/api.py` now wraps this same model, with
+catalogue discovery, validated JSON inputs, isolated calculations and `/health`.
+See [Model-API.md](Model-API.md) for the contract and Render deployment settings.
+The frontend remains separate; the API does not change the scoring method.
+
 This is the state of the model for whoever picks it up next. It says what exists, what
 changed, what the numbers are, what can be said in a pitch, and what is still open. For the
 method read [Model-Narrative.md](Model-Narrative.md); for the maths worked by hand read
@@ -19,7 +24,7 @@ To check everything works:
 
 ```bash
 cd model
-python -m unittest discover .         # 107 tests
+python -m unittest test_klima_model test_serve # 107 standard-library model/form tests
 python klima_model.py                 # the pilot field
 python insights.py                    # every place, side by side
 python diagnostics.py                 # how far the numbers can be trusted
