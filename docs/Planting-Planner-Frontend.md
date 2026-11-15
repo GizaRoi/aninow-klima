@@ -2,7 +2,7 @@
 
 The Next.js application lives in `apps/web` on `feat/planting-planner`. It follows the existing visual prototype's forest green palette, farm artwork, glass panels, and lime accents. The model remains separate in `model/`.
 
-The header and footer use the supplied `Version 2.png`, copied unchanged to `public/images/aninow-logo.png`. A shared SVG viewport excludes empty transparent margins when displaying it, preserving the complete leaf and wordmark. A soft green gradient behind the artwork gives the original dark lettering contrast while blending into the forest green shell. Logo dimensions adapt to desktop and phone widths without stretching the artwork.
+The header and footer use the supplied `Version 2.png`, copied unchanged to `public/images/aninow-logo.png`. A shared SVG viewport excludes empty transparent margins when displaying it, preserving the complete leaf and wordmark. The logo sits on a restrained diagonal sage gradient, with a fine border and no glow. The page restores the visual prototype's broad olive-to-forest background gradient; the planner and planting-window surfaces use subtle tonal gradients. Logo dimensions adapt to desktop and phone widths without stretching the artwork.
 
 ## Run and verify
 
