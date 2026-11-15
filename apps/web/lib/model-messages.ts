@@ -2,8 +2,8 @@
 export const modelCopy = {
   en: {
     modelLabel: 'Historical model',
-    heroTitle: 'What can you plant', heroEmphasis: 'after rice?',
-    heroCopy: 'Make room for what comes next. Explore crops that fit your field, your water, and the time before your next rice planting.',
+    heroTitle: 'What can you plant', heroEmphasis: 'after harvest?',
+    heroCopy: 'Make room for what comes next. Explore crops that fit your field, your water, and the time before your next main-crop planting.',
     openingPlanner: 'Opening your planting planner',
     calendarSub: 'Your planting window starts after harvest.', available: 'days between main crops',
     riceHarvest: 'Harvest', nextPlanting: 'Next planting', f_harvest: 'Harvest date', f_next: 'Next main-crop planting',
@@ -59,8 +59,8 @@ export const modelCopy = {
   },
   tl: {
     modelLabel: 'Modelo ng nakaraang panahon',
-    heroTitle: 'Ano ang puwedeng itanim', heroEmphasis: 'pagkatapos ng palay?',
-    heroCopy: 'Maglaan ng puwang para sa susunod na tanim. Tingnan ang mga pananim na bagay sa iyong bukid, tubig, at oras bago muling magtanim ng palay.',
+    heroTitle: 'Ano ang puwedeng itanim', heroEmphasis: 'pagkatapos ng ani?',
+    heroCopy: 'Maglaan ng puwang para sa susunod na tanim. Tingnan ang mga pananim na bagay sa iyong bukid, tubig, at oras bago muling itanim ang pangunahing pananim.',
     openingPlanner: 'Binubuksan ang tagaplano ng tanim',
     calendarSub: 'Magsisimula ang bakanteng panahon pagkatapos ng ani.', available: 'araw bago ang susunod na pangunahing tanim',
     riceHarvest: 'Ani', nextPlanting: 'Susunod na tanim', f_harvest: 'Petsa ng ani', f_next: 'Susunod na tanim ng pangunahing pananim',

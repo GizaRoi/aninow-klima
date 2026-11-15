@@ -12,6 +12,8 @@ requests keep their own visible status afterward. The welcome does not run again
 on form submission or language changes. Background controls stay inert until it
 finishes, and reduced-motion preferences disable the zoom and fade. Form labels,
 controls, and explanatory copy use larger type on both desktop and phones.
+The headline asks what can be planted after harvest, and the supporting copy
+refers to the next main crop so it covers every crop in the selector.
 
 ## Run and verify
 
