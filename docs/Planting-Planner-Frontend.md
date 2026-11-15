@@ -1,8 +1,10 @@
 # Planting planner frontend
 
-The Next.js application lives in `apps/web` on `feat/planting-planner`. It follows the existing visual prototype's forest green palette, farm artwork, glass panels, and lime accents. The model remains separate in `model/`.
+The Next.js application lives in `apps/web` on `feat/planting-planner`. Its flat design follows the logo's forest green and lime palette: solid cream and green surfaces, clear borders, stronger text contrast, and explicit selected controls. Gradients, glass blur, and decorative shadows have been removed. The model remains separate in `model/`.
 
-The header and footer use the supplied `Version 2.png`, copied unchanged to `public/images/aninow-logo.png`. A shared SVG viewport excludes empty transparent margins when displaying it, preserving the complete leaf and wordmark. The logo appears directly on the page with a transparent background. An SVG display filter lightens the dark “Ani” and “Klima” lettering for contrast while preserving the leaf artwork and lime “Now” text. Filter IDs are unique to each logo instance. The page restores the visual prototype's broad olive-to-forest background gradient; the planner and planting-window surfaces use subtle tonal gradients. Logo dimensions adapt to desktop and phone widths without stretching the artwork.
+The header and footer use the supplied `Version 2.png`, copied unchanged to `public/images/aninow-logo.png`. A shared SVG viewport excludes empty transparent margins when displaying it, preserving the complete leaf and wordmark. The logo appears directly on the page with a transparent background. An SVG display filter lightens the dark “Ani” and “Klima” lettering for contrast while preserving the leaf artwork and lime “Now” text. Filter IDs are unique to each logo instance. The page uses a solid forest green background; the planner and planting-window surfaces use solid fills. Logo dimensions adapt to desktop and phone widths without stretching the artwork.
+
+The hero places its copy, artwork, location, and field summary on separate solid surfaces, so no text depends on an image overlay for readability. Desktop uses two columns; tablet and phone layouts stack the copy and adapt the artwork panel. The existing `public/images/farm-diorama.png` remains in place pending the user's replacement image in the workspace root. No new image is included in this change. Once supplied, copy the replacement into `apps/web/public/images/` and update the hero source and intrinsic dimensions if needed.
 
 ## Run and verify
 
