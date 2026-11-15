@@ -19,14 +19,14 @@ export function AppIntro({ language, children }: { language: Language; children:
 
   return <>
     {phase !== 'done' && <div className={`app-intro ${phase === 'leaving' ? 'is-leaving' : ''}`}>
-      <img className="intro-landscape" src="/images/farm-diorama.png" alt="" fetchPriority="high"/>
+      <img className="intro-landscape" src="/images/pexels-elmer0224-31391951.jpg" alt="" width="3024" height="4032" fetchPriority="high"/>
       <div className="intro-shade"/>
       <div className="intro-content">
         <BrandLogo/>
         <p className="intro-tagline">{m.tagline}</p>
         <div className="intro-status" role="status"><span className="intro-track" aria-hidden="true"><span/></span><span>{m.openingPlanner}</span></div>
       </div>
-      <span className="intro-artwork">{m.artwork}</span>
+      <span className="intro-credit">{m.photoCredit}</span>
     </div>}
     <div inert={phase !== 'done'}>{children}</div>
   </>;
