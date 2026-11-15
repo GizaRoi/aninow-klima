@@ -34,36 +34,26 @@ rice-based cropping systems, crop diversification, limiting factor.
 
 ## 1. Introduction
 
-Irrigated and rainfed lowland rice dominates Philippine smallholder agriculture, and for
-much of the country the main crop is harvested towards the end of the wet season. The
-months that follow are dry. A farmer who plants rice again in that window is betting on
-water that, in most years, does not arrive; a farmer who leaves the field fallow forgoes
-a second income. Crop diversification after rice is a long-standing extension
-recommendation, but the advice available to an individual farmer is generic: it does not
-say which crop, on which soil, planted when, or how often the choice would have worked.
+Lowland rice dominates Philippine smallholder agriculture, and in much of the country
+the main crop is harvested at the end of the wet season. The months that follow are dry.
+Planting rice again risks a crop without water; leaving the field fallow forgoes a second
+income. Diversification after rice is a long-standing extension recommendation, but the
+advice is generic: it does not say which crop, on which soil, planted when, or how often
+the choice would have worked.
 
-The information needed to make that advice specific already exists and is open. NASA's
-POWER project publishes daily temperature, precipitation and radiation for any point on
-Earth from 1981. FAO's EcoCrop database publishes the temperature, rainfall, pH and
-texture limits of over two thousand species. FAO Irrigation and Drainage Paper 56
-(Allen et al., 1998) gives the standard method for turning weather into crop water
-demand. Measured soil samples are available for Philippine sites through the SARAI
-programme. What is missing is the join: nothing puts a farmer's own field, a published
-crop requirement and four decades of local weather into one statement a farmer can act on.
+The data needed to make that advice specific are open. NASA POWER provides daily
+temperature, precipitation and radiation for any point from 1981. FAO EcoCrop gives
+temperature, rainfall, pH and texture limits by species. FAO Irrigation and Drainage
+Paper 56 (Allen et al., 1998) gives the standard method for crop water demand. The SARAI
+programme provides measured Philippine soil samples. No existing tool joins them at the
+level of a single field.
 
-This paper describes a model that makes that join and nothing more. It asks a single
-question — *for this field and this fallow window, in how many of the past seasons were
-each crop's published requirements met?* — and it is built so that every number in the
-answer can be traced to a source or to a choice we state openly.
-
-**Contributions.**
-
-1. A complete, deterministic specification of a field-level crop comparison built only
-   from open NASA and FAO data, with no fitted parameters (Section 3).
-2. Results for 29 crops at 22 Philippine sites over 44 seasons, including an explicit
-   "no suitable recommendation" outcome (Section 4).
-3. A statistical appraisal of how far those results can be trusted in the absence of
-   validation data, including the weaknesses we found (Sections 4.5–4.7 and 5).
+We ask one question: for a given field and fallow window, in how many past seasons were
+each crop's published requirements met? The contributions are (i) a deterministic
+field-level crop comparison built from open NASA and FAO data, with no fitted parameters
+(Section 3); (ii) results for 29 crops at 22 sites over 44 seasons, including an explicit
+"no suitable recommendation" outcome (Section 4); and (iii) a statistical appraisal of
+those results in the absence of validation data (Sections 4.5–4.7 and 5).
 
 ---
 
@@ -155,9 +145,8 @@ of `model/crops.csv` records the source of each number.
 
 ## 3. Methods
 
-The model is a composition of published rules. It is stated here in full; the
-implementation is `model/klima_model.py` and the complete specification, including the
-handling of absent values, is [Model-Mathematics.md](Model-Mathematics.md).
+The model is a composition of published rules, stated here in full. The implementation
+is `model/klima_model.py`.
 
 ![The model in three steps](figures/fig00-the-model-in-three-steps.png)
 
@@ -292,8 +281,8 @@ standard library and are checked against hand-worked cases in the test suite.
 Reference ET reproduces an independent hand calculation to the decimal over seven months,
 and crop water demand agrees with the per-cycle figures FAO publishes. All 23
 EcoCrop-scored crops are compared number by number with their archived FAO sheets by an
-automated test. The suite comprises 170 tests of the farmer-facing inputs, the scoring
-primitives, the water balance and the statistics.
+automated test. The suite comprises 159 tests of the inputs, the scoring functions, the
+water balance, the statistics, and the counts reported in Section 4.
 
 ---
 
@@ -478,8 +467,7 @@ forecast: every figure is a count or a median over past seasons.
 6. *Drainage is the farmer's answer.* No usable soil-series map was available.
 7. *Chosen constants.* The pass mark (0.6), the tolerated-texture score (0.5), the
    medium-soil percolation (6 mm d⁻¹), the dry-season share (20%) and each $K_c$ picked
-   within a printed range are ours. All are listed in
-   [Model-Mathematics.md](Model-Mathematics.md) §11.
+   within a printed range are ours.
 8. *No agronomist has reviewed* the added crops or sites; only the pilot site has been
    examined in detail.
 
@@ -497,9 +485,8 @@ Open NASA and FAO data are sufficient to turn generic diversification advice int
 field-specific, checkable statement. For a rainfed field harvested in November, the
 record from 1981 to 2024 does not support a second rice crop at any of 22 Philippine
 sites, and supports a short-cycle alternative at 17 of them, saving a median of 573 mm
-of irrigation. Where the soil rules every crop out, the model says so. Its value lies
-less in the ranking than in the fact that every step from satellite record to
-recommendation can be read, questioned and re-run.
+of irrigation. Where the soil rules every crop out, the model says so. Every step from
+satellite record to recommendation can be read and re-run.
 
 ---
 
@@ -515,14 +502,10 @@ NASA POWER data were obtained from the NASA Langley Research Center (LaRC) POWER
 funded through the NASA Earth Science/Applied Science Program. Use of NASA data does not
 imply NASA endorsement.
 
-## Use of AI tools
+## Acknowledgements
 
-An AI coding assistant was used during development for drafting and debugging code,
-drafting documentation, and assisting with data analysis. Every number reported here is
-produced by the committed code from the committed data and is covered by the automated
-tests; sources were read and checked by the team. The decision model contains no machine
-learning or generative component, and no figure in this repository is AI-generated
-imagery: all are plotted by code from the model's output.
+AI assistants were used for coding, editing and data analysis. The model contains no
+machine learning, and all figures are plotted from its output.
 
 ## References
 
@@ -634,5 +617,4 @@ below fully scored crops.
 | Scoring function and coefficient curves | [figures/fig02-the-function.png](figures/fig02-the-function.png) |
 | Suitability against rainfall (Spearman) | [figures/fig13-score-follows-rain.png](figures/fig13-score-follows-rain.png) |
 | Margin between the two weakest conditions | [figures/fig14-limiting-margin.png](figures/fig14-limiting-margin.png) |
-| Input coverage, rainfall cross-check, pipeline | [images/](images/) |
 | Every site, crop and test statistic | [analysis/pitch_stats.md](analysis/pitch_stats.md) and the four CSV tables beside it |
