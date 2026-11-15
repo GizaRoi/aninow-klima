@@ -38,7 +38,7 @@ review and are kept as the record of what was found.
 | 12 | Coordinates that do not match the weather file | **Refused** | Yes | Test: Manila's coordinates stop the model with a plain message |
 | 13 | El Niño index | **NOAA's Oceanic Niño Index** | Yes | Gives the same 13 seasons as the file it replaced |
 | 14 | Sensitivity check | **In the repo** as `model/sensitivity.py` | Yes | Order unchanged in every case; see section 5 |
-| 15 | Soil moisture and a daily water budget | **Not for this submission.** Stated plainly instead | Stated | In the results file, the form's method notes, the narrative and `AGENTS.md` |
+| 15 | Soil moisture and a daily water budget | **Not for this submission.** Stated plainly instead | Stated | In the results file, the form's method notes, the narrative and `CONTRIBUTING.md` |
 | 16 | Which ground does the weather describe? | **A grid square of 0.5 by 0.625 degrees**, about 55 by 67 km | Stated | From the POWER file's own header. Shown in the form's method notes |
 | 17 | Rainfall trend | **Called a trend in the NASA record**, not a climate trend | Worded | README and narrative |
 | 18 | Dry-year and El Niño counts on the farmer card | **Moved to the advanced view** | Yes | Seven and twelve years are too few for a headline |
@@ -147,10 +147,9 @@ listener will assume.
 | `model/serve.py` | Form rewritten: place name instead of coordinates, soil test and advanced settings behind switches, a farmer view and an advanced view, plain wording, "References". |
 | `model/places.csv` | New. The list of places the form offers, with the coordinates the model needs. One row for now. |
 | `model/test_serve.py` | New. Thirteen tests on what the form sends and shows. The cards give extra water as a depth over the field and against rice. |
-| `README.md`, `docs/Model-Narrative.md`, `AGENTS.md` | Quoted figures corrected to match the fix. |
+| `README.md`, `docs/Model-Narrative.md`, `CONTRIBUTING.md` | Quoted figures corrected to match the fix. |
 | `docs/Model-Explained.md` | New. The worked guide. |
 | `docs/Audit-and-Decision-Checklist.md` | This file. |
-| `.claude/launch.json` | New, untracked. Lets the form be started from the Claude desktop preview. Delete it if unwanted. |
 
 After the decisions, also changed: the scoring rule, ranking, rice seepage, the land-preparation option and the place check in `klima_model.py`; `oni.ascii.txt` added; `sensitivity.py` added; `Decision-Engine-Spec.md` given a list of differences. All 98 tests pass.
 
@@ -464,7 +463,7 @@ lengths move a shortfall by 10 mm or less and never change the order. What still
 local figures is growing time for the three alternatives.
 
 **"The data looks rigid because it is only Muñoz."** Calling it a pilot is fair, and the
-`AGENTS.md` section on why the output looks uniform is the right explanation. To make the
+The `CONTRIBUTING.md` section on why the output looks uniform is the right explanation. To make the
 expansion claim concrete rather than a promise: adding a town takes a POWER download for
 that point, a soil sample within 10 km, and a row in `places.csv`. The model still needs
 one change, to pick its weather file by place. Showing even one second town, ideally an

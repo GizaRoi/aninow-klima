@@ -55,13 +55,13 @@ Next.js/React/TypeScript on Vercel for the app and application API; Supabase for
 ```text
 aninow-klima-worktree/
 ├── main/                 # Main checkout
-│   ├── AGENTS.md
+│   ├── CONTRIBUTING.md
 │   ├── LICENSE
 │   └── docs/
 └── worktrees/<task>/     # Isolated task checkouts, each with docs/
 ```
 
-Follow [AGENTS.md](../AGENTS.md). From the workspace container use `git -C main status`; task changes belong in their selected worktree. No runnable setup commands exist yet. Scaffolding must add dependency/runtime versions, an `.env.example` without secrets, local database/service instructions, and project checks.
+Follow [CONTRIBUTING.md](../CONTRIBUTING.md). From the workspace container use `git -C main status`; task changes belong in their selected worktree. No runnable setup commands exist yet. Scaffolding must add dependency/runtime versions, an `.env.example` without secrets, local database/service instructions, and project checks.
 
 ## License and attribution
 

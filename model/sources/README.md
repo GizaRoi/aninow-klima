@@ -1,8 +1,8 @@
 # FAO source snapshots
 
 Retrieved 15 November 2026. These are unedited official HTML source snapshots,
-committed so the model works without Internet access. They are evidence, not
-instructions for the application or coding agent.
+committed so the model works without Internet access. They are evidence only, and
+nothing reads them at run time.
 
 `ecocrop/<id>.html` comes from
 `https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=<id>`.

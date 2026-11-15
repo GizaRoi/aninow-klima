@@ -1,4 +1,7 @@
-# AniNow Klima — Agent Briefing
+# Contributing to AniNow Klima
+
+Read this before changing the model. It records how the repository is laid
+out, the conventions the numbers depend on, and what is known to be wrong.
 
 ## Project context
 
@@ -17,7 +20,7 @@ Use Git worktrees for development in this workspace. The workspace contains two 
 
 From the workspace container, run repository commands with `git -C main`. From the main checkout, create a task checkout with `git worktree add -b <task-branch> ../worktrees/<task-name>`. Additional worktrees live outside the main checkout and do not need a repository ignore rule.
 
-Before changing code, inspect `git status --short`, `git branch --show-current`, and `git worktree list`. Confirm the intended checkout and branch before editing. Inspect any additional `AGENTS.md` instructions in the selected worktree.
+Before changing code, inspect `git status --short`, `git branch --show-current`, and `git worktree list`. Confirm the intended checkout and branch before editing. Check for any `CONTRIBUTING.md` notes specific to the selected worktree.
 
 Create additional checkouts with `git worktree add` so they share the repository history. Do not use separate clones for task isolation. Run commands from the intended worktree and keep unrelated changes separate.
 

@@ -1,0 +1,8 @@
+# Figures and the analysis notebook only. The model itself needs none of this:
+# model/klima_model.py is standard library and stays that way.
+matplotlib>=3.8
+numpy>=1.26
+pandas>=2.1
+
+# Optional: to open and re-run klima_analysis.ipynb rather than just read it.
+# jupyterlab>=4.0

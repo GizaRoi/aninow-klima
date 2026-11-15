@@ -43,7 +43,7 @@ Detailed rules, enums, financial manifests and edge cases are defined in [Decisi
 
 ## Predictive model role
 
-Rules establish suitability and constraints; a yield model estimates marketable harvest for supported crops; a deterministic calculator derives financial scenarios; final decision logic applies priorities. NASA features need independent agricultural yield labels. A language model is not the source of agronomic thresholds or numeric predictions.
+Rules establish suitability and constraints; a yield model estimates marketable harvest for supported crops; a deterministic calculator derives financial scenarios; final decision logic applies priorities. NASA features need independent agricultural yield labels. Agronomic thresholds and numeric predictions come from published sources and measurements, never from prose or inference.
 
 Build the rules/simulation decision prototype first. Keep the predictive milestone open until both rice and at least one alternative meet predeclared evaluation criteria on held-out seasons and locations. A validated rice model paired with an unvalidated alternative does not validate the comparison. Historical associations do not establish the causal benefit of switching crops.
 
