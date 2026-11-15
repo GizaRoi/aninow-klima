@@ -8,6 +8,9 @@ import { SiteFooter, SiteHeader } from './components/site-shell';
 import { AppIntro } from './components/app-intro';
 import { CalculationLoading } from './components/calculation-loading';
 import { PlantingDates, RecommendationNotice, WholeSchedule } from './components/model-evidence';
+import { ResultOverview } from './components/result-overview';
+import { CropPhoto } from './components/crop-photo';
+import { CropReferences } from './components/crop-references';
 import { compare, cropFit, cropOptions, dateLabel, defaults, format, getCatalog, ModelError, validateInputs, windowDays, type Catalog, type Comparison, type FieldInputs, type Language, type Priority, type Season } from '../lib/model';
 
 type View = 'field' | 'results';
@@ -40,8 +43,11 @@ function CropCard({ option, days, language, m, mainCrop, season, detailed, compa
   const duration = result?.scored_days.short;
   const history = result?.counts.balanced[season].short;
   const gap = result?.median_deficit_mm.short;
+  const rating = result?.median_S?.short.balanced;
   return <article className={`crop-card ${fit === 'out' ? 'crop-excluded' : ''}`} data-crop={crop.id}>
-    <div className="crop-top"><span className={`crop-icon crop-${crop.id}`}>{icon}</span><span className={`fit fit-${fit ?? 'ok'}`}><span/>{fit === 'partial' ? m.partial : fit ? m.fit[fit] : m.unknown}</span></div>
+    <CropPhoto cropId={crop.id} name={language === 'en' ? crop.name : crop.local_name} m={m}/>
+    <div className="crop-body">
+    <div className="crop-top"><span className={`crop-icon crop-${crop.id}`}>{icon}</span><div className="crop-rating"><span className={`fit fit-${fit ?? 'ok'}`}><span/>{fit === 'partial' ? m.partial : fit ? m.fit[fit] : m.unknown}</span>{rating != null && <span className="model-rating" title={m.scoreHint}><small>{m.scoreLabel}</small><strong>{rating.toFixed(2)}<span> / 1</span></strong></span>}</div></div>
     <div className="crop-title"><div><h3>{language === 'en' ? crop.name : crop.local_name}</h3><span>{language === 'en' ? crop.local_name : crop.name}</span></div>{crop.id === mainCrop && <span className="baseline"><Wheat size={12}/>{m.baseline}</span>}</div>
     {field.recommendation?.suitable.includes(crop.id) && <p className="recommendation-tag"><Check size={15}/>{m.recommended}</p>}
     {result?.not_scored?.length ? <p className="evidence-note">{format(m.partialNote, { conditions: result.not_scored.map(key => m.conditions[key]).join(', ') })}</p> : null}
@@ -56,7 +62,7 @@ function CropCard({ option, days, language, m, mainCrop, season, detailed, compa
         {plan && <WholeSchedule plan={plan} m={m}/>}
         {field.same_family_as_main?.includes(crop.id) && <p className="evidence-note">{m.sameFamily}{result.family ? ` (${result.family})` : ''}</p>}
         {result.guide_check?.outside && <p className="evidence-note">{format(m.guideCaution, { temp: result.guide_check.median_temp_c, lo: result.guide_check.guide_temp_c[0], hi: result.guide_check.guide_temp_c[1] })}</p>}
-        <h4>{m.why}</h4>
+        <h4>{m.why}</h4><p>{m.scoreHint}</p>
         {(['temp', 'water', 'ph', 'texture'] as const).map(key => {
           const value = scores![key];
           return <div className="condition-row" key={key}><span>{m.conditions[key]}</span><strong>{value === null ? m.notScored : value.toFixed(2)}</strong></div>;
@@ -64,11 +70,12 @@ function CropCard({ option, days, language, m, mainCrop, season, detailed, compa
         <p>{m.historicalNote}</p>
         {history && <><p>{format(m.omitted, { n: history.not_scored })}</p>{history.wilson95[0] !== null && history.wilson95[1] !== null && <p>{format(m.interval, { lo: Math.round(history.wilson95[0] * 100), hi: Math.round(history.wilson95[1] * 100) })} — {m.historyNote}</p>}</>}
         <PlantingDates comparison={comparison} cropId={crop.id} language={language} m={m}/>
-        <h4>{m.sources}</h4><p>{result.limits_source}</p><p>{result.cycle_source}</p><h4>{m.waterSource}</h4><p>{comparison.results.crop_coefficients[crop.id]?.source ?? m.unknown}</p>
+        <CropReferences result={result} waterSource={comparison.results.crop_coefficients[crop.id]?.source ?? ''} heading={m.sources} unmatchedLabel={m.sourceNote} notesLabel={m.sourceNotes}/>
         <h4>{m.cant}</h4><p>{m.modelLimits}</p>
         <h4>{m.ask}</h4><ul>{m.asks.map(question => <li key={question}>{question}</li>)}</ul>
       </div></details>
     </>}
+    </div>
   </article>;
 }
 
@@ -96,6 +103,8 @@ export default function Home() {
   const errorRef = useRef<HTMLDivElement>(null);
   const m = messages(language);
   const days = windowDays(inputs);
+  const seasonLabel = { all: m.allSeasons, normal: m.s_typical, dry: m.s_dry, el_nino: m.s_nino }[season];
+  const priorityLabel = { balanced: m.p_even, saving_water: m.p_water, healthier_soil: m.p_soil, finishing_early: m.p_time }[priority];
   const options = comparison && catalog ? cropOptions(comparison, catalog, priority) : [];
 
   useEffect(() => {
@@ -127,7 +136,7 @@ export default function Home() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     const invalid = validateInputs(inputs); setError(invalid);
-    if (invalid) { setTimeout(() => errorRef.current?.focus(), 0); return; }
+    if (invalid) { if (['prepDays', 'pickingDays', 'preparation', 'passMark'].includes(invalid)) document.querySelector<HTMLDetailsElement>('.model-settings')?.setAttribute('open', ''); setTimeout(() => errorRef.current?.focus(), 0); return; }
     if (!catalog || pending) return;
     const controller = new AbortController(); requestRef.current = controller;
     setPending(true); setServiceError(null);
@@ -139,6 +148,10 @@ export default function Home() {
     } catch (error) {
       if (!controller.signal.aborted) { setServiceError(error instanceof ModelError ? error : new ModelError('network')); }
     } finally { if (!controller.signal.aborted) setPending(false); }
+  }
+  function reset() {
+    setInputs({ ...defaults }); setApplied({ ...defaults }); setSeason('all'); setPriority('balanced');
+    setComparison(null); setSoilTest(false); setServiceError(null); setDetailed(false); setError(null); showForm();
   }
   function download() {
     if (!comparison) return;
@@ -177,37 +190,30 @@ export default function Home() {
               <div className="two-columns"><div className="field"><label htmlFor="harvest">{inputs.main_crop === 'fallow' ? m.fieldAvailable : m.f_harvest}</label><input required type="date" id="harvest" value={inputs.harvest} aria-invalid={error === 'dates' || error === 'order'} onChange={event => update('harvest', event.target.value)}/></div><div className="field"><label htmlFor="next">{m.f_next}</label><input required type="date" id="next" value={inputs.next_planting} aria-invalid={error === 'dates' || error === 'order'} onChange={event => update('next_planting', event.target.value)}/></div></div>
             </div>
             <div className="form-card"><label className="soil-toggle"><input type="checkbox" checked={soilTest} onChange={event => { setSoilTest(event.target.checked); if (!event.target.checked) { update('soil_ph', ''); update('soil_texture', ''); } }}/>{m.soilTest}</label><p className="field-hint">{m.soilHint}</p>{soilTest && <div className="two-columns"><div className="field"><label htmlFor="ph">{m.f_ph}</label><input id="ph" type="number" min="3" max="10" step="any" inputMode="decimal" value={inputs.soil_ph} onChange={event => update('soil_ph', event.target.value)} aria-invalid={error === 'ph'}/></div><div className="field"><label htmlFor="soil-texture">{m.soilTexture}</label><select id="soil-texture" value={inputs.soil_texture} onChange={event => update('soil_texture', event.target.value as FieldInputs['soil_texture'])}><option value="">{m.dontknow}</option>{(['light', 'medium', 'heavy'] as const).map(value => <option key={value} value={value}>{m.texture[value]}</option>)}</select></div></div>}</div>
-            <div className="form-card schedule-settings"><h3>{m.scheduleTitle}</h3><p className="field-hint">{m.scheduleHint}</p><div className="schedule-fields">
+            <details className="form-card model-settings"><summary>{m.advanced}<ChevronDown size={16}/></summary><div className="schedule-settings"><h3>{m.scheduleTitle}</h3><p className="field-hint">{m.scheduleHint}</p><div className="schedule-fields">
               <div className="field"><label htmlFor="prep-days">{m.prepDays}</label><input id="prep-days" type="number" min="0" max="180" step="1" inputMode="numeric" value={inputs.prep_days} onChange={event => update('prep_days', event.target.value)} aria-describedby="prep-days-hint" aria-invalid={error === 'prepDays'}/><p className="field-hint" id="prep-days-hint">{m.prepDaysHint}</p></div>
               <div className="field"><label htmlFor="picking-days">{m.pickingDays}</label><input id="picking-days" type="number" min="0" max="180" step="1" inputMode="numeric" value={inputs.picking_days} onChange={event => update('picking_days', event.target.value)} aria-describedby="picking-days-hint" aria-invalid={error === 'pickingDays'}/><p className="field-hint" id="picking-days-hint">{m.pickingDaysHint}</p></div>
               <div className="field"><label htmlFor="preparation">{m.clearingDays}</label><input id="preparation" type="number" min="0" max="90" step="1" inputMode="numeric" value={inputs.turnaround_days} onChange={event => update('turnaround_days', event.target.value)} aria-describedby="clearing-hint" aria-invalid={error === 'preparation'}/><p className="field-hint" id="clearing-hint">{m.clearingDaysHint}</p></div>
-            </div></div>
-            <details className="form-card model-settings"><summary>{m.advanced}<ChevronDown size={16}/></summary><div className="field"><label htmlFor="pass-mark">{m.passMark}</label><input id="pass-mark" type="number" min="0" max="1" step="any" value={inputs.pass_mark} onChange={event => update('pass_mark', event.target.value)} aria-describedby="pass-hint"/><p className="field-hint" id="pass-hint">{m.passHint}</p></div></details>
+            </div></div><div className="field"><label htmlFor="pass-mark">{m.passMark}</label><input id="pass-mark" type="number" min="0" max="1" step="any" value={inputs.pass_mark} onChange={event => update('pass_mark', event.target.value)} aria-describedby="pass-hint"/><p className="field-hint" id="pass-hint">{m.passHint}</p></div></details>
             <div className="form-card"><fieldset><legend>{m.priority}</legend><Choice value={priority} onChange={setPriority} label={m.priority} options={[{ value: 'balanced', label: m.p_even }, { value: 'saving_water', label: m.p_water }, { value: 'healthier_soil', label: m.p_soil }, { value: 'finishing_early', label: m.p_time }]}/></fieldset></div>
             <div className="form-actions"><p><ShieldCheck size={17}/>{m.savedLocally}</p><button className="button primary" type="submit" disabled={!catalog || pending || loadingCatalog}>{serviceError ? m.retry : m.go}<ArrowRight size={19}/></button></div>
           </fieldset></form>
           <aside className="planner-aside"><div className="window-card"><div className="window-top"><CalendarDays size={20}/><span className="micro-label">{m.windowLabel}</span></div><div className="window-value"><strong>{days > 0 ? days : '—'}</strong><span>{m.available}</span></div><div className="season-lines" aria-hidden="true"><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/></div><div className="window-dates"><div><span className="timeline-dot"/><div><small>{inputs.main_crop === 'fallow' ? m.fieldAvailable : m.riceHarvest}</small><strong>{dateLabel(inputs.harvest, language)}</strong></div></div><i/><div><span className="timeline-dot end"/><div><small>{m.nextPlanting}</small><strong>{dateLabel(inputs.next_planting, language)}</strong></div></div></div><p>{days > 0 ? m.calendarNote : m.nothingYet}</p></div><div className="aside-note"><CircleHelp size={21}/><p>{m.formNote}</p></div><div className="field-notice"><Info size={17}/><p>{m.notice}</p></div></aside></div></div>
         </> : <>
           <div className="section-heading results-heading"><div><span className="eyebrow">{m.resultsKicker}</span><h2 id="planner-title" tabIndex={-1} ref={resultsHeading}>{m.r_title}</h2><p>{m.resultsIntro}</p></div><button className="button secondary" onClick={showForm}><ArrowLeft size={16}/>{m.edit}</button></div>
-          <div className="result-window"><span className="result-window-icon"><CalendarDays size={24}/></span><div><h3>{format(m.win, { n: comparison.results.meta.window_days })}</h3><p>{dateLabel(applied.harvest, language)} <ArrowRight size={13}/> {dateLabel(applied.next_planting, language)}<span>·</span><MapPin size={13}/> {applied.place}</p></div><span className="window-leaf"><Sprout size={65} strokeWidth={.8}/></span></div>
+          {catalog && <ResultOverview comparison={comparison} catalog={catalog} language={language} m={m}/>}
           {catalog && <RecommendationNotice comparison={comparison} catalog={catalog} language={language} m={m}/>}
           <div className="results-notice"><Info size={18}/><p><strong>{m.resultsLabel}.</strong> {m.modelLimits}</p></div>
-          <div className="model-context">
-            <p>{m.waterSupply}: <strong>{comparison.inputs.water === 'irrigation' ? m.w_irrig : m.w_rain}</strong> · {m.drainageLabel}: <strong>{m.drainageAnswers[comparison.inputs.drainage]}</strong></p>
-            {comparison.inputs.water === 'irrigation' && comparison.inputs.drainage === 'poorly_drained' && <p>{m.irrigationDrainageNote}</p>}
-            <p>{m.soilUsed}: {comparison.results.soil.ph ?? m.unknown} pH · {comparison.results.soil.texture ? m.texture[comparison.results.soil.texture as keyof typeof m.texture] ?? m.unknown : m.unknown}</p><p>{m.f_ph}: {comparison.inputs.soil_ph === null ? m.nearbySample : m.measured} · {m.soilTexture}: {comparison.inputs.soil_texture === null ? m.nearbySample : m.measured}</p><p>{comparison.results.soil.source}</p><p>{m.passMark}: {comparison.inputs.pass_mark} · {m.prepDays}: {comparison.inputs.prep_days ?? 0} · {m.pickingDays}: {comparison.inputs.picking_days ?? 0} · {m.clearingDays}: {comparison.inputs.turnaround_days}</p><p>{m.historicalNote}</p>{comparison.inputs.water === 'irrigation' && <p>{m.irrigationNote}</p>}{comparison.inputs.drainage === 'unknown' && <p>{m.drainageNote}</p>}<p>{m.reviewNote}</p>
-          </div>
-          <div className="detail-toolbar"><p id="detail-hint">{m.detailHint}</p><div className="detail-switch" role="group" aria-label={m.resultView} aria-describedby="detail-hint"><button type="button" aria-pressed={!detailed} onClick={() => setDetailed(false)}>{m.simpleView}</button><button type="button" aria-pressed={detailed} onClick={() => setDetailed(true)}>{m.moreDetailed}</button></div></div>
-          <div className="results-layout"><aside className="filter-card"><div className="filter-heading"><SlidersHorizontal size={20}/><h3>{m.filtersTitle}</h3></div><p>{m.filtersHint}</p><fieldset><legend>{m.season}</legend><Choice className="vertical" value={season} onChange={setSeason} label={m.season} options={[
+          <div className="results-layout"><aside className="filter-card" aria-label={m.filtersTitle}><div className="filter-scroll" tabIndex={0} aria-label={m.filtersTitle}><div className="filter-heading"><SlidersHorizontal size={20}/><h3>{m.filtersTitle}</h3></div><div className="detail-switch" role="group" aria-label={m.resultView}><button type="button" aria-pressed={!detailed} onClick={() => setDetailed(false)}>{m.simpleView}</button><button type="button" aria-pressed={detailed} onClick={() => setDetailed(true)}>{m.moreDetailed}</button></div><p className="filter-explainer">{m.filtersHint}</p><fieldset><legend>{m.season}</legend><Choice className="vertical" value={season} onChange={setSeason} label={m.season} options={[
             { value: 'all', label: m.allSeasons, icon: <Earth size={18}/> }, { value: 'normal', label: m.s_typical, icon: <Sun size={18}/> }, { value: 'dry', label: m.s_dry, icon: <Thermometer size={18}/> }, { value: 'el_nino', label: m.s_nino, icon: <CloudRain size={18}/> },
           ]}/></fieldset><fieldset><legend>{m.priority}</legend><Choice className="vertical" value={priority} onChange={setPriority} label={m.priority} options={[
             { value: 'balanced', label: m.p_even, icon: <SlidersHorizontal size={18}/> }, { value: 'saving_water', label: m.p_water, icon: <Droplets size={18}/> }, { value: 'healthier_soil', label: m.p_soil, icon: <Leaf size={18}/> }, { value: 'finishing_early', label: m.p_time, icon: <CalendarDays size={18}/> },
-          ]}/></fieldset></aside><div className="crop-area"><div className="crop-area-heading"><h3>{format(m.compareCount, { n: options.length })}</h3><span>{m.modelOrder}</span></div><div className="crop-grid">{options.map(option => <CropCard key={option.crop.id} option={option} days={comparison.results.meta.window_days} language={language} m={m} mainCrop={applied.main_crop} season={season} detailed={detailed} comparison={comparison}/>)}</div></div></div>
-          <div className="results-actions"><button className="text-button" onClick={() => { setInputs({ ...defaults }); setApplied({ ...defaults }); setSeason('all'); setPriority('balanced'); setComparison(null); setSoilTest(false); setServiceError(null); setDetailed(false); setError(null); showForm(); }}><RotateCcw size={16}/>{m.reset}</button><button className="button secondary" onClick={download}><Download size={17}/>{m.download}</button></div>
+          ]}/></fieldset></div><div className="filter-reset"><button className="text-button" onClick={reset}><RotateCcw size={16}/>{m.reset}</button></div></aside><div className="crop-area"><div className="crop-area-heading"><h3>{format(m.compareCount, { n: options.length })}</h3><div className="active-filters" aria-label={m.selectedFilters} aria-live="polite"><span>{seasonLabel}</span><span>{priorityLabel}</span><span>{comparison.inputs.water === 'irrigation' ? m.w_irrig : m.w_rain}</span></div></div><div className="crop-grid">{options.map(option => <CropCard key={option.crop.id} option={option} days={comparison.results.meta.window_days} language={language} m={m} mainCrop={applied.main_crop} season={season} detailed={detailed} comparison={comparison}/>)}</div></div></div>
+          <div className="results-actions"><button className="button secondary" onClick={download}><Download size={17}/>{m.download}</button></div>
         </>}
       </section>
 
-      <section className="about-section" id="about" aria-labelledby="about-title"><div className="about-intro"><span className="eyebrow"><Leaf size={15}/>{m.aboutKicker}</span><h2 id="about-title">{m.sourceTitle}</h2><p>{m.sourceCopy}</p></div><div className="about-grid">{[{ icon: <Earth/>, title: m.sourceOne, copy: m.sourceOneCopy }, { icon: <CloudRain/>, title: m.sourceTwo, copy: m.sourceTwoCopy }, { icon: <Sprout/>, title: m.sourceThree, copy: m.sourceThreeCopy }].map((item, index) => <div className="about-card" key={item.title}><div>{item.icon}<span>0{index + 1}</span></div><h3>{item.title}</h3><p>{item.copy}</p></div>)}</div><p className="source-note"><Info size={16}/>{m.sourceFoot}</p></section>
+
     </main>
     <SiteFooter language={language}/>
     {toast && <div className="toast" role="status"><Check size={18}/>{m.downloaded}</div>}

@@ -82,6 +82,7 @@ test('expanded model preserves its verdict, whole schedules and missing checks',
   assert.equal(cropFit(field.crops.maize, []), 'partial');
   assert.equal(cropFit(field.crops.sweetpotato, []), 'partial');
   assert.equal(field.schedule?.mungbean.total_days, 50);
+  assert.equal(field.crops.mungbean.median_S?.short.balanced, expandedComparison.results.fields.rain.crops.mungbean.median_S.short.balanced);
   const fallow = parseComparison(fallowComparison).results.fields.rain;
   assert.equal(fallow.recommendation?.status, 'none');
   assert.deepEqual(fallow.recommendation?.suitable, []);
@@ -113,4 +114,7 @@ test('invalid new evidence and a recommendation containing a partially checked c
   const stale = structuredClone(fallowComparison);
   stale.results.meta.prep_days = 0;
   assert.throws(() => parseComparison(stale), ModelError);
+  const rating = structuredClone(expandedComparison);
+  rating.results.fields.rain.crops.mungbean.median_S.short.balanced = 1.5;
+  assert.throws(() => parseComparison(rating), ModelError);
 });

@@ -236,6 +236,14 @@
             },
             "median_deficit_mm": {
               "short": 963.909
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.105
+              },
+              "long": {
+                "balanced": 0.097
+              }
             }
           },
           "mungbean": {
@@ -308,6 +316,14 @@
             },
             "median_deficit_mm": {
               "short": 44.062
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.645
+              },
+              "long": {
+                "balanced": 0.332
+              }
             }
           },
           "eggplant": {
@@ -387,6 +403,14 @@
             },
             "median_deficit_mm": {
               "short": 114.564
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.418
+              },
+              "long": {
+                "balanced": 0.288
+              }
             }
           },
           "tomato": {
@@ -466,6 +490,14 @@
             },
             "median_deficit_mm": {
               "short": 127.385
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.393
+              },
+              "long": {
+                "balanced": 0.257
+              }
             }
           },
           "squash": {
@@ -538,6 +570,14 @@
             },
             "median_deficit_mm": {
               "short": 187.918
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.345
+              },
+              "long": {
+                "balanced": 0.309
+              }
             }
           },
           "sitaw": {
@@ -610,6 +650,14 @@
             },
             "median_deficit_mm": {
               "short": 211.952
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.338
+              },
+              "long": {
+                "balanced": 0.338
+              }
             }
           },
           "snapbean": {
@@ -682,6 +730,14 @@
             },
             "median_deficit_mm": {
               "short": 123.082
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.411
+              },
+              "long": {
+                "balanced": 0.371
+              }
             }
           },
           "maize": {
@@ -756,6 +812,14 @@
             },
             "median_deficit_mm": {
               "short": 319.657
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.292
+              },
+              "long": {
+                "balanced": 0.34
+              }
             }
           },
           "sweetcorn": {
@@ -828,6 +892,14 @@
             },
             "median_deficit_mm": {
               "short": 137.164
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.429
+              },
+              "long": {
+                "balanced": 0.288
+              }
             }
           },
           "peanut": {
@@ -900,6 +972,14 @@
             },
             "median_deficit_mm": {
               "short": 330.05
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.28
+              },
+              "long": {
+                "balanced": 0.288
+              }
             }
           },
           "soybean": {
@@ -972,6 +1052,14 @@
             },
             "median_deficit_mm": {
               "short": 168.325
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.376
+              },
+              "long": {
+                "balanced": 0.268
+              }
             }
           },
           "sweetpotato": {
@@ -1046,6 +1134,14 @@
             },
             "median_deficit_mm": {
               "short": 349.348
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.273
+              },
+              "long": {
+                "balanced": 0.259
+              }
             }
           },
           "onion": {
@@ -1118,6 +1214,14 @@
             },
             "median_deficit_mm": {
               "short": 440.427
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.261
+              },
+              "long": {
+                "balanced": 0.444
+              }
             }
           },
           "sweetpepper": {
@@ -1190,6 +1294,14 @@
             },
             "median_deficit_mm": {
               "short": 323.016
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.29
+              },
+              "long": {
+                "balanced": 0.471
+              }
             }
           },
           "watermelon": {
@@ -1262,6 +1374,14 @@
             },
             "median_deficit_mm": {
               "short": 126.53
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.444
+              },
+              "long": {
+                "balanced": 0.331
+              }
             }
           },
           "melon": {
@@ -1334,6 +1454,14 @@
             },
             "median_deficit_mm": {
               "short": 280.455
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.3
+              },
+              "long": {
+                "balanced": 0.305
+              }
             }
           },
           "sesame": {
@@ -1406,6 +1534,14 @@
             },
             "median_deficit_mm": {
               "short": 178.058
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.359
+              },
+              "long": {
+                "balanced": 0.359
+              }
             }
           },
           "sweetsorghum": {
@@ -1478,6 +1614,14 @@
             },
             "median_deficit_mm": {
               "short": 367.701
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.257
+              },
+              "long": {
+                "balanced": 0.265
+              }
             }
           },
           "broccoli": {
@@ -1550,6 +1694,14 @@
             },
             "median_deficit_mm": {
               "short": 370.744
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.26
+              },
+              "long": {
+                "balanced": 0.26
+              }
             }
           },
           "cucumber": {
@@ -1622,6 +1774,14 @@
             },
             "median_deficit_mm": {
               "short": 218.255
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.336
+              },
+              "long": {
+                "balanced": 0.285
+              }
             }
           },
           "radish": {
@@ -1694,6 +1854,14 @@
             },
             "median_deficit_mm": {
               "short": 31.429
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.67
+              },
+              "long": {
+                "balanced": 0.612
+              }
             }
           },
           "cauliflower": {
@@ -1766,6 +1934,14 @@
             },
             "median_deficit_mm": {
               "short": 397.814
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.277
+              },
+              "long": {
+                "balanced": 0.277
+              }
             }
           },
           "cowpea": {
@@ -1838,6 +2014,14 @@
             },
             "median_deficit_mm": {
               "short": 198.824
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.353
+              },
+              "long": {
+                "balanced": 0.353
+              }
             }
           }
         },
@@ -2442,6 +2626,14 @@
             },
             "median_deficit_mm": {
               "short": 963.909
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "mungbean": {
@@ -2514,6 +2706,14 @@
             },
             "median_deficit_mm": {
               "short": 44.062
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.952
+              },
+              "long": {
+                "balanced": 0.952
+              }
             }
           },
           "eggplant": {
@@ -2593,6 +2793,14 @@
             },
             "median_deficit_mm": {
               "short": 114.564
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "tomato": {
@@ -2672,6 +2880,14 @@
             },
             "median_deficit_mm": {
               "short": 127.385
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "squash": {
@@ -2744,6 +2960,14 @@
             },
             "median_deficit_mm": {
               "short": 187.918
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "sitaw": {
@@ -2816,6 +3040,14 @@
             },
             "median_deficit_mm": {
               "short": 211.952
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "snapbean": {
@@ -2888,6 +3120,14 @@
             },
             "median_deficit_mm": {
               "short": 123.082
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "maize": {
@@ -2962,6 +3202,14 @@
             },
             "median_deficit_mm": {
               "short": 319.657
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "sweetcorn": {
@@ -3034,6 +3282,14 @@
             },
             "median_deficit_mm": {
               "short": 137.164
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.942
+              },
+              "long": {
+                "balanced": 0.879
+              }
             }
           },
           "peanut": {
@@ -3106,6 +3362,14 @@
             },
             "median_deficit_mm": {
               "short": 330.05
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "soybean": {
@@ -3178,6 +3442,14 @@
             },
             "median_deficit_mm": {
               "short": 168.325
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "sweetpotato": {
@@ -3252,6 +3524,14 @@
             },
             "median_deficit_mm": {
               "short": 349.348
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "onion": {
@@ -3324,6 +3604,14 @@
             },
             "median_deficit_mm": {
               "short": 440.427
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.813
+              },
+              "long": {
+                "balanced": 0.629
+              }
             }
           },
           "sweetpepper": {
@@ -3396,6 +3684,14 @@
             },
             "median_deficit_mm": {
               "short": 323.016
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "watermelon": {
@@ -3468,6 +3764,14 @@
             },
             "median_deficit_mm": {
               "short": 126.53
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "melon": {
@@ -3540,6 +3844,14 @@
             },
             "median_deficit_mm": {
               "short": 280.455
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "sesame": {
@@ -3612,6 +3924,14 @@
             },
             "median_deficit_mm": {
               "short": 178.058
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "sweetsorghum": {
@@ -3684,6 +4004,14 @@
             },
             "median_deficit_mm": {
               "short": 367.701
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.917
+              },
+              "long": {
+                "balanced": 0.931
+              }
             }
           },
           "broccoli": {
@@ -3756,6 +4084,14 @@
             },
             "median_deficit_mm": {
               "short": 370.744
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.86
+              },
+              "long": {
+                "balanced": 0.86
+              }
             }
           },
           "cucumber": {
@@ -3828,6 +4164,14 @@
             },
             "median_deficit_mm": {
               "short": 218.255
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "radish": {
@@ -3900,6 +4244,14 @@
             },
             "median_deficit_mm": {
               "short": 31.429
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           },
           "cauliflower": {
@@ -3972,6 +4324,14 @@
             },
             "median_deficit_mm": {
               "short": 397.814
+            },
+            "median_S": {
+              "short": {
+                "balanced": 0.862
+              },
+              "long": {
+                "balanced": 0.862
+              }
             }
           },
           "cowpea": {
@@ -4044,6 +4404,14 @@
             },
             "median_deficit_mm": {
               "short": 198.824
+            },
+            "median_S": {
+              "short": {
+                "balanced": 1.0
+              },
+              "long": {
+                "balanced": 1.0
+              }
             }
           }
         },

@@ -25,6 +25,7 @@ export type Condition = 'temp' | 'water' | 'ph' | 'texture';
 export type ModelCrop = {
   flags: string[]; scored_days: { short: number; long: number };
   median_scores: { short: Record<Condition, number | null> };
+  median_S?: { short: { balanced: number | null } };
   median_deficit_mm: { short: number | null };
   counts: { balanced: Record<Season, { short: History }> };
   drainage_requirement: string; limits_source: string; cycle_source: string;
@@ -139,6 +140,8 @@ export function parseComparison(value: unknown): Comparison {
       })) throw new ModelError('contract');
     }
     for (const crop of Object.values(field.crops)) {
+      if (crop.median_S !== undefined && (!record(crop.median_S?.short) || !nullableNumber(crop.median_S.short.balanced) ||
+        (crop.median_S.short.balanced !== null && (crop.median_S.short.balanced < 0 || crop.median_S.short.balanced > 1)))) throw new ModelError('contract');
       if (!record(crop) || !strings(crop.flags) || !['drainage_requirement', 'limits_source', 'cycle_source'].every(k => typeof crop[k] === 'string') ||
         !record(crop.scored_days) || !numeric(crop.scored_days.short) || crop.scored_days.short <= 0 || !numeric(crop.scored_days.long) ||
         !record(crop.median_scores?.short) || !['temp', 'water', 'ph', 'texture'].every(k => nullableNumber(crop.median_scores.short[k])) ||
