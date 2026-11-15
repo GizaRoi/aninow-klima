@@ -57,9 +57,9 @@ State as of 2026-11-15, on `feat/klima-model` (was `yancey-branch`). [docs/HANDO
 | `test_serve.py` | 24 tests: what the form sends to the model and what each view shows. |
 | `test_expansion.py` | Crop numbers against their saved EcoCrop sheets, the schedule, fallow, "no suitable recommendation", the added places. |
 | `test_analysis.py` | Each statistic in `analysis.py` against a hand-worked case, and the plot-history record. |
-| `trust_charts.py` | Writes `docs/images/trust/`: eight charts for **how far the model can be trusted**, drawn from `docs/analysis/` so they cannot disagree with `pitch_stats.md`. Run `analysis.py` first. Changes nothing. |
+| `trust_charts.py` | Standard-library SVG versions of the trust figures, written to the gitignored `model/charts/trust/`. The published set is the PNG figures in `docs/figures/`; this stays because its tests pin the counts those figures and the paper quote. Changes nothing. |
 | `../notebooks/make_figures.py` | Draws the 15 PNG figures in `docs/figures/` with matplotlib, from `docs/analysis/` and `results.json`. Each function returns the figure, so `klima_analysis.ipynb` shows the same plots inline. Needs `notebooks/requirements.txt`; the model does not. |
-| `test_trust_charts.py` | Every count a trust chart prints, against the table it came from; that each renders well-formed SVG with nothing drawn off-canvas; and that **no chart face can contain a performance word**. |
+| `test_trust_charts.py` | Every count quoted in the paper's appraisal, against the table it came from; that each chart renders well-formed SVG with nothing drawn off-canvas; and that **no chart face can contain a performance word**. |
 | `analysis.py` | Runs every place and writes `docs/analysis/`: four tables and `pitch_stats.md`. Changes nothing. |
 | `plot_history.py` | Reads a plot's record (JSON, `N/A` allowed anywhere) and runs the model on what it supports. Pests, diseases and fertilizer are recorded, **never scored**. |
 | `fetch_power.py` | Downloads NASA POWER for places that lack a file. **The only script that uses the internet**; the model never calls it. |
@@ -87,7 +87,7 @@ python insights.py                    # every place, side by side
 python charts.py --out ../docs/images # the published charts
 python serve.py                       # the local form
 python analysis.py --out ../docs/analysis   # tables and tests for the pitch
-python trust_charts.py                # how far the model can be trusted, as charts
+python ../notebooks/make_figures.py  # the published figures, docs/figures/*.png
 python plot_history.py plot_history_example.json
 python -m unittest test_klima_model test_serve test_expansion test_analysis test_trust_charts -v # 170 standard-library tests, about three minutes
 ```

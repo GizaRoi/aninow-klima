@@ -1,6 +1,6 @@
 """Charts for how far the model can be trusted, not for what it recommends.
 
-    python trust_charts.py                        write ../docs/images/trust/
+    python trust_charts.py                        write charts/trust/ (not committed)
     python trust_charts.py --out somewhere/
 
 Every figure in docs/analysis/pitch_stats.md that currently exists only as a table
@@ -470,7 +470,7 @@ reanalysis and has not been checked against a rain gauge.</footer>
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", default=os.path.join(HERE, "..", "docs", "images", "trust"),
+    ap.add_argument("--out", default=os.path.join(HERE, "charts", "trust"),
                     help="where to write the SVG files")
     args = ap.parse_args(argv)
 

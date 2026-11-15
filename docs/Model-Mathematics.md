@@ -383,7 +383,7 @@ for these fields. Accuracy, precision, recall, ROC, $R^2$ against yield and any
 "model performance" figure are therefore **unavailable, and publishing one would be
 the most damaging thing this project could do.**
 
-What *can* be measured, and is, in `model/analysis.py` and the trust charts:
+What *can* be measured, and is, in `model/analysis.py` and the figures in `docs/figures/`:
 
 | Question | Method | Where |
 |---|---|---|
