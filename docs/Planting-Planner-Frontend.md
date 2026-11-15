@@ -7,7 +7,10 @@ transparent logo, team page, responsive layout, and English/Tagalog switch remai
 
 The home page opens with a roughly two-second welcome using the supplied
 `pexels-elmer0224-31391951.jpg` photograph and logo, with a visible credit to
-Elmer Domingo in both languages. It then reveals a compact headline and the start of the planting form
+Elmer Domingo in both languages. The larger logo sits above the one-line brand
+tagline "Harvest With Vision" and an enlarged progress bar with "Initializing
+Planner" (localized in Tagalog). The intro scales down for short phone screens.
+It then reveals a compact headline and the start of the planting form
 without scrolling. The catalogue request runs during the welcome; slow or failed
 requests keep their own visible status afterward. The welcome does not run again
 on form submission or language changes. Background controls stay inert until it
