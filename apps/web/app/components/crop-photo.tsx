@@ -8,6 +8,6 @@ export function CropPhoto({ cropId, name, m }: { cropId: string; name: string; m
   if (!photo) return null;
   return <figure className="crop-photo">
     <img src={photo.src} alt={name} width="720" height="360" loading="lazy" decoding="async"/>
-    <figcaption><a href={photo.sourceUrl} target="_blank" rel="noreferrer" title={photo.title}>{m.photo}: {photo.author}</a><span> · </span><a href={photo.licenseUrl} target="_blank" rel="noreferrer">{photo.license}</a><small>{m.photoEdited}</small></figcaption>
+    <figcaption><a href={photo.sourceUrl} target="_blank" rel="noreferrer" title={`${photo.title} · ${m.photoAdapted}`}>{m.photo}: {photo.author}</a><span> · </span><a href={photo.licenseUrl} target="_blank" rel="noreferrer">{photo.license}</a></figcaption>
   </figure>;
 }

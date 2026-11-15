@@ -17,8 +17,11 @@ releases the root gutter, then hands that space back when scrolling unlocks.
 Header, headline and form positions stay fixed throughout the fade, including
 when native scrollbars take layout space. Form labels,
 controls, and explanatory copy use larger type on both desktop and phones.
-The headline asks what can be planted after harvest, and the supporting copy
-refers to the next main crop so it covers every crop in the selector.
+The centered headline reads "What comes next after harvest?" with no companion
+text column. The step navigation has no historical-model pill. The priority
+choices sit above Advanced settings without an extra fieldset top margin.
+The SARAI sample note also asks farmers to confirm field conditions and crop
+choices with their agriculturist; the separate orange notice has been removed.
 
 Submitting scrolls the planner into view and shows an animated calculation panel
 until the service responds. It identifies the submitted location and dates, keeps
@@ -184,7 +187,7 @@ available height. The crop-count heading includes the selected season, priority
 and water-supply labels. The previous detail-helper text, separate order label,
 and bottom information section have been removed, along with its navigation link.
 
-Each rated card displays the API's `median_S.short.balanced` next to the fit label,
+Each rated card displays the API's `median_S.short.balanced` in a pill next to the fit label,
 formatted from 0 to 1. It is the median historical suitability for the shortest
 cycle, not a success probability. It does not change when selecting a historical
 season view or priority. Older responses without the field do not acquire an
@@ -193,6 +196,8 @@ invented score. Excluded crops have no score; missing-condition warnings remain.
 All 29 crop cards have local, lazy-loaded 720x360 crop photos. See
 [Crop-Photo-Credits.md](Crop-Photo-Credits.md) for original sources, creators,
 licenses, and modifications. Creator and license links are visible in each card.
+The photo link's title identifies it as adapted for display, replacing the
+separate modification caption. The decorative crop icon has been removed.
 Crop references in Show why use APA 7; see
 [Model-Reference-Formatting.md](Model-Reference-Formatting.md) for verified
 bibliographic metadata and handling of unrecognized future source strings.

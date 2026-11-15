@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, CircleHelp, CloudRain, Download, Droplets, Earth, Info, Leaf, MapPin, RotateCcw, ShieldCheck, SlidersHorizontal, Sprout, Sun, Thermometer, Waves, Wheat } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, CircleHelp, CloudRain, Download, Droplets, Earth, Info, Leaf, MapPin, RotateCcw, ShieldCheck, SlidersHorizontal, Sun, Thermometer, Waves, Wheat } from 'lucide-react';
 import { messages, type Messages } from '../lib/messages';
 import { useLanguagePreference } from '../lib/language';
 import { SiteFooter, SiteHeader } from './components/site-shell';
@@ -39,7 +39,6 @@ function CropCard({ option, days, language, m, mainCrop, season, detailed, compa
   const total = plan?.total_days ?? result?.scored_days.short;
   const detailsRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => { if (detailsRef.current) detailsRef.current.open = detailed; }, [detailed]);
-  const icon = crop.id === 'rice' ? <Wheat/> : <Sprout/>;
   const duration = result?.scored_days.short;
   const history = result?.counts.balanced[season].short;
   const gap = result?.median_deficit_mm.short;
@@ -47,7 +46,7 @@ function CropCard({ option, days, language, m, mainCrop, season, detailed, compa
   return <article className={`crop-card ${fit === 'out' ? 'crop-excluded' : ''}`} data-crop={crop.id}>
     <CropPhoto cropId={crop.id} name={language === 'en' ? crop.name : crop.local_name} m={m}/>
     <div className="crop-body">
-    <div className="crop-top"><span className={`crop-icon crop-${crop.id}`}>{icon}</span><div className="crop-rating"><span className={`fit fit-${fit ?? 'ok'}`}><span/>{fit === 'partial' ? m.partial : fit ? m.fit[fit] : m.unknown}</span>{rating != null && <span className="model-rating" title={m.scoreHint}><small>{m.scoreLabel}</small><strong>{rating.toFixed(2)}<span> / 1</span></strong></span>}</div></div>
+    <div className="crop-top"><div className="crop-rating"><span className={`fit fit-${fit ?? 'ok'}`}><span/>{fit === 'partial' ? m.partial : fit ? m.fit[fit] : m.unknown}</span>{rating != null && <span className="model-rating" title={m.scoreHint}><span>{m.scoreLabel}</span><strong>{rating.toFixed(2)}<span> / 1</span></strong></span>}</div></div>
     <div className="crop-title"><div><h3>{language === 'en' ? crop.name : crop.local_name}</h3><span>{language === 'en' ? crop.local_name : crop.name}</span></div>{crop.id === mainCrop && <span className="baseline"><Wheat size={12}/>{m.baseline}</span>}</div>
     {field.recommendation?.suitable.includes(crop.id) && <p className="recommendation-tag"><Check size={15}/>{m.recommended}</p>}
     {result?.not_scored?.length ? <p className="evidence-note">{format(m.partialNote, { conditions: result.not_scored.map(key => m.conditions[key]).join(', ') })}</p> : null}
@@ -168,11 +167,10 @@ export default function Home() {
     <main>
       <section className="planner-intro" aria-labelledby="hero-title">
         <h1 id="hero-title">{m.heroTitle} <em>{m.heroEmphasis}</em></h1>
-        <p>{m.heroCopy}</p>
       </section>
 
       <section className="planner-section" id="planner" aria-labelledby="planner-title">
-        <div className="section-navigation"><div className="steps"><span className={view === 'field' ? 'active' : 'complete'}><b>{view === 'results' ? <Check size={14}/> : '01'}</b>{m.stepOne}</span><i/><span className={view === 'results' ? 'active' : ''}><b>02</b>{m.stepTwo}</span></div><span className="model-label"><span/>{m.modelLabel}</span></div>
+        <div className="section-navigation"><div className="steps"><span className={view === 'field' ? 'active' : 'complete'}><b>{view === 'results' ? <Check size={14}/> : '01'}</b>{m.stepOne}</span><i/><span className={view === 'results' ? 'active' : ''}><b>02</b>{m.stepTwo}</span></div></div>
 
         {view === 'field' || !comparison ? <>
           {pending ? <CalculationLoading inputs={inputs} language={language} headingRef={calculationHeading}/> : <h2 id="planner-title" className="sr-only" tabIndex={-1} ref={formHeading}>{m.stepOne}</h2>}
@@ -190,15 +188,15 @@ export default function Home() {
               <div className="two-columns"><div className="field"><label htmlFor="harvest">{inputs.main_crop === 'fallow' ? m.fieldAvailable : m.f_harvest}</label><input required type="date" id="harvest" value={inputs.harvest} aria-invalid={error === 'dates' || error === 'order'} onChange={event => update('harvest', event.target.value)}/></div><div className="field"><label htmlFor="next">{m.f_next}</label><input required type="date" id="next" value={inputs.next_planting} aria-invalid={error === 'dates' || error === 'order'} onChange={event => update('next_planting', event.target.value)}/></div></div>
             </div>
             <div className="form-card"><label className="soil-toggle"><input type="checkbox" checked={soilTest} onChange={event => { setSoilTest(event.target.checked); if (!event.target.checked) { update('soil_ph', ''); update('soil_texture', ''); } }}/>{m.soilTest}</label><p className="field-hint">{m.soilHint}</p>{soilTest && <div className="two-columns"><div className="field"><label htmlFor="ph">{m.f_ph}</label><input id="ph" type="number" min="3" max="10" step="any" inputMode="decimal" value={inputs.soil_ph} onChange={event => update('soil_ph', event.target.value)} aria-invalid={error === 'ph'}/></div><div className="field"><label htmlFor="soil-texture">{m.soilTexture}</label><select id="soil-texture" value={inputs.soil_texture} onChange={event => update('soil_texture', event.target.value as FieldInputs['soil_texture'])}><option value="">{m.dontknow}</option>{(['light', 'medium', 'heavy'] as const).map(value => <option key={value} value={value}>{m.texture[value]}</option>)}</select></div></div>}</div>
+            <div className="form-card priority-card"><fieldset><legend>{m.priority}</legend><Choice value={priority} onChange={setPriority} label={m.priority} options={[{ value: 'balanced', label: m.p_even }, { value: 'saving_water', label: m.p_water }, { value: 'healthier_soil', label: m.p_soil }, { value: 'finishing_early', label: m.p_time }]}/></fieldset></div>
             <details className="form-card model-settings"><summary>{m.advanced}<ChevronDown size={16}/></summary><div className="schedule-settings"><h3>{m.scheduleTitle}</h3><p className="field-hint">{m.scheduleHint}</p><div className="schedule-fields">
               <div className="field"><label htmlFor="prep-days">{m.prepDays}</label><input id="prep-days" type="number" min="0" max="180" step="1" inputMode="numeric" value={inputs.prep_days} onChange={event => update('prep_days', event.target.value)} aria-describedby="prep-days-hint" aria-invalid={error === 'prepDays'}/><p className="field-hint" id="prep-days-hint">{m.prepDaysHint}</p></div>
               <div className="field"><label htmlFor="picking-days">{m.pickingDays}</label><input id="picking-days" type="number" min="0" max="180" step="1" inputMode="numeric" value={inputs.picking_days} onChange={event => update('picking_days', event.target.value)} aria-describedby="picking-days-hint" aria-invalid={error === 'pickingDays'}/><p className="field-hint" id="picking-days-hint">{m.pickingDaysHint}</p></div>
               <div className="field"><label htmlFor="preparation">{m.clearingDays}</label><input id="preparation" type="number" min="0" max="90" step="1" inputMode="numeric" value={inputs.turnaround_days} onChange={event => update('turnaround_days', event.target.value)} aria-describedby="clearing-hint" aria-invalid={error === 'preparation'}/><p className="field-hint" id="clearing-hint">{m.clearingDaysHint}</p></div>
             </div></div><div className="field"><label htmlFor="pass-mark">{m.passMark}</label><input id="pass-mark" type="number" min="0" max="1" step="any" value={inputs.pass_mark} onChange={event => update('pass_mark', event.target.value)} aria-describedby="pass-hint"/><p className="field-hint" id="pass-hint">{m.passHint}</p></div></details>
-            <div className="form-card"><fieldset><legend>{m.priority}</legend><Choice value={priority} onChange={setPriority} label={m.priority} options={[{ value: 'balanced', label: m.p_even }, { value: 'saving_water', label: m.p_water }, { value: 'healthier_soil', label: m.p_soil }, { value: 'finishing_early', label: m.p_time }]}/></fieldset></div>
             <div className="form-actions"><p><ShieldCheck size={17}/>{m.savedLocally}</p><button className="button primary" type="submit" disabled={!catalog || pending || loadingCatalog}>{serviceError ? m.retry : m.go}<ArrowRight size={19}/></button></div>
           </fieldset></form>
-          <aside className="planner-aside"><div className="window-card"><div className="window-top"><CalendarDays size={20}/><span className="micro-label">{m.windowLabel}</span></div><div className="window-value"><strong>{days > 0 ? days : '—'}</strong><span>{m.available}</span></div><div className="season-lines" aria-hidden="true"><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/></div><div className="window-dates"><div><span className="timeline-dot"/><div><small>{inputs.main_crop === 'fallow' ? m.fieldAvailable : m.riceHarvest}</small><strong>{dateLabel(inputs.harvest, language)}</strong></div></div><i/><div><span className="timeline-dot end"/><div><small>{m.nextPlanting}</small><strong>{dateLabel(inputs.next_planting, language)}</strong></div></div></div><p>{days > 0 ? m.calendarNote : m.nothingYet}</p></div><div className="aside-note"><CircleHelp size={21}/><p>{m.formNote}</p></div><div className="field-notice"><Info size={17}/><p>{m.notice}</p></div></aside></div></div>
+          <aside className="planner-aside"><div className="window-card"><div className="window-top"><CalendarDays size={20}/><span className="micro-label">{m.windowLabel}</span></div><div className="window-value"><strong>{days > 0 ? days : '—'}</strong><span>{m.available}</span></div><div className="season-lines" aria-hidden="true"><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/></div><div className="window-dates"><div><span className="timeline-dot"/><div><small>{inputs.main_crop === 'fallow' ? m.fieldAvailable : m.riceHarvest}</small><strong>{dateLabel(inputs.harvest, language)}</strong></div></div><i/><div><span className="timeline-dot end"/><div><small>{m.nextPlanting}</small><strong>{dateLabel(inputs.next_planting, language)}</strong></div></div></div><p>{days > 0 ? m.calendarNote : m.nothingYet}</p></div><div className="aside-note"><CircleHelp size={21}/><p>{m.formNote}</p></div></aside></div></div>
         </> : <>
           <div className="section-heading results-heading"><div><span className="eyebrow">{m.resultsKicker}</span><h2 id="planner-title" tabIndex={-1} ref={resultsHeading}>{m.r_title}</h2><p>{m.resultsIntro}</p></div><button className="button secondary" onClick={showForm}><ArrowLeft size={16}/>{m.edit}</button></div>
           {catalog && <ResultOverview comparison={comparison} catalog={catalog} language={language} m={m}/>}

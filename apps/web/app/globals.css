@@ -82,6 +82,7 @@ select:disabled { opacity: 1; background: #edf0e7; color: #586550; cursor: defau
 .field-hint { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
 fieldset { padding: 0; margin: 24px 0 0; border: 0; min-width: 0; }
 .interactive-fields { margin: 0; }
+.priority-card > fieldset { margin: 0; }
 legend { padding: 0; width: 100%; line-height: 1.6; }
 .choices { display: flex; gap: 9px; }
 .choices button { display: flex; align-items: center; justify-content: center; flex: 1 1 0; gap: 8px; font-size: 15px; min-height: 46px; padding: 10px 12px; border: 1px solid #ccd4be; border-radius: 6px; background: #fffefa; }
@@ -152,10 +153,6 @@ input[aria-invalid=true] { border-color: #a85336; }
 .crop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 .crop-card { padding: 23px; background: #fcfdf7; border: 1px solid #d6dec9; border-radius: 10px; min-width: 0; }
 .crop-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.crop-icon { width: 43px; height: 43px; border: 1px solid #d3dfbd; background: #edf3df; display: grid; place-items: center; border-radius: 12px; color: #678343; }
-.crop-egg { color: #796984; background: #eeebf1; border-color: #e0d9e7; }
-.crop-tom { color: #a86f4b; background: #f5ece0; border-color: #e6d8c7; }
-.crop-rice { color: #9d8b56; background: #f4f0de; border-color: #e4dec1; }
 .fit { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 550; padding: 5px 9px; border: 1px solid #d0dfbc; background: #edf3e1; color: #4d6b35; border-radius: 20px; }
 .fit > span { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
 .fit-ok { background: #f3edd9; color: #806b33; border-color: #e6dcb5; }
@@ -320,11 +317,10 @@ input[aria-invalid=true] { border-color: #a85336; }
 .crop-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .crop-photo figcaption { position: absolute; inset: auto 0 0; padding: 22px 12px 8px; color: #fff; background: linear-gradient(transparent, #14281ee6 40%); font-size: 12px; line-height: 1.45; }
 .crop-photo figcaption a { text-decoration: underline; text-underline-offset: 2px; }
-.crop-photo figcaption small { display: block; font-size: 11px; color: #e3ebdb; }
-.crop-rating { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
-.model-rating { display: flex; flex-direction: column; align-items: flex-end; color: #3d5535; font-size: 15px; white-space: nowrap; }
-.model-rating small { font-size: 11px; color: #66745c; }
-.model-rating strong { font-size: 17px; font-weight: 600; line-height: 1.3; }
+.crop-rating { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.model-rating { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid #cbd8bd; border-radius: 20px; background: #eef2e7; color: #3d5535; font-size: 14px; white-space: nowrap; }
+.model-rating > span { font-size: 13px; }
+.model-rating strong { font-size: 14px; font-weight: 600; }
 .model-rating strong > span { font-size: 13px; font-weight: 400; }
 .crop-references, .apa-references { padding: 0; list-style: none; }
 .apa-references li, .crop-references li { padding-left: 20px; text-indent: -20px; margin-top: 14px; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
@@ -365,7 +361,7 @@ input[aria-invalid=true] { border-color: #a85336; }
   .crop-rating { gap: 7px; }
   .fit { font-size: 13px; }
 }
-@media (max-width: 370px) { .planner-intro h1 { font-size: 36px; }.crop-body { padding: 17px; }.crop-top { gap: 6px; }.crop-icon { width: 36px; height: 36px; } }
+@media (max-width: 370px) { .planner-intro h1 { font-size: 36px; }.crop-body { padding: 17px; }.crop-top { gap: 6px; } }
 .calculation-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 500px; padding: 46px 28px; border: 1px solid #d7e1c9; border-radius: 14px; background: radial-gradient(ellipse at 50% 15%, #e1edce70, transparent 65%), #f8faf2; text-align: center; }
 .calculation-animation { width: 116px; height: 116px; position: relative; display: grid; place-items: center; flex-shrink: 0; }
 .calculation-ring { position: absolute; inset: 0; border: 2px solid #dce7ce; border-top-color: #537644; border-right-color: #99b369; border-radius: 50%; animation: calculation-orbit 2.4s linear infinite; }
@@ -433,10 +429,9 @@ html:has(.app-intro) { overflow: hidden; scrollbar-gutter: auto; }
 @keyframes intro-line { from { transform: scaleX(.08); } to { transform: scaleX(1); } }
 .planner-shell .site-header { height: 100px; }
 .planner-shell .brand-logo { width: 108px; }
-.planner-intro { display: grid; grid-template-columns: 1.15fr 1fr; align-items: center; gap: 40px; padding: 12px 4.7% 30px; color: #f5f7eb; }
+.planner-intro { padding: 12px 4.7% 30px; color: #f5f7eb; text-align: center; }
 .planner-intro h1 { font-size: clamp(40px, 4.2vw, 60px); font-weight: 450; letter-spacing: -2px; line-height: 1.12; text-wrap: balance; }
 .planner-intro h1 em { display: block; font-family: Georgia, 'Times New Roman', serif; font-weight: 400; color: #dceeaf; }
-.planner-intro p { max-width: 470px; font-size: 18px; line-height: 1.7; color: #edf2df; text-wrap: pretty; }
 .planner-shell .planner-section { margin-top: 0; padding-top: 24px; }
 .field label, legend, input, select { font-size: 16px; }
 .card-heading h3 { font-size: 19px; }
@@ -449,9 +444,7 @@ html:has(.app-intro) { overflow: hidden; scrollbar-gutter: auto; }
   .site-header .brand-logo { width: 100px; }
   .header-tools { gap: 8px; padding-left: 12px; }
   .language-switch button { padding: 8px 10px; }
-  .planner-intro { gap: 30px; }
   .planner-intro h1 { font-size: 44px; }
-  .planner-intro p { font-size: 17px; }
 }
 @media (max-width: 680px) {
   .app-intro::after { inset: 14px; border-radius: 14px; }
@@ -466,9 +459,8 @@ html:has(.app-intro) { overflow: hidden; scrollbar-gutter: auto; }
   .planner-shell .brand-logo { width: 96px; }
   .planner-shell .site-header nav.nav-open { top: 82px; }
   .language-switch button { font-size: 14px; }
-  .planner-intro { grid-template-columns: 1fr; gap: 16px; padding: 10px 8px 26px; }
+  .planner-intro { padding: 10px 8px 26px; }
   .planner-intro h1 { font-size: 39px; letter-spacing: -1.5px; }
-  .planner-intro p { font-size: 16px; line-height: 1.65; }
   .planner-shell .planner-section { padding-top: 20px; }
   .section-navigation { row-gap: 12px; margin-bottom: 20px; padding-bottom: 18px; }
   .steps { font-size: 14px; }

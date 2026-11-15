@@ -58,7 +58,7 @@ test('welcome finishes in about two seconds even when the catalogue is still loa
   await expect(page.locator('.skip-link')).toBeFocused();
   releaseCatalog();
   await expect(page.locator('#location')).toBeEnabled();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What can you plant after harvest?');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What comes next after harvest?');
   await expect(page.locator('#location')).toBeInViewport({ ratio: 1 });
   await expect(page.locator('#main-crop')).toBeInViewport({ ratio: 1 });
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
