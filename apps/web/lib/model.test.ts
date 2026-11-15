@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import catalogData from '../../../tests/fixtures/catalog.json';
 import comparisonData from '../../../tests/fixtures/comparison.json';
-import { compare, cropOptions, defaults, getCatalog, ModelError, parseCatalog, parseComparison, toModelInputs, validateInputs } from './model';
+import expandedCatalog from '../../../tests/fixtures/expanded-catalog.json';
+import expandedComparison from '../../../tests/fixtures/expanded-comparison.json';
+import fallowComparison from '../../../tests/fixtures/expanded-fallow.json';
+import { compare, cropFit, cropOptions, defaults, getCatalog, ModelError, parseCatalog, parseComparison, toModelInputs, validateInputs } from './model';
 import { messages } from './messages';
 
 test('captured Render response uses real crops, denominators, nulls and exclusions', () => {
@@ -18,7 +21,7 @@ test('captured Render response uses real crops, denominators, nulls and exclusio
 });
 
 test('blank measured overrides stay null and explicit overrides retain their units', () => {
-  assert.deepEqual(toModelInputs(defaults, 'balanced'), comparisonData.inputs);
+  assert.deepEqual(toModelInputs(defaults, 'balanced'), { ...comparisonData.inputs, prep_days: 0, picking_days: 0 });
   const payload = toModelInputs({ ...defaults, soil_ph: '6.3', soil_texture: 'medium', turnaround_days: '14', pass_mark: '0' }, 'saving_water');
   assert.equal(payload.soil_ph, 6.3);
   assert.equal(payload.soil_texture, 'medium');
@@ -49,7 +52,7 @@ test('client sends JSON, handles service errors, and never substitutes fixtures'
   globalThis.fetch = async (url, init) => {
     assert.match(String(url), /\/api\/v1\/compare$/);
     assert.equal(init?.method, 'POST');
-    assert.deepEqual(JSON.parse(String(init?.body)), comparisonData.inputs);
+    assert.deepEqual(JSON.parse(String(init?.body)), { ...comparisonData.inputs, prep_days: 0, picking_days: 0 });
     return Response.json(comparisonData);
   };
   assert.equal((await compare(defaults, 'balanced')).mode, 'rules_model');
@@ -66,4 +69,48 @@ test('active English and Tagalog copy has no prototype or disconnected-model cla
     const copy = messages(language);
     assert.doesNotMatch(JSON.stringify(copy), /prototype|interactive demo|sample results|sample numbers|not connected|halimbawang numero|hindi pa nakakonekta/i);
   }
+});
+
+test('expanded model preserves its verdict, whole schedules and missing checks', () => {
+  const catalog = parseCatalog(expandedCatalog), comparison = parseComparison(expandedComparison);
+  assert.equal(catalog.places.length, 22);
+  assert.equal(catalog.crops.length, 29);
+  assert.ok(catalog.capabilities?.includes('fallow'));
+  assert.equal(cropOptions(comparison, catalog, 'balanced').length, 29);
+  const field = comparison.results.fields.rain;
+  assert.deepEqual(field.recommendation?.suitable, ['radish', 'mungbean']);
+  assert.equal(cropFit(field.crops.maize, []), 'partial');
+  assert.equal(cropFit(field.crops.sweetpotato, []), 'partial');
+  assert.equal(field.schedule?.mungbean.total_days, 50);
+  const fallow = parseComparison(fallowComparison).results.fields.rain;
+  assert.equal(fallow.recommendation?.status, 'none');
+  assert.deepEqual(fallow.recommendation?.suitable, []);
+  assert.deepEqual(fallow.same_family_as_main, []);
+  assert.equal(fallow.schedule?.mungbean.total_days, 92);
+  assert.equal(fallow.schedule?.mungbean.spare_days, 105);
+});
+
+test('schedule input bounds match the API and a fallow field remains fallow', () => {
+  const payload = toModelInputs({ ...defaults, main_crop: 'fallow', prep_days: '14', picking_days: '21', turnaround_days: '7' }, 'balanced');
+  assert.equal(payload.main_crop, 'fallow');
+  assert.deepEqual([payload.prep_days, payload.picking_days, payload.turnaround_days], [14, 21, 7]);
+  for (const value of ['', '-1', '181', '1.5', 'Infinity']) {
+    assert.equal(validateInputs({ ...defaults, prep_days: value }), 'prepDays');
+    assert.equal(validateInputs({ ...defaults, picking_days: value }), 'pickingDays');
+  }
+});
+
+test('invalid new evidence and a recommendation containing a partially checked crop are rejected', () => {
+  const partial = structuredClone(expandedComparison);
+  partial.results.fields.rain.recommendation.suitable.push('maize');
+  assert.throws(() => parseComparison(partial), ModelError);
+  const plan = structuredClone(expandedComparison);
+  plan.results.fields.rain.schedule.mungbean.spare_days++;
+  assert.throws(() => parseComparison(plan), ModelError);
+  const verdict = structuredClone(fallowComparison);
+  verdict.results.fields.rain.recommendation.status = 'suitable';
+  assert.throws(() => parseComparison(verdict), ModelError);
+  const stale = structuredClone(fallowComparison);
+  stale.results.meta.prep_days = 0;
+  assert.throws(() => parseComparison(stale), ModelError);
 });
