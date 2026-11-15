@@ -361,7 +361,41 @@ class PilotRegression(unittest.TestCase):
         self.assertEqual(min(short, key=lambda n: short[n]), "mungbean")
         self.assertEqual(max(short, key=lambda n: short[n]), "rice")
         self.assertAlmostEqual(short["mungbean"], 44, delta=2)
-        self.assertAlmostEqual(short["rice"], 531, delta=2)
+        self.assertAlmostEqual(short["rice"], 752, delta=2)
+
+    def test_seasons_without_a_water_balance_are_not_counted(self):
+        # Reference ET needs TOA_SW_DWN, which starts in 1984. The 1981-1983
+        # seasons used to pass on heat and soil alone, which gave rice two "dry
+        # season" passes it never earned.
+        rain = K.fields["rain"]["crops"]
+        for name, c in rain.items():
+            for row in c["seasons"]:
+                for length in row["by_length"].values():
+                    if length["scores"].get("water") is None:
+                        self.assertIsNone(length["S"]["balanced"],
+                                          f"{name} {row['season']} scored without water")
+            k = c["counts"]["balanced"]["all"]["short"]
+            self.assertEqual(k["of"], 41)
+            self.assertEqual(k["not_scored"], 3)
+        rice = rain["rice"]["counts"]["balanced"]
+        self.assertEqual((rice["all"]["short"]["pass"], rice["all"]["short"]["of"]), (21, 41))
+        self.assertEqual((rice["dry"]["short"]["pass"], rice["dry"]["short"]["of"]), (0, 7))
+        mung = rain["mungbean"]["counts"]["balanced"]["all"]["short"]
+        self.assertEqual((mung["pass"], mung["of"]), (38, 41))
+
+    def test_irrigated_field_still_counts_every_season(self):
+        # Water is not scored on an irrigated field, so nothing is missing.
+        for c in K.fields["irrigation"]["crops"].values():
+            self.assertEqual(c["counts"]["balanced"]["all"]["short"]["of"], 44)
+
+    def test_rice_growing_time_is_the_local_variety_not_the_global_span(self):
+        # NSIC Rc222 from the Pinoy Rice Knowledge Bank: 106 days direct seeded,
+        # 114 transplanted. EcoCrop's 80-180 days spans every rice variety there is.
+        rice = K.CROPS["rice"]
+        self.assertEqual((rice["cycle_min"], rice["cycle_max"]), (106, 114))
+        self.assertIn("Rc222", rice["cycle_source"])
+        for name, c in K.CROPS.items():
+            self.assertTrue(c["cycle_source"], f"{name} has no growing-time source")
 
     def test_saving_water_does_not_rank_rice_first(self):
         for water in ("rain", "irrigation"):

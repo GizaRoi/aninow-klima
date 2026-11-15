@@ -15,6 +15,8 @@ The pilot location, alternative crop/variety profiles, numerical agronomic thres
 | Document | Purpose |
 |---|---|
 | [Model narrative](Model-Narrative.md) | What the model does, what it says for the pilot, how far the numbers can be trusted, and what it refuses to do |
+| [Model explained](Model-Explained.md) | Each step of the model in plain words, with the formula and a worked example |
+| [Audit and decision checklist](Audit-and-Decision-Checklist.md) | Review findings, changes made, and the decisions still open |
 | [Product requirements](AniNow-Klima-PRD.md) | Target user, next-planting scope, user value and acceptance |
 | [Decision engine specification](Decision-Engine-Spec.md) | Canonical inputs, feasibility, priorities, calendar and financial semantics |
 | [User flows](User-Flows.md) | Screens, farmer questions, comparisons and recovery behavior |
