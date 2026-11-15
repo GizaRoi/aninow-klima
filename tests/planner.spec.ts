@@ -93,6 +93,65 @@ test('service failure preserves inputs, exposes retry and never shows sample car
   await expect(page.locator('.crop-card')).toHaveCount(10);
 });
 
+test('calculation panel comes into view during the request and becomes real results on completion', async ({ page }) => {
+  let finish!: () => void;
+  const waiting = new Promise<void>(resolve => { finish = resolve; });
+  let requests = 0;
+  await page.route('**/api/v1/compare', async route => {
+    requests++;
+    await waiting;
+    await route.fulfill({ json: comparison });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'See my options', exact: true }).click();
+  const panel = page.locator('.calculation-panel');
+  try {
+    await expect(panel).toBeVisible();
+    await expect(panel).toBeInViewport({ ratio: 1 });
+    await expect(panel.getByRole('heading', { name: 'Comparing crops for your field', exact: true })).toBeFocused();
+    await expect(panel.getByRole('status')).toContainText('Calculating your comparison');
+    await expect(panel).toContainText('Science City of Muñoz, Nueva Ecija');
+    await expect(page.locator('form')).not.toBeVisible();
+    await expect(page.locator('#location')).toBeDisabled();
+    expect(await panel.locator('.calculation-ring').first().evaluate(ring => getComputedStyle(ring).animationName)).toBe('calculation-orbit');
+    expect(requests).toBe(1);
+    await panel.screenshot({ path: 'test-results/calculation-desktop.png' });
+  } finally { finish(); }
+  await expect(panel).toHaveCount(0);
+  await expect(page.locator('.crop-card')).toHaveCount(10);
+  await expect(page.getByRole('heading', { name: 'Your options', exact: true })).toBeVisible();
+});
+
+test('phone calculation panel supports Tagalog and reduced motion, then restores answers after failure', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  let finish!: () => void;
+  const waiting = new Promise<void>(resolve => { finish = resolve; });
+  await page.route('**/api/v1/compare', async route => {
+    await waiting;
+    await route.fulfill({ status: 503, json: { error: { field_errors: {} }, request_id: 'busy-request' } });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Tagalog', exact: true }).click();
+  await page.locator('#location').selectOption('Batac, Ilocos Norte');
+  await page.getByRole('button', { name: 'Tingnan ang mga pagpipilian', exact: true }).click();
+  const panel = page.locator('.calculation-panel');
+  try {
+    await expect(panel).toBeVisible();
+    await expect(panel.getByRole('heading')).toHaveText('Inihahambing ang mga pananim para sa iyong bukid');
+    await expect(panel).toContainText('Batac, Ilocos Norte');
+    expect(await panel.locator('.calculation-ring').first().evaluate(ring => getComputedStyle(ring).animationName)).toBe('none');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await panel.screenshot({ path: 'test-results/calculation-mobile.png' });
+  } finally { finish(); }
+  await expect(panel).toHaveCount(0);
+  await expect(page.locator('form')).toBeVisible();
+  await expect(page.locator('#location')).toHaveValue('Batac, Ilocos Norte');
+  await expect(page.locator('.form-error')).toContainText('Abala o hindi magamit ang modelo');
+  await expect(page.locator('.form-error')).toBeFocused();
+  await expect(page.locator('.crop-card')).toHaveCount(0);
+});
+
 test('catalogue failure can be retried and submit stays disabled', async ({ page }) => {
   let attempts = 0;
   await page.route('**/api/v1/catalog', route => ++attempts === 1
@@ -178,19 +237,23 @@ test('phone Tagalog form and model results fit the screen', async ({ page }) => 
   await expect(page.locator('html')).toHaveAttribute('lang', 'tl');
 });
 
-test('team route shows full portraits with accessible names and no duplicate name captions', async ({ page }) => {
+test('About us includes the supplied introduction and full portraits in both languages', async ({ page }) => {
   await page.goto('/');
-  await page.locator('nav').getByRole('link', { name: 'Our team', exact: true }).click();
+  await page.locator('nav').getByRole('link', { name: 'About us', exact: true }).click();
   await expect(page).toHaveURL(/\/team\/$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Our team', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'About us', exact: true })).toBeVisible();
+  await expect(page.locator('.team-intro > p')).toHaveText('AniNow is an agri-innovation team exploring how NASA data, AI, software, and geospatial tools can address challenges in agriculture, climate resilience, and food security. We aim to turn complex Earth observation data into practical, user-friendly solutions. We are composed of members with skills in GIS, remote sensing, data science, AI/ML, web development, UI/UX, agriculture, and environmental science.');
+  await expect(page.locator('.team-location p')).toHaveText('Our team is based in Laguna, with graduates from UPLB and De La Salle University.');
   await expect(page.locator('.team-card img')).toHaveCount(4);
   await expect(page.locator('.team-card').filter({ hasText: /\S/ })).toHaveCount(0);
-  await expect(page.locator('nav a[aria-current="page"]')).toHaveText('Our team');
+  await expect(page.locator('nav a[aria-current="page"]')).toHaveText('About us');
   await expect.poll(() => page.locator('.team-card img').evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
   await page.screenshot({ path: 'test-results/desktop-team.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Tagalog', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Ang aming koponan', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Tungkol sa amin', exact: true })).toBeVisible();
+  await expect(page.locator('.team-intro > p')).toContainText('Ang AniNow ay isang pangkat');
+  await expect(page.locator('.team-location')).toContainText('UPLB at De La Salle University');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/mobile-team.png', fullPage: true });
   await page.getByRole('link', { name: 'Bumalik sa pagpaplano ng tanim', exact: true }).click();
