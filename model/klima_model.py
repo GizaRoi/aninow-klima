@@ -820,9 +820,10 @@ def evaluate(water):
         # no soil texture). Such a crop is still rated, on what could be checked,
         # but it is ranked after every crop scored on all of its conditions: an
         # unscored condition must never work as a perfect one.
-        expected = ("temp", "ph", "texture") + (("water",) if water == "rain" else ())
-        last = rows[-1]["by_length"]["short"]["scores"] if rows else {}
-        not_scored = [k for k in expected if k != "water" and last.get(k) is None]
+        # (Water is handled apart: a rainfed season with no water balance has no
+        # score at all, and on an irrigated field water is not a condition.)
+        not_scored = [k for k in ("temp", "ph", "texture")
+                      if all(r["by_length"]["short"]["scores"].get(k) is None for r in rows)]
         out[name] = dict(
             flags=flags,
             not_scored=not_scored,
@@ -882,9 +883,8 @@ def evaluate(water):
     }
     main_family = CROPS[MAIN_CROP]["family"] if MAIN_CROP in CROPS else None
     # Is there anything to recommend at all? A crop is suitable when its typical
-    # season reaches the pass mark, which is the same as being a good year in at
-    # least half the seasons scored, and when every one of its conditions could be
-    # scored. If no crop is, the answer is "no suitable recommendation": being
+    # (median) season reaches the pass mark, which means at least half the seasons
+    # scored were good years, and when every one of its conditions could be scored. If no crop is, the answer is "no suitable recommendation": being
     # first in the order is not the same as being good.
     order = sorted(out, key=keys["balanced"], reverse=True)
     suitable = [n for n in order if not out[n]["not_scored"]
