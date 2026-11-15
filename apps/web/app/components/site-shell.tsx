@@ -1,21 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { messages } from '../../lib/messages';
 import type { Language } from '../../lib/preview';
 
 function BrandLogo() {
-  const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
-  // Adapt only the dark lettering for the dark page; keep the source PNG unchanged.
+  // Crop transparent margins and show the original artwork on the light site chrome.
   return <svg className="brand-logo" viewBox="199 414 1635 1128" role="img" aria-label="AniNow Klima" width="1635" height="1128">
-    <defs>
-      <filter id={`${id}-light-wordmark`} colorInterpolationFilters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 .94  0 0 0 0 .96  0 0 0 0 .89  0 0 0 1 0"/></filter>
-      <clipPath id={`${id}-dark-lettering`}><rect x="0" y="1000" width="900" height="400"/><rect x="0" y="1400" width="2000" height="600"/></clipPath>
-    </defs>
     <image href="/images/aninow-logo.png" width="2000" height="2000"/>
-    <image href="/images/aninow-logo.png" width="2000" height="2000" clipPath={`url(#${id}-dark-lettering)`} filter={`url(#${id}-light-wordmark)`}/>
   </svg>;
 }
 
