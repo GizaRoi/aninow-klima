@@ -4,6 +4,10 @@ The Next.js application in `apps/web` calls the public historical rules-model AP
 at `https://aninow-klima.onrender.com`. Vercel serves the frontend at
 `https://aninow-klima.vercel.app`. The olive-to-forest gradient, field photograph,
 transparent logo, team page, responsive layout, and English/Tagalog switch remain.
+The shared header navigation contains only About us; My field and Plan next
+planting have been removed from the desktop and mobile menus on both pages.
+The soil-test control is a keyboard-accessible slide switch. Turning it off
+clears the measured soil overrides and returns to the model's sample values.
 
 The home page opens with a roughly two-second welcome using the supplied
 `pexels-elmer0224-31391951.jpg` photograph and logo, with a visible credit to

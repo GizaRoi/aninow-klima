@@ -19,11 +19,10 @@ export function BrandLogo() {
   </svg>;
 }
 
-export function SiteHeader({ language, ready, onLanguageChange, onPlan, activePage = 'field' }: {
+export function SiteHeader({ language, ready, onLanguageChange, activePage = 'field' }: {
   language: Language;
   ready: boolean;
   onLanguageChange: (language: Language) => void;
-  onPlan?: () => void;
   activePage?: 'field' | 'team';
 }) {
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -32,8 +31,6 @@ export function SiteHeader({ language, ready, onLanguageChange, onPlan, activePa
   return <header className="site-header">
     <Link className="brand" href="/" aria-label="AniNow Klima"><BrandLogo/></Link>
     <nav aria-label={language === 'en' ? 'Main navigation' : 'Pangunahing menu'} className={mobileMenu ? 'nav-open' : ''}>
-      <Link href="/#top" onClick={closeMenu}>{m.navField}</Link>
-      {onPlan ? <button onClick={() => { closeMenu(); onPlan(); }}>{m.navPlan}</button> : <Link href="/#planner" onClick={closeMenu}>{m.navPlan}</Link>}
       <Link href="/team/" aria-current={activePage === 'team' ? 'page' : undefined} onClick={closeMenu}>{m.navTeam}</Link>
     </nav>
     <div className="header-tools"><div className="language-switch" role="group" aria-label="Language / Wika"><button disabled={!ready} aria-pressed={language === 'en'} onClick={() => onLanguageChange('en')}>English</button><button disabled={!ready} aria-pressed={language === 'tl'} onClick={() => onLanguageChange('tl')}>Tagalog</button></div><button className="menu-button" aria-label={m.menu} aria-expanded={mobileMenu} onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X/> : <Menu/>}</button></div>
