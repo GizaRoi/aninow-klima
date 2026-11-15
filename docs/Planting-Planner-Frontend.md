@@ -45,8 +45,9 @@ irrigation selected to confirm that standing-water exclusions clear correctly.
 
 ## Form and API contract
 
-The catalogue supplies seven supported places and ten crops, including the main
-crop selector. It is fetched on page load; a failed catalogue has an explicit
+The catalogue supplies the supported places and crops, including the main
+crop selector. Options and crop cards follow the service's catalogue as it grows.
+It is fetched on page load; a failed catalogue has an explicit
 retry button, and comparison stays disabled until the catalogue is available.
 The form matches the deployed `klima-comparison.v1` API:
 
