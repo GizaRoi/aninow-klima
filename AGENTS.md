@@ -37,28 +37,30 @@ Deliver the rules/simulation decision prototype before claiming a predictive MVP
 
 State as of 2026-11-15, on `feat/klima-model` (was `yancey-branch`). [docs/HANDOFF.md](docs/HANDOFF.md) is the current summary of what exists, what changed and what is open. The decision model is **built and running**. A stateless comparison API is implemented in `model/api.py`; see [docs/Model-API.md](docs/Model-API.md) for its contract, tests and Render settings. The frontend lives on separate branches and is not connected yet; database and predictive model work remain pending.
 
-Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonical account of the method, the results, and the problems, with the charts. [docs/Model-Explained.md](docs/Model-Explained.md) works every formula by hand for a newcomer, and [docs/Audit-and-Decision-Checklist.md](docs/Audit-and-Decision-Checklist.md) lists the findings and the decisions still open.
+Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonical account of the method, the results, and the problems, with the charts. [docs/Model-Explained.md](docs/Model-Explained.md) works every formula by hand for a newcomer, [docs/Model-Mathematics.md](docs/Model-Mathematics.md) states the whole model as one function with every constant attributed, and [docs/Audit-and-Decision-Checklist.md](docs/Audit-and-Decision-Checklist.md) lists the findings and the decisions still open.
 
 ## Everything in `model/`
 
 | File | What it is |
 |---|---|
 | `klima_model.py` | The model. Reads the inputs, scores each crop per season, writes `results.json`. Takes the farmer's answers as command-line options. |
-| `crops.csv` | Ten crops. Rice, mungbean, eggplant and tomato carry four EcoCrop limits each and are scored on a slope. Squash, sitaw, snap bean, cabbage, lettuce and potato carry only a DA crop guide's recommended range (`limits = da_guide_range`) and are **screened**: inside the range or not recommended. Water use for all ten is FAO-56 `Kc` and stage lengths. **Every row names its sources in `limits_source`, `cycle_source` and `kc_source`.** Rice's growing time is NSIC Rc222 from the Pinoy Rice Knowledge Bank; the other nine are not Philippine figures. |
+| `crops.csv` | **29 crops.** 23 carry four EcoCrop limits each and are scored on a slope; 6 carry only a DA crop guide's recommended range (`limits = da_guide_range`) and are **screened**: inside the range or not recommended. Water use for all 29 is FAO-56 `Kc` and stage lengths. **Every row names its sources in `limits_source`, `cycle_source` and `kc_source`.** Rice's growing time is NSIC Rc222 from the Pinoy Rice Knowledge Bank; the others are not Philippine figures. |
 | `diagnostics.py` | Seven checks on how far the numbers can be trusted. Changes no score. |
 | `charts.py` | Writes eleven SVG charts plus a self-contained `index.html`. |
 | `serve.py` | A local form at `127.0.0.1:8000`. Runs the real model per submission. A farmer view by default; soil test values and the pass mark sit behind switches, and "Advanced view" adds scores, ranges and sources. |
 | `api.py` | Stateless FastAPI catalogue, comparison and health endpoints. Uses an isolated CLI process per calculation. See `docs/Model-API.md`. |
-| `places.csv` | Seven places the form offers, each at the coordinates of the SARAI soil sample it uses. **Add a row only together with a POWER download for that point**; a test checks every row has weather and soil. |
+| `places.csv` | **22 places** the form offers, each at the coordinates of the SARAI soil sample it uses, in 15 distinct weather cells. **Add a row only together with a POWER download for that point**; a test checks every row has weather and soil. |
 | `test_klima_model.py` | 88 tests: farmer inputs, scoring primitives, the water balance, the statistics, crops, places. |
 | `test_serve.py` | 24 tests: what the form sends to the model and what each view shows. |
 | `test_expansion.py` | Crop numbers against their saved EcoCrop sheets, the schedule, fallow, "no suitable recommendation", the added places. |
 | `test_analysis.py` | Each statistic in `analysis.py` against a hand-worked case, and the plot-history record. |
+| `trust_charts.py` | Writes `docs/images/trust/`: eight charts for **how far the model can be trusted**, drawn from `docs/analysis/` so they cannot disagree with `pitch_stats.md`. Run `analysis.py` first. Changes nothing. |
+| `test_trust_charts.py` | Every count a trust chart prints, against the table it came from; that each renders well-formed SVG with nothing drawn off-canvas; and that **no chart face can contain a performance word**. |
 | `analysis.py` | Runs every place and writes `docs/analysis/`: four tables and `pitch_stats.md`. Changes nothing. |
 | `plot_history.py` | Reads a plot's record (JSON, `N/A` allowed anywhere) and runs the model on what it supports. Pests, diseases and fertilizer are recorded, **never scored**. |
 | `fetch_power.py` | Downloads NASA POWER for places that lack a file. **The only script that uses the internet**; the model never calls it. |
 | `ecocrop_sheets.py`, `sources/` | The saved FAO EcoCrop sheets and FAO-56 chapter 6, and the reader the tests use to check `crops.csv` against them. |
-| `POWER_Point_Daily_*_LST.csv` | NASA POWER daily, 1981–2025, one file for each of the seven places in `places.csv`. The model picks the file whose header coordinates share the field's weather cell. The `_UTC.csv` file (second rainfall column) exists for the pilot only. |
+| `POWER_Point_Daily_*_LST.csv` | NASA POWER daily, 1981–2025, one file for each of the **22 places** in `places.csv`. The model picks the file whose header coordinates share the field's weather cell. The `_UTC.csv` file (second rainfall column) exists for the pilot only. |
 | `oni.ascii.txt` | NOAA Oceanic Niño Index. Used for the El Niño flag. |
 | `detrend.nino34.ascii.txt` | Niño 3.4 monthly anomaly. The fallback if the ONI file is missing. |
 | `sensitivity.py` | Pushes each chosen crop value to the other end of its range and reports how far the shortfall moves. Changes nothing. |
@@ -81,8 +83,9 @@ python insights.py                    # every place, side by side
 python charts.py --out ../docs/images # the published charts
 python serve.py                       # the local form
 python analysis.py --out ../docs/analysis   # tables and tests for the pitch
+python trust_charts.py                # how far the model can be trusted, as charts
 python plot_history.py plot_history_example.json
-python -m unittest test_klima_model test_serve test_expansion test_analysis -v # 150 standard-library tests, about three minutes
+python -m unittest test_klima_model test_serve test_expansion test_analysis test_trust_charts -v # 170 standard-library tests, about three minutes
 ```
 
 With `requirements-dev.txt` installed, `python -m unittest discover . -v` also
@@ -92,9 +95,10 @@ runs the HTTP API tests. Run this full suite before publishing API changes.
 
 ## State after the fourth round, 2026-11-15
 
-**22 places and 29 crops.** [docs/HANDOFF.md](docs/HANDOFF.md) is current; the table above and
-the sections below were written for seven places and ten crops and are kept for the
-reasoning. What differs now:
+**22 places and 29 crops.** [docs/HANDOFF.md](docs/HANDOFF.md) is current, and the file table
+above has been brought up to date. The prose sections *below* were written for seven places
+and ten crops and are kept for the reasoning, so read their counts as historical. What
+differs now:
 
 - `crops.csv` has 29 rows. The 19 added ones are scored on EcoCrop limits read from sheets
   saved in `model/sources/ecocrop/`, with growing times from FAO-56 Table 11 totals.

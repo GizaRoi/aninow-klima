@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AniNow Klima - how far the model can be trusted</title>
+<style>
+ body{background:#f0f1e9;color:#26392c;font-family:'DM Sans', -apple-system, 'Segoe UI', sans-serif;margin:0;
+      padding:48px 24px 72px;line-height:1.55}
+ main{max-width:960px;margin:0 auto}
+ .eyebrow{font-size:10px;font-weight:650;letter-spacing:2.6px;color:#52614b;
+      text-transform:uppercase;margin:0 0 10px}
+ h1{font-family:Manrope, 'DM Sans', -apple-system, 'Segoe UI', sans-serif;font-weight:550;letter-spacing:-1px;
+      font-size:34px;color:#223024;margin:0 0 14px}
+ p.lede{font-size:15.5px;color:#52614b;max-width:68ch;margin:0 0 8px}
+ .warn{background:#fff;border-left:3px solid #a05143;padding:14px 18px;
+      margin:26px 0 34px;max-width:68ch;font-size:14px}
+ figure{margin:0 0 34px;background:#ffffff;border:1px solid #d8dfcf;
+      border-radius:10px;overflow:hidden}
+ img{display:block;width:100%;height:auto}
+ figcaption{font-size:12.5px;color:#52614b;padding:11px 16px;
+      border-top:1px solid #d8dfcf}
+ footer{font-size:12.5px;color:#52614b;border-top:1px solid #d8dfcf;
+      padding-top:18px;max-width:68ch}
+ code{background:#e8eddf;padding:1px 5px;border-radius:4px;font-size:12.5px}
+</style></head><body><main>
+<p class="eyebrow">AniNow Klima</p>
+<h1>How far the model can be trusted</h1>
+<p class="lede">471 rated place-crop pairs across 22 places in
+15 distinct NASA POWER weather cells. Every chart is drawn from
+<code>docs/analysis/</code>, so none can disagree with the tables there.</p>
+<div class="warn"><strong>None of these is a performance figure.</strong> There is no
+harvest record for these fields, so accuracy, precision, recall and ROC do not exist
+for this model and are never reported. What these charts measure is the model's own
+internal consistency and the quality of its inputs: what decides an answer, how much
+of the stated uncertainty is real, and which of our own chosen constants the answer
+rests on.</div>
+<figure><img src="t1-what-decides-the-answer.svg" alt="What actually decides the answer"><figcaption>What actually decides the answer</figcaption></figure><figure><img src="t2-season-independence.svg" alt="How much of the uncertainty is real"><figcaption>How much of the uncertainty is real</figcaption></figure><figure><img src="t3-rainfall-trend.svg" alt="Window rainfall is rising in this record"><figcaption>Window rainfall is rising in this record</figcaption></figure><figure><img src="t4-el-nino-direction-without-proof.svg" alt="El Nino costs good years, but we cannot prove it here"><figcaption>El Nino costs good years, but we cannot prove it here</figcaption></figure><figure><img src="t5-record-halves.svg" alt="Good years cluster in the recent half"><figcaption>Good years cluster in the recent half</figcaption></figure><figure><img src="t6-texture-stand-in-cost.svg" alt="The cost of one number we chose ourselves"><figcaption>The cost of one number we chose ourselves</figcaption></figure><figure><img src="t7-score-follows-rain.svg" alt="How often the score is really just rainfall"><figcaption>How often the score is really just rainfall</figcaption></figure><figure><img src="t8-limiting-margin.svg" alt="How close the limiting call was"><figcaption>How close the limiting call was</figcaption></figure>
+<footer>Regenerate with <code>python model/analysis.py --out docs/analysis</code> then
+<code>python model/trust_charts.py</code>. Places sharing a weather cell are not
+independent tests of the climate. The rainfall trend is a trend in the NASA POWER
+reanalysis and has not been checked against a rain gauge.</footer>
+</main></body></html>

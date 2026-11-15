@@ -87,7 +87,9 @@ Faded dots are dry seasons, rings are El Niño seasons. Water is the only condit
 
 ## How far the numbers can be trusted
 
-The arithmetic is verified: reference ET reproduces an independent hand calculation to the decimal across seven months, crop water demand agrees with FAO's published per-cycle figures, and 150 tests cover the farmer-facing inputs, the statistics, and every EcoCrop number against its saved source sheet. The statistics are weaker, and two problems are material.
+The arithmetic is verified: reference ET reproduces an independent hand calculation to the decimal across seven months, crop water demand agrees with FAO's published per-cycle figures, and 170 tests cover the farmer-facing inputs, the statistics, and every EcoCrop number against its saved source sheet. The statistics are weaker, and two problems are material.
+
+**There is no accuracy figure here, and there never will be one** until a harvest record exists for these fields. What can be measured instead — what actually decides an answer, how much of the stated uncertainty survives autocorrelation, and what each constant we chose ourselves costs — is drawn in [eight trust charts](docs/images/trust/index.html), and the model is stated as one auditable function in [docs/Model-Mathematics.md](docs/Model-Mathematics.md).
 
 ### The record is not one climate
 
@@ -143,7 +145,8 @@ python serve.py                       # a local form at 127.0.0.1:8000
 python klima_model.py --main-crop fallow --prep-days 14 --picking-days 21 --clearing-days 7
 python plot_history.py plot_history_example.json   # a plot's record, N/A allowed
 python analysis.py --out ../docs/analysis          # tables and tests for the pitch
-python -m unittest test_klima_model test_serve test_expansion test_analysis -v # 150 standard-library tests
+python trust_charts.py                             # how far the model can be trusted
+python -m unittest test_klima_model test_serve test_expansion test_analysis test_trust_charts -v # 170 standard-library tests
 ```
 
 The core model and local form use the standard library only: no NumPy, matplotlib,
