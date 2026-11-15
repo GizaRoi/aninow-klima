@@ -1,0 +1,129 @@
+{
+  "contract_version": "klima-comparison.v1",
+  "model_version": "sha256:bb6b0de69d1730a53fd018e97f0d0e7b95bf99d2bfde183f644d6e39e3281043",
+  "places": [
+    {
+      "id": "Science City of Muñoz, Nueva Ecija",
+      "name": "Science City of Muñoz",
+      "province": "Nueva Ecija"
+    },
+    {
+      "id": "Batac, Ilocos Norte",
+      "name": "Batac",
+      "province": "Ilocos Norte"
+    },
+    {
+      "id": "Echague, Isabela",
+      "name": "Echague",
+      "province": "Isabela"
+    },
+    {
+      "id": "Los Baños, Laguna",
+      "name": "Los Baños",
+      "province": "Laguna"
+    },
+    {
+      "id": "Ligao, Albay",
+      "name": "Ligao",
+      "province": "Albay"
+    },
+    {
+      "id": "Lambunao, Iloilo",
+      "name": "Lambunao",
+      "province": "Iloilo"
+    },
+    {
+      "id": "Maramag, Bukidnon",
+      "name": "Maramag",
+      "province": "Bukidnon"
+    }
+  ],
+  "crops": [
+    {
+      "id": "rice",
+      "name": "Rice",
+      "local_name": "Palay",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "mungbean",
+      "name": "Mungbean",
+      "local_name": "Munggo",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "eggplant",
+      "name": "Eggplant",
+      "local_name": "Talong",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "tomato",
+      "name": "Tomato",
+      "local_name": "Kamatis",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "squash",
+      "name": "Squash",
+      "local_name": "Kalabasa",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "sitaw",
+      "name": "Yardlong bean",
+      "local_name": "Sitaw",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "snapbean",
+      "name": "Snap bean",
+      "local_name": "Habichuelas",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "cabbage",
+      "name": "Cabbage",
+      "local_name": "Repolyo",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "lettuce",
+      "name": "Lettuce",
+      "local_name": "Letsugas",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "local_name": "Patatas",
+      "limits_basis": "da_guide_range"
+    }
+  ],
+  "drainage": [
+    "well_drained",
+    "poorly_drained",
+    "unknown"
+  ],
+  "soil_texture": [
+    "light",
+    "medium",
+    "heavy"
+  ],
+  "water": [
+    "rain",
+    "irrigation"
+  ],
+  "priorities": [
+    "balanced",
+    "saving_water",
+    "healthier_soil",
+    "finishing_early"
+  ],
+  "season_groups": [
+    "all",
+    "normal",
+    "dry",
+    "el_nino"
+  ]
+}

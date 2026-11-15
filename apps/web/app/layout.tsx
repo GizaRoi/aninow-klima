@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'AniNow Klima — Your next planting',
-  description: 'Explore what to plant after rice. A frontend preview with sample crop comparisons for Muñoz, Nueva Ecija.',
+  description: 'Compare planting options with historical weather, field conditions, and the AniNow Klima rules model.',
   robots: { index: false, follow: false },
 };
 
