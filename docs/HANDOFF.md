@@ -21,7 +21,7 @@ To check everything works:
 
 ```bash
 cd model
-python -m unittest discover .         # 106 tests
+python -m unittest discover .         # 107 tests
 python klima_model.py                 # the pilot field
 python insights.py                    # every place, side by side
 python diagnostics.py                 # how far the numbers can be trusted
@@ -289,7 +289,7 @@ In rough order of value:
 | `model/diagnostics.py` | Seven checks on trust |
 | `model/sensitivity.py` | How far chosen values move the answer |
 | `model/charts.py` | The charts in `docs/images/` |
-| `model/test_klima_model.py`, `model/test_serve.py` | 88 and 18 tests |
+| `model/test_klima_model.py`, `model/test_serve.py` | 88 and 19 tests |
 | `model/POWER_Point_Daily_*_LST.csv` | NASA POWER weather, one file per place |
 | `model/oni.ascii.txt` | NOAA Oceanic Niño Index |
 | `model/sarai_soil_samples.csv` | Measured soil samples |

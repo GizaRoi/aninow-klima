@@ -81,6 +81,18 @@ def read_crop_names():
 CROP_NAMES = read_crop_names()
 
 
+def read_english_names():
+    import csv as _csv
+    with open(CROPS_FILE, newline="", encoding="utf-8") as f:
+        return {r["crop"].strip(): (r.get("english_name") or r["crop"].title()).strip()
+                for r in _csv.DictReader(f) if (r.get("crop") or "").strip()}
+
+
+CROP_ENGLISH = read_english_names()
+# How each condition is named inside a sentence.
+IN_WORDS = {"temp": "temperature", "water": "water", "ph": "soil pH", "texture": "soil texture"}
+
+
 def read_places():
     """Places the farmer can pick, each with the coordinates the model needs. The
     farmer names a place; turning it into a latitude and longitude is our job."""
@@ -488,7 +500,7 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
     """One crop card: the verdict and four facts, then the detail if asked for."""
     local = ctx["names"].get(name, name.title())
     is_main = name == ctx["main"]
-    label = (f'{esc(local)} <small>{esc(name.title())}'
+    label = (f'{esc(local)} <small>{esc(CROP_ENGLISH.get(name, name.title()))}'
              f'{" &middot; your crop now" if is_main else ""}</small>')
     why = c.get("excluded")
     if why:
@@ -528,7 +540,7 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
                    else "temperature, water or soil")
         weak = f'<p class="weak">No weak point found in {checked}.</p>'
     else:
-        title = dict(CONDITIONS)[low[0]].lower()
+        title = IN_WORDS[low[0]]
         tail = f": rain covers {covers} of what it needs" if low[0] == "water" else ""
         weak = f'<p class="weak"><strong>Weakest point:</strong> {title}{tail}.</p>'
     check = ""
@@ -585,7 +597,9 @@ def results_html(r, water, priority, advanced):
         soil_line = f'Soil: pH {soil["ph"]}, {esc(soil["texture"])} texture, from your soil test.'
     else:
         soil_line = (f'Soil: pH {soil["ph"]}, {esc(sample["texture_as_reported"].lower())}, '
-                     f'from the nearest tested sample, {sample["distance_km"]:.1f} km away.')
+                     + ('from a soil sample tested at this place.'
+                        if sample["distance_km"] < 0.1 else
+                        f'from the nearest tested sample, {sample["distance_km"]:.1f} km away.'))
     answers = " &middot; ".join([
         "irrigated" if water == "irrigation" else "rain only",
         dict(DRAINAGE)[soil["drainage"]].lower().replace("no, it drains", "field drains")

@@ -148,7 +148,7 @@ This is the section to read before the pitch. `python diagnostics.py` prints all
 
 - **The arithmetic is verified, not asserted.** Reference ET reproduces an independent hand
   calculation to the decimal across seven months. The Kc curve holds flat at `Kc_ini`, holds
-  `Kc_mid`, and preserves its mean under cycle scaling. 106 tests cover the farmer-facing
+  `Kc_mid`, and preserves its mean under cycle scaling. 107 tests cover the farmer-facing
   inputs and the statistics.
 - **Crop water demand agrees with FAO's own published figures**, which is independent
   corroboration rather than internal consistency: mungbean over 120 days comes to 360 mm
@@ -313,7 +313,7 @@ python diagnostics.py                 # the checks in this document
 python sensitivity.py                 # how far the chosen crop values move the answer
 python charts.py --out ../docs/images # the charts in this document
 python serve.py                       # a local form at 127.0.0.1:8000
-python -m unittest discover . -v      # 106 tests
+python -m unittest discover . -v      # 107 tests
 ```
 
 `serve.py` runs the real model as a subprocess per submission, so the browser exercises the
