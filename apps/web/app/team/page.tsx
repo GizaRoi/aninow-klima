@@ -7,10 +7,10 @@ import { messages } from '../../lib/messages';
 import { SiteFooter, SiteHeader } from '../components/site-shell';
 
 const team = [
-  { name: 'Romano Franco Huraño', photo: 'romano-franco-hurano.webp' },
-  { name: 'Christian Paul Godilano', photo: 'christian-paul-godilano.webp' },
-  { name: 'Roimarc Bilbao', photo: 'roimarc-bilbao.png' },
-  { name: 'Yuan Yancey Labay', photo: 'yuan-yancey-labay.webp' },
+  { name: 'Romano Franco Huraño', photo: 'romano-franco-hurano-updated.webp' },
+  { name: 'Christian Paul Godilano', photo: 'christian-paul-godilano-updated.webp' },
+  { name: 'Roimarc Bilbao', photo: 'roimarc-bilbao-updated.webp' },
+  { name: 'Yuan Yancey Labay', photo: 'yuan-yancey-labay-updated.webp' },
 ];
 
 export default function TeamPage() {

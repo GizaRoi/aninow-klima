@@ -21,7 +21,10 @@ until the service responds. It identifies the submitted location and dates, keep
 the form mounted with answers preserved, and restores it on failure for retry.
 Reduced-motion preferences disable the animation. The `/team/` page is labelled
 About us and includes the team's introduction and Laguna/university background
-in English and Tagalog above the original portraits.
+in English and Tagalog above the four supplied portrait cards. The updated
+portraits use `5.png` (Romano), `6.png` (Christian), `Bilbao.png` (Roimarc),
+and `7.png` (Yuan), optimized as full-resolution WebP without cropping. New
+asset filenames ensure visitors receive the replacements after deployment.
 
 ## Run and verify
 
