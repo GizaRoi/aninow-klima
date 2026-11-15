@@ -15,6 +15,13 @@ controls, and explanatory copy use larger type on both desktop and phones.
 The headline asks what can be planted after harvest, and the supporting copy
 refers to the next main crop so it covers every crop in the selector.
 
+Submitting scrolls the planner into view and shows an animated calculation panel
+until the service responds. It identifies the submitted location and dates, keeps
+the form mounted with answers preserved, and restores it on failure for retry.
+Reduced-motion preferences disable the animation. The `/team/` page is labelled
+About us and includes the team's introduction and Laguna/university background
+in English and Tagalog above the original portraits.
+
 ## Run and verify
 
 From the checkout root, install dependencies with `npm install`, then run

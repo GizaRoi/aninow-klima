@@ -6,6 +6,7 @@ import { messages, type Messages } from '../lib/messages';
 import { useLanguagePreference } from '../lib/language';
 import { SiteFooter, SiteHeader } from './components/site-shell';
 import { AppIntro } from './components/app-intro';
+import { CalculationLoading } from './components/calculation-loading';
 import { compare, cropOptions, dateLabel, defaults, format, getCatalog, ModelError, validateInputs, windowDays, type Catalog, type Comparison, type FieldInputs, type Language, type Priority, type Season } from '../lib/model';
 
 type View = 'field' | 'results';
@@ -82,6 +83,7 @@ export default function Home() {
   const [toast, setToast] = useState(false);
   const resultsHeading = useRef<HTMLHeadingElement>(null);
   const formHeading = useRef<HTMLHeadingElement>(null);
+  const calculationHeading = useRef<HTMLHeadingElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
   const m = messages(language);
   const days = windowDays(inputs);
@@ -96,6 +98,15 @@ export default function Home() {
     return () => controller.abort();
   }, [catalogAttempt]);
   useEffect(() => () => requestRef.current?.abort(), []);
+
+  useEffect(() => {
+    if (pending) {
+      document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      calculationHeading.current?.focus({ preventScroll: true });
+    } else if (serviceError) {
+      errorRef.current?.focus();
+    }
+  }, [pending, serviceError]);
 
   useEffect(() => { if (toast) { const timer = setTimeout(() => setToast(false), 4000); return () => clearTimeout(timer); } }, [toast]);
 
@@ -117,7 +128,7 @@ export default function Home() {
       setComparison(result); setApplied({ ...inputs }); setView('results');
       setTimeout(() => { document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth' }); resultsHeading.current?.focus({ preventScroll: true }); }, 30);
     } catch (error) {
-      if (!controller.signal.aborted) { setServiceError(error instanceof ModelError ? error : new ModelError('network')); setTimeout(() => errorRef.current?.focus(), 0); }
+      if (!controller.signal.aborted) { setServiceError(error instanceof ModelError ? error : new ModelError('network')); }
     } finally { if (!controller.signal.aborted) setPending(false); }
   }
   function download() {
@@ -142,10 +153,10 @@ export default function Home() {
         <div className="section-navigation"><div className="steps"><span className={view === 'field' ? 'active' : 'complete'}><b>{view === 'results' ? <Check size={14}/> : '01'}</b>{m.stepOne}</span><i/><span className={view === 'results' ? 'active' : ''}><b>02</b>{m.stepTwo}</span></div><span className="model-label"><span/>{m.modelLabel}</span></div>
 
         {view === 'field' || !comparison ? <>
-          <h2 id="planner-title" className="sr-only" tabIndex={-1} ref={formHeading}>{m.stepOne}</h2>
-          {(loadingCatalog || pending) && <p className="model-status" role="status">{pending ? m.calculating : m.loadingCatalog}</p>}
+          {pending ? <CalculationLoading inputs={inputs} language={language} headingRef={calculationHeading}/> : <h2 id="planner-title" className="sr-only" tabIndex={-1} ref={formHeading}>{m.stepOne}</h2>}
+          {loadingCatalog && <p className="model-status" role="status">{m.loadingCatalog}</p>}
           {serviceError && <div className="form-error" role="alert" tabIndex={-1} ref={errorRef}><Info size={19}/><div><strong>{m.errors[serviceError.kind]}</strong>{serviceError.requestId && <small>{serviceError.requestId}</small>}{serviceError.kind === 'validation' && <ul>{Object.entries(serviceError.fields).map(([field, messages]) => <li key={field}>{field}: {messages.join(' ')}</li>)}</ul>}{!catalog && <button type="button" className="button secondary" onClick={() => setCatalogAttempt(value => value + 1)}>{m.retry}</button>}</div></div>}
-          <div className="form-layout"><form onSubmit={submit} noValidate aria-busy={!ready || pending || loadingCatalog}><fieldset className="interactive-fields" disabled={!ready || pending || loadingCatalog}>
+          <div hidden={pending}><div className="form-layout"><form onSubmit={submit} noValidate aria-busy={!ready || pending || loadingCatalog}><fieldset className="interactive-fields" disabled={!ready || pending || loadingCatalog}>
             {error && <div className="form-error" role="alert" tabIndex={-1} ref={errorRef}><Info size={19}/><div><strong>{m.validationTitle}</strong><p>{m.errors[error]}</p></div></div>}
             <div className="form-card"><div className="card-heading"><span className="section-icon"><Earth size={21}/></span><div><h3>{m.fieldHeading}</h3><p>{m.fieldSub}</p></div><span className="card-number">01</span></div>
               <div className="two-columns"><div className="field"><label htmlFor="location">{m.f_place}</label><div className="select-wrap"><MapPin size={16}/><select id="location" value={inputs.place} onChange={event => update('place', event.target.value)} aria-describedby="pilot-hint">{catalog?.places.map(place => <option key={place.id} value={place.id}>{place.name}, {place.province}</option>)}</select><ChevronDown size={15}/></div><p className="field-hint" id="pilot-hint">{m.pilotOnly}</p></div><div className="field"><label htmlFor="main-crop">{m.mainCrop}</label><div className="select-wrap"><select id="main-crop" value={inputs.main_crop} onChange={event => update('main_crop', event.target.value)}>{catalog?.crops.map(crop => <option key={crop.id} value={crop.id}>{language === 'en' ? crop.name : crop.local_name}</option>)}</select><ChevronDown size={15}/></div></div></div>
@@ -161,7 +172,7 @@ export default function Home() {
             <div className="form-card"><fieldset><legend>{m.priority}</legend><Choice value={priority} onChange={setPriority} label={m.priority} options={[{ value: 'balanced', label: m.p_even }, { value: 'saving_water', label: m.p_water }, { value: 'healthier_soil', label: m.p_soil }, { value: 'finishing_early', label: m.p_time }]}/></fieldset></div>
             <div className="form-actions"><p><ShieldCheck size={17}/>{m.savedLocally}</p><button className="button primary" type="submit" disabled={!catalog || pending || loadingCatalog}>{serviceError ? m.retry : m.go}<ArrowRight size={19}/></button></div>
           </fieldset></form>
-          <aside className="planner-aside"><div className="window-card"><div className="window-top"><CalendarDays size={20}/><span className="micro-label">{m.windowLabel}</span></div><div className="window-value"><strong>{days > 0 ? days : '—'}</strong><span>{m.available}</span></div><div className="season-lines" aria-hidden="true"><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/></div><div className="window-dates"><div><span className="timeline-dot"/><div><small>{m.riceHarvest}</small><strong>{dateLabel(inputs.harvest, language)}</strong></div></div><i/><div><span className="timeline-dot end"/><div><small>{m.nextPlanting}</small><strong>{dateLabel(inputs.next_planting, language)}</strong></div></div></div><p>{days > 0 ? m.calendarNote : m.nothingYet}</p></div><div className="aside-note"><CircleHelp size={21}/><p>{m.formNote}</p></div><div className="field-notice"><Info size={17}/><p>{m.notice}</p></div></aside></div>
+          <aside className="planner-aside"><div className="window-card"><div className="window-top"><CalendarDays size={20}/><span className="micro-label">{m.windowLabel}</span></div><div className="window-value"><strong>{days > 0 ? days : '—'}</strong><span>{m.available}</span></div><div className="season-lines" aria-hidden="true"><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/></div><div className="window-dates"><div><span className="timeline-dot"/><div><small>{m.riceHarvest}</small><strong>{dateLabel(inputs.harvest, language)}</strong></div></div><i/><div><span className="timeline-dot end"/><div><small>{m.nextPlanting}</small><strong>{dateLabel(inputs.next_planting, language)}</strong></div></div></div><p>{days > 0 ? m.calendarNote : m.nothingYet}</p></div><div className="aside-note"><CircleHelp size={21}/><p>{m.formNote}</p></div><div className="field-notice"><Info size={17}/><p>{m.notice}</p></div></aside></div></div>
         </> : <>
           <div className="section-heading results-heading"><div><span className="eyebrow">{m.resultsKicker}</span><h2 id="planner-title" tabIndex={-1} ref={resultsHeading}>{m.r_title}</h2><p>{m.resultsIntro}</p></div><button className="button secondary" onClick={showForm}><ArrowLeft size={16}/>{m.edit}</button></div>
           <div className="result-window"><span className="result-window-icon"><CalendarDays size={24}/></span><div><h3>{format(m.win, { n: comparison.results.meta.window_days })}</h3><p>{dateLabel(applied.harvest, language)} <ArrowRight size={13}/> {dateLabel(applied.next_planting, language)}<span>·</span><MapPin size={13}/> {applied.place}</p></div><span className="window-leaf"><Sprout size={65} strokeWidth={.8}/></span></div>

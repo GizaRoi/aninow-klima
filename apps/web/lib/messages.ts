@@ -5,7 +5,9 @@ import type { Language } from './preview';
 // Additional translations are AI-authored drafts awaiting local review.
 const interfaceCopy = {
   en: {
-    navField: 'My field', navPlan: 'Plan next planting', navAbout: 'About the tool', navTeam: 'Our team', menu: 'Open navigation',
+    navField: 'My field', navPlan: 'Plan next planting', navAbout: 'About the tool', navTeam: 'About us', menu: 'Open navigation',
+    teamDescription: 'AniNow is an agri-innovation team exploring how NASA data, AI, software, and geospatial tools can address challenges in agriculture, climate resilience, and food security. We aim to turn complex Earth observation data into practical, user-friendly solutions. We are composed of members with skills in GIS, remote sensing, data science, AI/ML, web development, UI/UX, agriculture, and environmental science.',
+    teamLocation: 'Our team is based in Laguna, with graduates from UPLB and De La Salle University.',
     backToPlanner: 'Back to planting planner', simpleView: 'Simple', moreDetailed: 'More detailed', resultView: 'Result detail level',
     tagline: 'A little space. A new season.', kicker: 'BETWEEN HARVESTS, NEW POSSIBILITIES',
     start: 'Plan my next planting', explore: 'See how it works', pilot: 'PILOT LOCATION',
@@ -38,7 +40,9 @@ const interfaceCopy = {
     validationTitle: 'Check your field details', unknown: 'Not checked',
   },
   tl: {
-    navField: 'Aking bukid', navPlan: 'Planuhin ang susunod na tanim', navAbout: 'Tungkol sa tool', navTeam: 'Ang aming koponan', menu: 'Buksan ang menu',
+    navField: 'Aking bukid', navPlan: 'Planuhin ang susunod na tanim', navAbout: 'Tungkol sa tool', navTeam: 'Tungkol sa amin', menu: 'Buksan ang menu',
+    teamDescription: 'Ang AniNow ay isang pangkat na gumagawa ng mga makabagong solusyon para sa agrikultura. Sinusuri namin kung paano magagamit ang datos ng NASA, AI, software, at mga geospatial tool sa mga hamon sa agrikultura, pag-angkop sa pagbabago ng klima, at seguridad sa pagkain. Layunin naming gawing praktikal at madaling gamitin ang masalimuot na datos ng pagmamasid sa Daigdig. May kasanayan ang aming mga miyembro sa GIS, remote sensing, data science, AI/ML, web development, UI/UX, agrikultura, at agham pangkapaligiran.',
+    teamLocation: 'Nasa Laguna ang aming pangkat, na may mga miyembrong nagtapos sa UPLB at De La Salle University.',
     backToPlanner: 'Bumalik sa pagpaplano ng tanim', simpleView: 'Simple', moreDetailed: 'Mas detalyado', resultView: 'Detalye ng resulta',
     tagline: 'Bagong pagkakataon sa bawat panahon.', kicker: 'PAGKATAPOS NG ANI, MAY BAGONG PAGKAKATAON',
     start: 'Planuhin ang susunod kong tanim', explore: 'Paano ito gumagana', pilot: 'LUGAR NG PILOT',
