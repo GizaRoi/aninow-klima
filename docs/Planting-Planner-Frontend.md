@@ -162,7 +162,8 @@ phone overflow, and model downloads.
 
 ## Compact results workspace
 
-The desktop form/results surface is capped at 1,140 px. Preparation, picking,
+The desktop form/results surface is capped at 1,140 px. A 32 px gap separates
+that surface from the footer divider on desktop and phones. Preparation, picking,
 and clearing allowances live inside Advanced settings with the pass mark. The
 results window says "days between harvest and your next planting"; resting fields
 use "days until your next planting." Submitted water, drainage, crop and soil
