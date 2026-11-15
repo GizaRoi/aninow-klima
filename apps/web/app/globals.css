@@ -399,8 +399,13 @@ input[aria-invalid=true] { border-color: #a85336; }
 }
 .model-context, .details-body p, .form-error { overflow-wrap: anywhere; }
 .model-fact { font-size: 15px; line-height: 1.8; margin-top: 14px; color: #526343; }
-.soil-toggle { display: flex; gap: 12px; align-items: center; font-size: 16px; font-weight: 600; cursor: pointer; }
-.soil-toggle input { width: 20px; min-height: 20px; height: 20px; flex: 0 0 20px; accent-color: #496b35; }
+.soil-toggle { display: flex; gap: 12px; align-items: center; min-height: 44px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.soil-toggle input { appearance: none; position: relative; width: 48px; min-height: 28px; height: 28px; flex: 0 0 48px; margin: 0; padding: 0; border: 1px solid #9ca990; border-radius: 28px; background: #dce2d3; cursor: pointer; transition: background .18s, border-color .18s; }
+.soil-toggle input::before { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fcfdf7; box-shadow: 0 1px 3px #1b312740; transition: transform .18s ease; }
+.soil-toggle input:checked { background: #496b35; border-color: #496b35; }
+.soil-toggle input:checked::before { transform: translateX(20px); }
+.soil-toggle input:disabled { opacity: .6; cursor: wait; }
+@media (prefers-reduced-motion: reduce) { .soil-toggle input, .soil-toggle input::before { transition: none; } }
 .model-settings summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 16px; font-weight: 600; }
 .model-settings[open] summary, .soil-toggle ~ .two-columns { margin-bottom: 20px; }
 .soil-toggle ~ .two-columns { margin-top: 20px; }
