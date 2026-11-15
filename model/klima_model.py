@@ -100,7 +100,7 @@ def read_crops():
     if not os.path.exists(CROPS_FILE):
         sys.exit("Cannot find " + CROPS_FILE + " in this folder.")
     out = {}
-    with open(CROPS_FILE, newline="") as f:
+    with open(CROPS_FILE, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             name = (row.get("crop") or "").strip()
             if not name or name.startswith("#"):
@@ -119,6 +119,7 @@ def read_crops():
                 tex_abs=classes("texture_absolute"),
                 cycle_min=int(row["cycle_min_days"]),
                 cycle_max=int(row["cycle_max_days"]),
+                cycle_source=(row.get("cycle_source") or "").strip() or None,
                 drainage=row["soil_drainage"].strip().lower(),
                 legume=row["legume"].strip().lower() in ("yes", "true", "1"),
                 **fao56(row))
@@ -582,9 +583,15 @@ def evaluate(water):
                     # window, NOT the cycle total against EcoCrop's annual limits.
                     # None (no sourced Kc) leaves water out rather than guessing.
                     sc["water"] = water_score(wb)
+                # A rainfed season with no water balance (reference ET needs
+                # TOA_SW_DWN, which starts in 1984) has no suitability at all. Left
+                # to the geometric mean, the missing water score would simply be
+                # skipped and the season would pass on heat and soil alone.
+                unscored = water == "rain" and c["kc"] and sc["water"] is None
                 row["by_length"][tag] = dict(days=n, temp_c=t, rain_mm=r, scores=sc,
                                              water_balance=wb,
-                                             S={p: suitability(sc, w) for p, w in WEIGHTS.items()})
+                                             S={p: None if unscored else suitability(sc, w)
+                                                for p, w in WEIGHTS.items()})
             period = days(s["start"], lengths["long"])
             row["gwetroot"] = mean(period, "GWETROOT")
             row["imerg_mm"] = total(period, "IMERG_PRECTOT", True)
@@ -597,14 +604,21 @@ def evaluate(water):
                 sel = [r for r, s in zip(rows, SEASONS) if s[scen]]
                 counts[p][scen] = {}
                 for tag in lengths:
-                    k = sum(1 for r in sel if (r["by_length"][tag]["S"][p] or 0) >= PASS_MARK)
-                    counts[p][scen][tag] = {"pass": k, "of": len(sel), "wilson95": wilson(k, len(sel))}
+                    # Seasons with no suitability are left out of both the count
+                    # and its denominator, and reported as not_scored.
+                    have = [r["by_length"][tag]["S"][p] for r in sel
+                            if r["by_length"][tag]["S"][p] is not None]
+                    k = sum(1 for v in have if v >= PASS_MARK)
+                    counts[p][scen][tag] = {"pass": k, "of": len(have),
+                                            "not_scored": len(sel) - len(have),
+                                            "wilson95": wilson(k, len(have))}
         both = [r for r in rows if r["imerg_mm"] is not None]
         out[name] = dict(
             flags=flags,
             ecocrop_sheet=c["sheet"], scientific_name=c["scientific_name"],
             ph_crop_guide=ph_guide_for(c),
             cycle_days=[c["cycle_min"], c["cycle_max"]],
+            cycle_source=c["cycle_source"],
             scored_days=lengths, legume=c["legume"], drainage_requirement=c["drainage"],
             median_scores={tag: {k: med(r["by_length"][tag]["scores"].get(k) for r in rows)
                                  for k in ("temp", "water", "ph", "texture")} for tag in lengths},

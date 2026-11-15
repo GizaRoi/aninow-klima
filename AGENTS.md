@@ -37,18 +37,20 @@ Deliver the rules/simulation decision prototype before claiming a predictive MVP
 
 State as of 2026-11-15, on `yancey-branch`. The decision model is **built and running**. The web application, database and predictive model are not.
 
-Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonical account of the method, the results, and the problems, with the charts.
+Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonical account of the method, the results, and the problems, with the charts. [docs/Model-Explained.md](docs/Model-Explained.md) works every formula by hand for a newcomer, and [docs/Audit-and-Decision-Checklist.md](docs/Audit-and-Decision-Checklist.md) lists the findings and the decisions still open.
 
 ## Everything in `model/`
 
 | File | What it is |
 |---|---|
 | `klima_model.py` | The model. Reads the inputs, scores each crop per season, writes `results.json`. Takes the farmer's answers as command-line options. |
-| `crops.csv` | Four crops with their EcoCrop limits, FAO-56 `Kc` and stage lengths. **Every row carries a `kc_source` string naming where each number came from.** |
+| `crops.csv` | Four crops with their EcoCrop limits, FAO-56 `Kc` and stage lengths. **Every row carries a `kc_source` and a `cycle_source` string naming where each number came from.** Rice's growing time is NSIC Rc222 from the Pinoy Rice Knowledge Bank (106 days direct seeded, 114 transplanted); the other three are still EcoCrop's global span. |
 | `diagnostics.py` | Seven checks on how far the numbers can be trusted. Changes no score. |
 | `charts.py` | Writes eleven SVG charts plus a self-contained `index.html`. |
-| `serve.py` | A local form at `127.0.0.1:8000`. Runs the real model per submission. |
-| `test_klima_model.py` | 74 tests: farmer inputs, scoring primitives, the water balance, the statistics. |
+| `serve.py` | A local form at `127.0.0.1:8000`. Runs the real model per submission. A farmer view by default; soil test values and the pass mark sit behind switches, and "Advanced view" adds scores, ranges and sources. |
+| `places.csv` | The places the form offers, with the coordinates the model needs. **Add a row only together with a POWER download for that point.** |
+| `test_klima_model.py` | 77 tests: farmer inputs, scoring primitives, the water balance, the statistics. |
+| `test_serve.py` | 13 tests: what the form sends to the model and what each view shows. |
 | `POWER_Point_Daily_*.csv` | NASA POWER daily, 1981–2025, for 15.72 N 120.90 E. |
 | `detrend.nino34.ascii.txt` | Niño 3.4 monthly anomaly. |
 | `sarai_soil_samples.csv` | 120 measured Philippine soil samples. |
@@ -64,7 +66,7 @@ python klima_model.py                 # the pilot's answers
 python diagnostics.py                 # the checks
 python charts.py --out ../docs/images # the published charts
 python serve.py                       # the local form
-python -m unittest discover . -v      # 74 tests
+python -m unittest discover . -v      # 90 tests
 ```
 
 `results.json` and `model/charts/` are gitignored and rebuilt in about a second. `docs/images/` is committed, because the README has to be able to show its charts.
@@ -74,7 +76,7 @@ python -m unittest discover . -v      # 74 tests
 1. **Hard filters first.** The crop's cycle must fit the window, and a crop needing drained soil is excluded on a poorly drained field. Excluded crops are never scored.
 2. **Four conditions scored 0 to 1** from published limits: heat, water, soil pH, soil texture.
 3. **Weighted geometric mean, which returns zero if any condition is zero.** A plain average would let good soil hide fatal heat. The farmer's priority changes the weights, never the scores.
-4. **Counted across 44 seasons** with a 95% Wilson interval. These are historical frequencies, not probabilities of success.
+4. **Counted across the seasons that can be scored** (41 of the 44 on a rainfed field, because reference ET starts in 1984) with a 95% Wilson interval. These are historical frequencies, not probabilities of success.
 
 Water is scored as **relative water supply**: rainfall over the window against FAO-56 crop water demand, `Kc` curve times Hargreaves reference ET, day by day.
 
@@ -113,7 +115,7 @@ Showing real variation needs more POWER downloads, one per location. Soil variat
 2. **The El Niño input is the wrong file.** `detrend.nino34.ascii.txt` is the detrended Niño 3.4 index, not the ONI that [docs/Decision-Engine-Spec.md](docs/Decision-Engine-Spec.md) specifies, and the averaging rule differs. A download away.
 3. **`Kc` is not climate-adjusted** (FAO-56 Eq. 62/65), which needs RHmin and wind speed this POWER download does not include. Also a download away. Together with Hargreaves overpredicting in humid air, this means **every water shortfall is an upper bound**.
 4. **The rainfall input disagrees with itself by 19%** between POWER's two precipitation columns, and the second is labelled MERRA-2 in POWER's own header, so the specification's IMERG cross-check cannot yet be called one.
-5. **The record is not stationary.** Window rainfall rises 70.5 mm per decade. Rice clears the pass mark in 9 of the first 22 seasons and 17 of the last 22, so a pooled "26 of 44" understates it.
+5. **The record is not stationary.** Window rainfall rises 70.5 mm per decade. Rice clears the pass mark in 7 of the first 20 scored seasons and 14 of the last 21, so a pooled "21 of 41" understates it.
 6. **No stage length for the three alternatives is tropical.** All are Mediterranean, arid or Californian. PhilRice or DA extension data would replace them.
 7. **35 of 120 soil samples share coordinates** with others. The specification would drop those as placeholders; the model counts and reports them instead.
 8. **Rice's water demand is understated by about 300 mm**: Training Manual 3's saturation and water-layer figures are not included.
@@ -133,4 +135,4 @@ python klima_model.py && python -m unittest discover . -v
 python -c "import json;a=json.load(open('/tmp/before.json'));b=json.load(open('results.json'));print('identical' if a==b else 'changed')"
 ```
 
-Every refactor so far has been verified byte-identical against a pinned copy at each step. `PilotRegression` in the test suite pins the numbers the pitch quotes, so a change that moves mungbean off 44 mm or rice off 531 mm has to be explained rather than discovered in a demo.
+Every refactor so far has been verified byte-identical against a pinned copy at each step. `PilotRegression` in the test suite pins the numbers the pitch quotes, so a change that moves mungbean off 44 mm or rice off 752 mm has to be explained rather than discovered in a demo.

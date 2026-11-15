@@ -16,12 +16,16 @@ The farmer answers that water drains off the field and that there is no irrigati
 
 | Crop | Cycle | Suitability | Seasons passing | 95% interval | Water short by |
 |---|---|---|---|---|---|
-| **Mungbean** (munggo) | 50 d | **0.91** | **41 of 44** | 82%–98% | **44 mm** |
-| Eggplant (talong) | 70 d | 0.83 | 40 of 44 | 79%–96% | 115 mm |
-| Tomato (kamatis) | 70 d | 0.82 | 40 of 44 | 79%–96% | 127 mm |
-| Rice again (palay) | 80 d | 0.65 | 26 of 44 | 44%–72% | 531 mm |
+| **Mungbean** (munggo) | 50 d | **0.89** | **38 of 41** | 81%–97% | **44 mm** |
+| Eggplant (talong) | 70 d | 0.80 | 37 of 41 | 77%–96% | 115 mm |
+| Tomato (kamatis) | 70 d | 0.79 | 37 of 41 | 77%–96% | 127 mm |
+| Rice again (palay) | 106 d | 0.60 | 21 of 41 | 36%–66% | 752 mm |
 
-Mungbean leads on every farmer priority and needs roughly one twelfth of the supplemental water that planting rice again would need. These are **historical frequencies, not predictions**, and the model is not trained on crop outcomes.
+Counts are out of 41, not 44: reference evapotranspiration needs a radiation record that starts in 1984, so the 1981–1983 seasons have no water score and are left out rather than counted as passes.
+
+Rice's growing time is the 106 days of NSIC Rc222 when direct seeded, from the Pinoy Rice Knowledge Bank; the other three crops still use the shortest time on their EcoCrop sheet, which is a global figure. The order holds whichever end of each range is used; see the [audit](docs/Audit-and-Decision-Checklist.md).
+
+Mungbean leads on every farmer priority and needs roughly one seventeenth of the supplemental water that planting rice again would need. These are **historical frequencies, not predictions**, and the model is not trained on crop outcomes.
 
 ### When to plant, and why November
 
@@ -55,7 +59,7 @@ Demand is built day by day: reference ET from temperature and top-of-atmosphere 
 
 ![Median condition scores per crop](docs/images/07-what-limits-each-crop.svg)
 
-Heat, water, soil pH and soil texture combine as a **weighted geometric mean, which returns zero if any one condition is zero**. A plain average would let good soil hide fatal heat. Rice scores a perfect 1.00 on heat, pH and texture and still ranks last, because water is 0.15 — the veto doing its job. The farmer's priority changes the weights, never the scores.
+Heat, water, soil pH and soil texture combine as a **weighted geometric mean, which returns zero if any one condition is zero**. A plain average would let good soil hide fatal heat. Rice scores a perfect 1.00 on heat, pH and texture and still ranks last, because water is 0.13 — the veto doing its job. The farmer's priority changes the weights, never the scores.
 
 ### Every season, not just the median
 
@@ -67,13 +71,13 @@ Faded dots are dry seasons, rings are El Niño seasons. Rice swings widest becau
 
 ## How far the numbers can be trusted
 
-The arithmetic is verified: reference ET reproduces an independent hand calculation to the decimal across seven months, crop water demand agrees with FAO's published per-cycle figures, and 74 tests cover the farmer-facing inputs and the statistics. The statistics are weaker, and two problems are material.
+The arithmetic is verified: reference ET reproduces an independent hand calculation to the decimal across seven months, crop water demand agrees with FAO's published per-cycle figures, and 90 tests cover the farmer-facing inputs and the statistics. The statistics are weaker, and two problems are material.
 
 ### The record is not one climate
 
 ![Pass rates, first half of the record against the second](docs/images/03-early-versus-late-half.svg)
 
-Window rainfall rises **+70.5 mm per decade (t = 4.14)**, and the trend holds in every slice of the window. Split the record in half and rice clears the pass mark in 9 of the first 22 seasons against 17 of the last 22. **Quoting "26 of 44" to a farmer deciding for 2026 understates how rice has done recently.**
+Window rainfall rises **+70.5 mm per decade (t = 4.14)**, and the trend holds in every slice of the window. Split the record in half and rice clears the pass mark in 7 of the first 20 scored seasons against 14 of the last 21. **Quoting "21 of 41" to a farmer deciding for 2026 understates how rice has done recently.**
 
 ### The rainfall input disagrees with itself
 
@@ -85,7 +89,7 @@ POWER's two precipitation columns correlate at r = 0.745 but `PRECTOTCORR` reads
 
 ![Pass share with 95% intervals at n and at effective n](docs/images/04-pass-share-with-intervals.svg)
 
-The 95% intervals assume independence. For the alternatives the lag-1 autocorrelation of the pass indicator is slightly negative, so their intervals are fine. Rice is +0.232, giving it an **effective sample of 27 rather than 44**, so its plain interval is too narrow.
+The 95% intervals assume independence. For the alternatives the lag-1 autocorrelation of the pass indicator is slightly negative, so their intervals are fine. Rice is +0.048, close to none, so its interval stands as well.
 
 ### The pass mark is load-bearing
 
@@ -118,7 +122,7 @@ python klima_model.py --soil-ph 4.8 --soil-texture heavy
 python diagnostics.py                 # the checks above
 python charts.py                      # the charts above, as SVG
 python serve.py                       # a local form at 127.0.0.1:8000
-python -m unittest discover . -v      # 74 tests
+python -m unittest discover . -v      # 90 tests
 ```
 
 Standard library only: no NumPy, no matplotlib, no internet at run time. `serve.py` runs the real model as a subprocess per submission, so the browser exercises the same code path as the command line.
@@ -126,6 +130,8 @@ Standard library only: no NumPy, no matplotlib, no internet at run time. `serve.
 ## Start here
 
 - **[How the model works, and how far it can be trusted](docs/Model-Narrative.md)** — the method, the results, the charts, and the problems
+- [The model explained step by step](docs/Model-Explained.md) — every formula worked by hand, for a reader new to it
+- [Audit and decision checklist](docs/Audit-and-Decision-Checklist.md) — findings, what changed, and what the team still has to decide
 - [Documentation index and implementation defaults](docs/README.md)
 - [Product requirements](docs/AniNow-Klima-PRD.md)
 - [Decision rules and financial semantics](docs/Decision-Engine-Spec.md)

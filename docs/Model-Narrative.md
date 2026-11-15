@@ -27,12 +27,16 @@ there is no irrigation:
 
 | Crop | Cycle | Suitability | Seasons passing | 95% interval | Water short by |
 |---|---|---|---|---|---|
-| **Mungbean** (munggo) | 50 d | **0.91** | **41 of 44** | 82%–98% | **44 mm** |
-| Eggplant (talong) | 70 d | 0.83 | 40 of 44 | 79%–96% | 115 mm |
-| Tomato (kamatis) | 70 d | 0.82 | 40 of 44 | 79%–96% | 127 mm |
-| Rice again (palay) | 80 d | 0.65 | 26 of 44 | 44%–72% | 531 mm |
+| **Mungbean** (munggo) | 50 d | **0.89** | **38 of 41** | 81%–97% | **44 mm** |
+| Eggplant (talong) | 70 d | 0.80 | 37 of 41 | 77%–96% | 115 mm |
+| Tomato (kamatis) | 70 d | 0.79 | 37 of 41 | 77%–96% | 127 mm |
+| Rice again (palay) | 106 d | 0.60 | 21 of 41 | 36%–66% | 752 mm |
 
-Mungbean leads on every farmer priority. It needs roughly **one twelfth** of the
+Counts are out of 41, not 44: reference evapotranspiration needs a radiation record that starts in 1984, so the 1981–1983 seasons have no water score and are left out rather than counted as passes.
+
+Rice's growing time is the 106 days of NSIC Rc222 when direct seeded, from the Pinoy Rice Knowledge Bank; the other three crops still use the shortest time on their EcoCrop sheet, which is a global figure. The order holds whichever end of each range is used; see the [audit](Audit-and-Decision-Checklist.md).
+
+Mungbean leads on every farmer priority. It needs roughly **one seventeenth** of the
 supplemental water that planting rice again would need.
 
 Read the caveats in [How far the numbers can be trusted](#how-far-the-numbers-can-be-trusted)
@@ -86,7 +90,7 @@ a failure away. The farmer's priority changes the weights, never the scores.
 ![What limits each crop](images/07-what-limits-each-crop.svg)
 
 Rice scores a perfect 1.00 on heat, pH and texture and still ranks last, because water is
-0.15. That is the veto doing its job.
+0.13. That is the veto doing its job.
 
 ### From rainfall to water demand
 
@@ -138,7 +142,7 @@ This is the section to read before the pitch. `python diagnostics.py` prints all
 
 - **The arithmetic is verified, not asserted.** Reference ET reproduces an independent hand
   calculation to the decimal across seven months. The Kc curve holds flat at `Kc_ini`, holds
-  `Kc_mid`, and preserves its mean under cycle scaling. 74 tests cover the farmer-facing
+  `Kc_mid`, and preserves its mean under cycle scaling. 90 tests cover the farmer-facing
   inputs and the statistics.
 - **Crop water demand agrees with FAO's own published figures**, which is independent
   corroboration rather than internal consistency: mungbean over 120 days comes to 360 mm
@@ -152,8 +156,8 @@ This is the section to read before the pitch. `python diagnostics.py` prints all
 ![Early versus late half](images/03-early-versus-late-half.svg)
 
 Window rainfall rises **+70.5 mm per decade (t = 4.14)**, and the trend holds in every slice
-of the window. Splitting the record in half, rice clears the pass mark in 9 of the first 22
-seasons and 17 of the last 22. **Quoting "26 of 44" to a farmer deciding for 2026 understates
+of the window. Splitting the record in half, rice clears the pass mark in 7 of the first 20
+scored seasons and 14 of the last 21. **Quoting "21 of 41" to a farmer deciding for 2026 understates
 how rice has done recently.**
 
 A caution on temperature specifically: the first 50 days after harvest warm at
@@ -179,8 +183,8 @@ known to run wet in the tropics, which matches the sign.
 ![Pass share with intervals](images/04-pass-share-with-intervals.svg)
 
 For the alternatives the lag-1 autocorrelation of the pass indicator is slightly negative,
-so their intervals are fine, even mildly conservative. Rice is +0.232, giving it an
-effective sample of 27 rather than 44, so its plain interval is too narrow.
+so their intervals are fine, even mildly conservative. Rice is +0.048, close to
+none, so its interval stands as well.
 
 **The pass mark is load-bearing.**
 
@@ -298,7 +302,7 @@ python klima_model.py --soil-ph 4.8 --soil-texture heavy
 python diagnostics.py                 # the checks in this document
 python charts.py --out ../docs/images # the charts in this document
 python serve.py                       # a local form at 127.0.0.1:8000
-python -m unittest discover . -v      # 74 tests
+python -m unittest discover . -v      # 90 tests
 ```
 
 `serve.py` runs the real model as a subprocess per submission, so the browser exercises the
