@@ -1,0 +1,271 @@
+[
+  {
+    "id": "rice",
+    "en": "Rice",
+    "tl": "Palay",
+    "baseline": true,
+    "days": 115,
+    "wet": true,
+    "ph": [
+      5.5,
+      7
+    ],
+    "temp": {
+      "typical": 0.9,
+      "dry": 0.9,
+      "nino": 0.85
+    },
+    "rain": {
+      "typical": 0.35,
+      "dry": 0.2,
+      "nino": 0.1
+    },
+    "moist": {
+      "typical": 0.5,
+      "dry": 0.35,
+      "nino": 0.25
+    },
+    "tex": {
+      "clay": 1,
+      "clayloam": 0.95,
+      "siltloam": 0.8,
+      "sandyloam": 0.45
+    },
+    "soil": 0.2,
+    "hist": {
+      "rain": {
+        "typical": [
+          12,
+          44
+        ],
+        "dry": [
+          1,
+          9
+        ],
+        "nino": [
+          1,
+          14
+        ]
+      },
+      "irrig": {
+        "typical": [
+          40,
+          44
+        ],
+        "dry": [
+          8,
+          9
+        ],
+        "nino": [
+          12,
+          14
+        ]
+      }
+    },
+    "benefit": {
+      "en": "Same crop again. The soil gets no rest.",
+      "tl": "Parehong tanim ulit. Walang pahinga ang lupa."
+    }
+  },
+  {
+    "id": "mung",
+    "en": "Mungbean",
+    "tl": "Munggo",
+    "days": 65,
+    "wet": false,
+    "ph": [
+      5.5,
+      7
+    ],
+    "temp": {
+      "typical": 0.9,
+      "dry": 0.9,
+      "nino": 0.85
+    },
+    "rain": {
+      "typical": 0.8,
+      "dry": 0.7,
+      "nino": 0.6
+    },
+    "moist": {
+      "typical": 0.8,
+      "dry": 0.7,
+      "nino": 0.6
+    },
+    "tex": {
+      "clay": 0.5,
+      "clayloam": 0.7,
+      "siltloam": 0.9,
+      "sandyloam": 0.9
+    },
+    "soil": 1,
+    "hist": {
+      "rain": {
+        "typical": [
+          36,
+          44
+        ],
+        "dry": [
+          6,
+          9
+        ],
+        "nino": [
+          10,
+          14
+        ]
+      },
+      "irrig": {
+        "typical": [
+          38,
+          44
+        ],
+        "dry": [
+          8,
+          9
+        ],
+        "nino": [
+          12,
+          14
+        ]
+      }
+    },
+    "benefit": {
+      "en": "Adds nitrogen to the soil for the next rice crop.",
+      "tl": "Nagdadagdag ng nitroheno sa lupa para sa susunod na palay."
+    }
+  },
+  {
+    "id": "egg",
+    "en": "Eggplant",
+    "tl": "Talong",
+    "days": 100,
+    "wet": false,
+    "ph": [
+      5.5,
+      6.8
+    ],
+    "temp": {
+      "typical": 0.85,
+      "dry": 0.8,
+      "nino": 0.75
+    },
+    "rain": {
+      "typical": 0.6,
+      "dry": 0.45,
+      "nino": 0.35
+    },
+    "moist": {
+      "typical": 0.65,
+      "dry": 0.5,
+      "nino": 0.4
+    },
+    "tex": {
+      "clay": 0.55,
+      "clayloam": 0.8,
+      "siltloam": 0.85,
+      "sandyloam": 0.85
+    },
+    "soil": 0.55,
+    "hist": {
+      "rain": {
+        "typical": [
+          27,
+          44
+        ],
+        "dry": [
+          4,
+          9
+        ],
+        "nino": [
+          6,
+          14
+        ]
+      },
+      "irrig": {
+        "typical": [
+          33,
+          44
+        ],
+        "dry": [
+          7,
+          9
+        ],
+        "nino": [
+          10,
+          14
+        ]
+      }
+    },
+    "benefit": {
+      "en": "A different crop family, so rice pests lose their host.",
+      "tl": "Ibang pamilya ng tanim, kaya nawawalan ng tirahan ang peste ng palay."
+    }
+  },
+  {
+    "id": "tom",
+    "en": "Tomato",
+    "tl": "Kamatis",
+    "days": 90,
+    "wet": false,
+    "ph": [
+      5.5,
+      8
+    ],
+    "temp": {
+      "typical": 0.45,
+      "dry": 0.4,
+      "nino": 0.3
+    },
+    "rain": {
+      "typical": 0.6,
+      "dry": 0.45,
+      "nino": 0.35
+    },
+    "moist": {
+      "typical": 0.65,
+      "dry": 0.5,
+      "nino": 0.4
+    },
+    "tex": {
+      "clay": 0.5,
+      "clayloam": 0.8,
+      "siltloam": 0.85,
+      "sandyloam": 0.9
+    },
+    "soil": 0.55,
+    "hist": {
+      "rain": {
+        "typical": [
+          15,
+          44
+        ],
+        "dry": [
+          2,
+          9
+        ],
+        "nino": [
+          3,
+          14
+        ]
+      },
+      "irrig": {
+        "typical": [
+          16,
+          44
+        ],
+        "dry": [
+          3,
+          9
+        ],
+        "nino": [
+          4,
+          14
+        ]
+      }
+    },
+    "benefit": {
+      "en": "A different crop family, so rice pests lose their host.",
+      "tl": "Ibang pamilya ng tanim, kaya nawawalan ng tirahan ang peste ng palay."
+    }
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "even": {
+    "temp": 1,
+    "rain": 1,
+    "moist": 1,
+    "ph": 1,
+    "tex": 1,
+    "soil": 1,
+    "time": 1
+  },
+  "water": {
+    "temp": 1,
+    "rain": 3,
+    "moist": 3,
+    "ph": 1,
+    "tex": 1,
+    "soil": 1,
+    "time": 1
+  },
+  "soil": {
+    "temp": 1,
+    "rain": 1,
+    "moist": 1,
+    "ph": 1,
+    "tex": 1,
+    "soil": 4,
+    "time": 1
+  },
+  "time": {
+    "temp": 1,
+    "rain": 1,
+    "moist": 1,
+    "ph": 1,
+    "tex": 1,
+    "soil": 1,
+    "time": 4
+  }
+}

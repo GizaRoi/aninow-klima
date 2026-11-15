@@ -1,0 +1,158 @@
+{
+  "en": {
+    "notice": "Demo with sample numbers. Not farming advice yet.",
+    "q_title": "What can you plant after rice?",
+    "f_place": "Location",
+    "f_soil": "Soil type",
+    "dontknow": "I don't know",
+    "f_pond": "Does water stay on the field for days after rain?",
+    "yes": "Yes",
+    "no": "No",
+    "unsure": "Not sure",
+    "f_water": "Where does the water come from?",
+    "w_rain": "Rain only",
+    "w_irrig": "Irrigation",
+    "f_harvest": "Rice harvest",
+    "f_next": "Next rice planting",
+    "f_ph": "Soil pH",
+    "f_ph_hint": "Leave blank if you have no soil test.",
+    "go": "See my options",
+    "r_title": "Your options",
+    "change": "Change field details",
+    "win": "Your field is free for {n} days",
+    "season": "Kind of season",
+    "s_typical": "Normal year",
+    "s_dry": "Dry year",
+    "s_nino": "El Niño year",
+    "priority": "What matters most to you?",
+    "p_even": "Balanced",
+    "p_water": "Saving water",
+    "p_soil": "Healthier soil",
+    "p_time": "Finishing early",
+    "fit": {
+      "good": "Good fit",
+      "ok": "Possible",
+      "poor": "Poor fit",
+      "out": "Not possible"
+    },
+    "now": "What you plant now",
+    "hist": "Did well in {a} of {b} past {s}.",
+    "hs": {
+      "typical": "seasons",
+      "dry": "dry seasons",
+      "nino": "El Niño seasons"
+    },
+    "days": "Needs about {d} days. You have {n}.",
+    "more": "Show why",
+    "why": "Why",
+    "cant": "We could not check",
+    "ask": "Ask your agriculturist first",
+    "soilgood": "For your soil",
+    "c": {
+      "temp": "Heat",
+      "rain": "Rain",
+      "moist": "Moisture in the soil",
+      "ph": "Soil pH",
+      "tex": "Soil type",
+      "time": "Days to spare"
+    },
+    "r": {
+      "g": "Good",
+      "o": "Okay",
+      "p": "Poor"
+    },
+    "irrig": "Irrigated",
+    "x_pond": "Water stays on this field. This crop does not survive standing water.",
+    "x_pond_unsure": "Check first that water drains from the field. This crop does not survive standing water.",
+    "x_days": "Not enough days before the next rice planting.",
+    "miss": {
+      "need": "How much water this crop needs",
+      "ph": "Soil pH (no soil test)",
+      "tex": "Soil type"
+    },
+    "asks": [
+      "Is seed sold nearby?",
+      "Is there a buyer for this crop?",
+      "Which pests are common here?"
+    ],
+    "foot": "Weather history from NASA POWER, 1981 to 2025. This tool helps you decide. It does not replace your own judgment or your agriculturist."
+  },
+  "tl": {
+    "notice": "Demo lamang ito na may halimbawang numero. Hindi pa ito payo sa pagsasaka.",
+    "q_title": "Ano ang puwedeng itanim pagkatapos ng palay?",
+    "f_place": "Lugar",
+    "f_soil": "Uri ng lupa",
+    "dontknow": "Hindi ko alam",
+    "f_pond": "Nananatili ba ang tubig sa bukid nang ilang araw pagkatapos umulan?",
+    "yes": "Oo",
+    "no": "Hindi",
+    "unsure": "Hindi sigurado",
+    "f_water": "Saan galing ang tubig?",
+    "w_rain": "Ulan lang",
+    "w_irrig": "Patubig",
+    "f_harvest": "Ani ng palay",
+    "f_next": "Susunod na tanim ng palay",
+    "f_ph": "pH ng lupa",
+    "f_ph_hint": "Iwanang blangko kung walang soil test.",
+    "go": "Tingnan ang mga pagpipilian",
+    "r_title": "Mga pagpipilian mo",
+    "change": "Baguhin ang detalye ng bukid",
+    "win": "Bakante ang bukid mo nang {n} araw",
+    "season": "Uri ng panahon",
+    "s_typical": "Karaniwang taon",
+    "s_dry": "Tuyong taon",
+    "s_nino": "Taon ng El Niño",
+    "priority": "Ano ang pinakamahalaga sa iyo?",
+    "p_even": "Balanse",
+    "p_water": "Tipid sa tubig",
+    "p_soil": "Mas malusog na lupa",
+    "p_time": "Maagang matapos",
+    "fit": {
+      "good": "Bagay",
+      "ok": "Puwede",
+      "poor": "Hindi gaanong bagay",
+      "out": "Hindi puwede"
+    },
+    "now": "Ang tanim mo ngayon",
+    "hist": "Naging maayos sa {a} sa {b} nakaraang {s}.",
+    "hs": {
+      "typical": "taniman",
+      "dry": "tuyong taniman",
+      "nino": "taniman na may El Niño"
+    },
+    "days": "Kailangan ng mga {d} araw. May {n} araw ka.",
+    "more": "Ipakita kung bakit",
+    "why": "Bakit",
+    "cant": "Hindi namin nasuri",
+    "ask": "Itanong muna sa inyong agriculturist",
+    "soilgood": "Para sa lupa mo",
+    "c": {
+      "temp": "Init",
+      "rain": "Ulan",
+      "moist": "Halumigmig ng lupa",
+      "ph": "pH ng lupa",
+      "tex": "Uri ng lupa",
+      "time": "Sobrang araw"
+    },
+    "r": {
+      "g": "Maganda",
+      "o": "Katamtaman",
+      "p": "Mahina"
+    },
+    "irrig": "May patubig",
+    "x_pond": "Nananatili ang tubig sa bukid na ito. Hindi nabubuhay ang tanim na ito sa nakatayong tubig.",
+    "x_pond_unsure": "Tiyakin muna na natutuyo ang bukid. Hindi nabubuhay ang tanim na ito sa nakatayong tubig.",
+    "x_days": "Kulang ang araw bago ang susunod na tanim ng palay.",
+    "miss": {
+      "need": "Kung gaano karaming tubig ang kailangan ng tanim",
+      "ph": "pH ng lupa (walang soil test)",
+      "tex": "Uri ng lupa"
+    },
+    "asks": [
+      "May nabibiling binhi ba sa malapit?",
+      "May bibili ba ng ani?",
+      "Anong peste ang karaniwan dito?"
+    ],
+    "foot": "Kasaysayan ng panahon mula sa NASA POWER, 1981 hanggang 2025. Tulong ito sa pagpapasya. Hindi nito pinapalitan ang sarili mong pasya o ang inyong agriculturist."
+  }
+}

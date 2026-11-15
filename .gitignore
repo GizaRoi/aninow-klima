@@ -44,3 +44,13 @@ model/results.json
 
 # generated charts, rebuilt by model/charts.py
 model/charts/
+
+# web app build and browser checks
+apps/web/.next/
+apps/web/out/
+dist/
+playwright-report/
+test-results/
+.sites-runtime/
+.sites-checkout/
+
