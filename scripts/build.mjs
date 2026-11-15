@@ -12,4 +12,4 @@ const result = spawnSync(process.execPath, [require.resolve('next/dist/bin/next'
 if (result.status !== 0) process.exit(result.status ?? 1);
 mkdirSync(path.join(root, 'dist'), { recursive: true });
 cpSync(path.join(root, 'apps/web/out'), path.join(root, 'dist'), { recursive: true });
-console.log('Static prototype built in dist/');
+console.log('Static frontend built in dist/');

@@ -1,0 +1,1955 @@
+{
+  "contract_version": "klima-comparison.v1",
+  "mode": "rules_model",
+  "model_version": "sha256:bb6b0de69d1730a53fd018e97f0d0e7b95bf99d2bfde183f644d6e39e3281043",
+  "request_id": "76eeb814-9fde-4c54-bfcb-0f8bfe48a218",
+  "inputs": {
+    "place": "Science City of Muñoz, Nueva Ecija",
+    "harvest": "2026-11-15",
+    "next_planting": "2027-05-31",
+    "drainage": "well_drained",
+    "main_crop": "rice",
+    "water": "rain",
+    "priority": "balanced",
+    "soil_ph": null,
+    "soil_texture": null,
+    "turnaround_days": 0,
+    "pass_mark": 0.6
+  },
+  "ranking": [
+    "mungbean",
+    "eggplant",
+    "snapbean",
+    "tomato",
+    "squash",
+    "sitaw",
+    "rice"
+  ],
+  "warnings": [
+    "Historical season counts are not forecasts or probabilities of crop success.",
+    "This rules model has no validated yield, profit or predictive accuracy estimates.",
+    "Only the Muñoz results have been reviewed in detail; other places have data coverage tests.",
+    "Rankings use all historical seasons and the shortest cycle; changing the season view does not rerank crops."
+  ],
+  "results": {
+    "meta": {
+      "location_name": "Science City of Muñoz, Nueva Ecija",
+      "latitude": 15.72,
+      "longitude": 120.9,
+      "harvest": [
+        11,
+        15
+      ],
+      "next_planting": [
+        5,
+        31
+      ],
+      "window_days": 197,
+      "seasons": 44,
+      "pass_mark": 0.6,
+      "drainage": "well_drained",
+      "drainage_source": "farmer",
+      "soil_texture": "medium",
+      "scored_lengths": "EcoCrop cycle minimum and maximum, capped at the window",
+      "planting_offsets": [
+        0,
+        15,
+        30,
+        45,
+        60,
+        75,
+        90,
+        105,
+        120,
+        135,
+        150
+      ],
+      "heat_limit_c": 35.0,
+      "turnaround_days": 0,
+      "main_crop": "rice",
+      "crop_names": {
+        "rice": "Palay",
+        "mungbean": "Munggo",
+        "eggplant": "Talong",
+        "tomato": "Kamatis",
+        "squash": "Kalabasa",
+        "sitaw": "Sitaw",
+        "snapbean": "Habichuelas",
+        "cabbage": "Repolyo",
+        "lettuce": "Letsugas",
+        "potato": "Patatas"
+      },
+      "weather_point": [
+        15.72,
+        120.9
+      ],
+      "weather_grid": "MERRA-2 cell, 0.5 x 0.625 degrees: the weather is the average over that cell, not a reading at the field",
+      "el_nino_source": "NOAA CPC Oceanic Nino Index (ONI)",
+      "ranked_on": "shortest cycle; ties broken by the smaller water gap",
+      "placeholders": [
+        "window",
+        "texture_score",
+        "normal_definition",
+        "heat_limit_c"
+      ]
+    },
+    "soil": {
+      "ph": 6.3,
+      "texture": "medium",
+      "source": "SARAI_098 at 3.44 km",
+      "sample": {
+        "sample_id": "SARAI_098",
+        "distance_km": 3.44,
+        "province": "Nueva Ecija",
+        "municipality": "Munoz",
+        "barangay": "CLSU Compound",
+        "sample_date": "2018-07-17",
+        "crop_at_sampling": "Soybean",
+        "ph": 6.3,
+        "ph_class": "Slightly Acidic",
+        "organic_matter_percent": 1.36,
+        "organic_matter_class": "Low",
+        "nitrogen_percent": 0.09,
+        "phosphorus_ppm": 53.0,
+        "potassium_cmolc_per_kg": 0.27,
+        "texture_as_reported": "Loam",
+        "texture_class": "medium",
+        "sampling_depth_cm": null,
+        "quality_flags": "Laboratory methods and sampling depth not stated.",
+        "source_url": "https://soilsdb.firebaseio.com/items.json"
+      },
+      "texture_mapping": "USDA texture name grouped into light/medium/heavy; clay loam and sandy clay loam are called medium and sit on the boundary",
+      "drainage": "well_drained",
+      "drainage_source": "farmer",
+      "bswm_note": "bswm_soil_map_units.csv holds bounding boxes only, hundreds of km wide, so it cannot identify the soil series at a point. The official BSWM shapefile is needed before drainage can come from a map rather than from the farmer."
+    },
+    "fields": {
+      "rain": {
+        "crops": {
+          "rice": {
+            "flags": [],
+            "scored_days": {
+              "short": 106,
+              "long": 114
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": 0.105,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": 0.097,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 963.909,
+              "long": 1056.112
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 0,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.0,
+                      0.086
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.0,
+                      0.086
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 0,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.0,
+                      0.129
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.0,
+                      0.129
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 0,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.0,
+                      0.243
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.0,
+                      0.243
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "poorly",
+            "limits_source": "FAO EcoCrop sheet 1574: absolute and optimal limits for temperature, soil pH and texture.",
+            "cycle_source": "Pinoy Rice Knowledge Bank (PhilRice), NSIC Rc222 (Tubigan 18): matures in 106 days direct seeded, 114 days transplanted. https://www.pinoyrice.com/rice-varieties/ . Chosen because Rc222 and Rc216 are reported as the most planted inbreds in Nueva Ecija (Glover et al. 2020, Technology in Society 60:101227); Rc216 is 104/112 days, so the choice between them moves little. Days are counted FROM SEEDING: for transplanted rice this includes the seedbed, so 114 overstates time in the field. Rc222 is on the site's irrigated list; the rainfed option NSIC Rc192 (Sahod Ulan 1) also matures in 106 days after seeding, so the short figure holds for a rainfed variety too. Replaces EcoCrop sheet 1574's 80-180 days."
+          },
+          "mungbean": {
+            "flags": [],
+            "scored_days": {
+              "short": 50,
+              "long": 120
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": 0.645,
+                "ph": 0.952,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": 0.332,
+                "ph": 0.952,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 44.062,
+              "long": 239.019
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 22,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.387,
+                      0.679
+                    ]
+                  },
+                  "long": {
+                    "pass": 11,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.157,
+                      0.419
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 17,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.462,
+                      0.806
+                    ]
+                  },
+                  "long": {
+                    "pass": 8,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.165,
+                      0.5
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 5,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.193,
+                      0.68
+                    ]
+                  },
+                  "long": {
+                    "pass": 3,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.089,
+                      0.532
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "FAO EcoCrop sheet 2150: absolute and optimal limits for temperature, soil pH and texture.",
+            "cycle_source": "FAO EcoCrop sheet 2150, crop cycle minimum and maximum. A global span across all varieties, NOT a Philippine figure; no local days-in-field figure has been sourced yet."
+          },
+          "eggplant": {
+            "flags": [],
+            "scored_days": {
+              "short": 70,
+              "long": 120
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": 0.418,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": 0.288,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 114.564,
+              "long": 297.23
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 13,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.196,
+                      0.47
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.12,
+                      0.367
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 11,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.255,
+                      0.611
+                    ]
+                  },
+                  "long": {
+                    "pass": 8,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.165,
+                      0.5
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 2,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.047,
+                      0.448
+                    ]
+                  },
+                  "long": {
+                    "pass": 1,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.015,
+                      0.354
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "FAO EcoCrop sheet 1965: absolute and optimal limits for temperature, soil pH and texture.",
+            "cycle_source": "FAO EcoCrop sheet 1965, crop cycle minimum and maximum. A global span across all varieties, NOT a Philippine figure; no local days-in-field figure has been sourced yet."
+          },
+          "tomato": {
+            "flags": [],
+            "scored_days": {
+              "short": 70,
+              "long": 150
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": 0.393,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": 0.257,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 127.385,
+              "long": 445.158
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 13,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.196,
+                      0.47
+                    ]
+                  },
+                  "long": {
+                    "pass": 4,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.039,
+                      0.225
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 11,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.255,
+                      0.611
+                    ]
+                  },
+                  "long": {
+                    "pass": 4,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.061,
+                      0.335
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 2,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.047,
+                      0.448
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.0,
+                      0.243
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "FAO EcoCrop sheet 1379: absolute and optimal limits for temperature, soil pH and texture.",
+            "cycle_source": "FAO EcoCrop sheet 1379, crop cycle minimum and maximum. A global span across all varieties, NOT a Philippine figure; no local days-in-field figure has been sourced yet."
+          },
+          "squash": {
+            "flags": [],
+            "scored_days": {
+              "short": 100,
+              "long": 120
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": 0.345,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": 0.309,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 187.918,
+              "long": 267.669
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 11,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.157,
+                      0.419
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.12,
+                      0.367
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 9,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.194,
+                      0.538
+                    ]
+                  },
+                  "long": {
+                    "pass": 8,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.165,
+                      0.5
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 2,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.047,
+                      0.448
+                    ]
+                  },
+                  "long": {
+                    "pass": 1,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.015,
+                      0.354
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "DA crop production guide as compiled in crop_requirements_ph.csv (PHV_SQUASH): the guide's published range for temperature and soil pH. A guide gives a recommended range only, with no survival limits, so the crop is SCREENED on it (inside the range or not) and never scored on a slope. Texture is scored only where the guide names a soil the field has.",
+            "cycle_source": "FAO-56 Table 11 total of the four stages, shortest and longest variant printed. NOT a Philippine figure: every variant is Mediterranean or European. The DA guide's days to first harvest are not time in the field and are not used."
+          },
+          "sitaw": {
+            "flags": [],
+            "scored_days": {
+              "short": 110,
+              "long": 110
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": 0.338,
+                "ph": 1.0,
+                "texture": null
+              },
+              "long": {
+                "temp": 1.0,
+                "water": 0.338,
+                "ph": 1.0,
+                "texture": null
+              }
+            },
+            "median_deficit_mm": {
+              "short": 211.952,
+              "long": 211.952
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 11,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.157,
+                      0.419
+                    ]
+                  },
+                  "long": {
+                    "pass": 11,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.157,
+                      0.419
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 9,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.194,
+                      0.538
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.194,
+                      0.538
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 2,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.047,
+                      0.448
+                    ]
+                  },
+                  "long": {
+                    "pass": 2,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.047,
+                      0.448
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "DA crop production guide as compiled in crop_requirements_ph.csv (PHV_SITAW): the guide's published range for temperature and soil pH. A guide gives a recommended range only, with no survival limits, so the crop is SCREENED on it (inside the range or not) and never scored on a slope. Texture is scored only where the guide names a soil the field has.",
+            "cycle_source": "FAO-56 Table 11 total of the four stages, shortest and longest variant printed. NOT a Philippine figure: every variant is Mediterranean. The DA guide's days to first harvest are not time in the field and are not used."
+          },
+          "snapbean": {
+            "flags": [],
+            "scored_days": {
+              "short": 75,
+              "long": 90
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": 0.411,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": 0.371,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 123.082,
+              "long": 175.68
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 13,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.196,
+                      0.47
+                    ]
+                  },
+                  "long": {
+                    "pass": 12,
+                    "of": 41,
+                    "not_scored": 3,
+                    "wilson95": [
+                      0.176,
+                      0.445
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 11,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.255,
+                      0.611
+                    ]
+                  },
+                  "long": {
+                    "pass": 10,
+                    "of": 26,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.224,
+                      0.575
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  },
+                  "long": {
+                    "pass": 0,
+                    "of": 7,
+                    "not_scored": 2,
+                    "wilson95": [
+                      0.0,
+                      0.354
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 2,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.047,
+                      0.448
+                    ]
+                  },
+                  "long": {
+                    "pass": 2,
+                    "of": 12,
+                    "not_scored": 1,
+                    "wilson95": [
+                      0.047,
+                      0.448
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "DA crop production guide as compiled in crop_requirements_ph.csv (PHV_SNAPBEAN): the guide's published range for temperature and soil pH. A guide gives a recommended range only, with no survival limits, so the crop is SCREENED on it (inside the range or not) and never scored on a slope. Texture is scored only where the guide names a soil the field has.",
+            "cycle_source": "FAO-56 Table 11 total of the four stages, shortest and longest variant printed. NOT a Philippine figure: every variant is Californian or Mediterranean. The DA guide's days to first harvest are not time in the field and are not used."
+          }
+        },
+        "excluded": {
+          "cabbage": [
+            "warmer_than_guide_range"
+          ],
+          "lettuce": [
+            "warmer_than_guide_range"
+          ],
+          "potato": [
+            "warmer_than_guide_range"
+          ]
+        },
+        "rankings": {
+          "balanced": [
+            "mungbean",
+            "eggplant",
+            "snapbean",
+            "tomato",
+            "squash",
+            "sitaw",
+            "rice"
+          ],
+          "saving_water": [
+            "mungbean",
+            "eggplant",
+            "snapbean",
+            "tomato",
+            "squash",
+            "sitaw",
+            "rice"
+          ],
+          "healthier_soil": [
+            "mungbean",
+            "snapbean",
+            "sitaw",
+            "eggplant",
+            "tomato",
+            "squash",
+            "rice"
+          ],
+          "finishing_early": [
+            "mungbean",
+            "eggplant",
+            "tomato",
+            "snapbean",
+            "squash",
+            "rice",
+            "sitaw"
+          ]
+        }
+      },
+      "irrigation": {
+        "crops": {
+          "rice": {
+            "flags": [],
+            "scored_days": {
+              "short": 106,
+              "long": 114
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 963.909,
+              "long": 1056.112
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "poorly",
+            "limits_source": "FAO EcoCrop sheet 1574: absolute and optimal limits for temperature, soil pH and texture.",
+            "cycle_source": "Pinoy Rice Knowledge Bank (PhilRice), NSIC Rc222 (Tubigan 18): matures in 106 days direct seeded, 114 days transplanted. https://www.pinoyrice.com/rice-varieties/ . Chosen because Rc222 and Rc216 are reported as the most planted inbreds in Nueva Ecija (Glover et al. 2020, Technology in Society 60:101227); Rc216 is 104/112 days, so the choice between them moves little. Days are counted FROM SEEDING: for transplanted rice this includes the seedbed, so 114 overstates time in the field. Rc222 is on the site's irrigated list; the rainfed option NSIC Rc192 (Sahod Ulan 1) also matures in 106 days after seeding, so the short figure holds for a rainfed variety too. Replaces EcoCrop sheet 1574's 80-180 days."
+          },
+          "mungbean": {
+            "flags": [],
+            "scored_days": {
+              "short": 50,
+              "long": 120
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 0.952,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 0.952,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 44.062,
+              "long": 239.019
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "FAO EcoCrop sheet 2150: absolute and optimal limits for temperature, soil pH and texture.",
+            "cycle_source": "FAO EcoCrop sheet 2150, crop cycle minimum and maximum. A global span across all varieties, NOT a Philippine figure; no local days-in-field figure has been sourced yet."
+          },
+          "eggplant": {
+            "flags": [],
+            "scored_days": {
+              "short": 70,
+              "long": 120
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 114.564,
+              "long": 297.23
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "FAO EcoCrop sheet 1965: absolute and optimal limits for temperature, soil pH and texture.",
+            "cycle_source": "FAO EcoCrop sheet 1965, crop cycle minimum and maximum. A global span across all varieties, NOT a Philippine figure; no local days-in-field figure has been sourced yet."
+          },
+          "tomato": {
+            "flags": [],
+            "scored_days": {
+              "short": 70,
+              "long": 150
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 127.385,
+              "long": 445.158
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "FAO EcoCrop sheet 1379: absolute and optimal limits for temperature, soil pH and texture.",
+            "cycle_source": "FAO EcoCrop sheet 1379, crop cycle minimum and maximum. A global span across all varieties, NOT a Philippine figure; no local days-in-field figure has been sourced yet."
+          },
+          "squash": {
+            "flags": [],
+            "scored_days": {
+              "short": 100,
+              "long": 120
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 187.918,
+              "long": 267.669
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "DA crop production guide as compiled in crop_requirements_ph.csv (PHV_SQUASH): the guide's published range for temperature and soil pH. A guide gives a recommended range only, with no survival limits, so the crop is SCREENED on it (inside the range or not) and never scored on a slope. Texture is scored only where the guide names a soil the field has.",
+            "cycle_source": "FAO-56 Table 11 total of the four stages, shortest and longest variant printed. NOT a Philippine figure: every variant is Mediterranean or European. The DA guide's days to first harvest are not time in the field and are not used."
+          },
+          "sitaw": {
+            "flags": [],
+            "scored_days": {
+              "short": 110,
+              "long": 110
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": null
+              },
+              "long": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": null
+              }
+            },
+            "median_deficit_mm": {
+              "short": 211.952,
+              "long": 211.952
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "DA crop production guide as compiled in crop_requirements_ph.csv (PHV_SITAW): the guide's published range for temperature and soil pH. A guide gives a recommended range only, with no survival limits, so the crop is SCREENED on it (inside the range or not) and never scored on a slope. Texture is scored only where the guide names a soil the field has.",
+            "cycle_source": "FAO-56 Table 11 total of the four stages, shortest and longest variant printed. NOT a Philippine figure: every variant is Mediterranean. The DA guide's days to first harvest are not time in the field and are not used."
+          },
+          "snapbean": {
+            "flags": [],
+            "scored_days": {
+              "short": 75,
+              "long": 90
+            },
+            "median_scores": {
+              "short": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              },
+              "long": {
+                "temp": 1.0,
+                "water": null,
+                "ph": 1.0,
+                "texture": 1.0
+              }
+            },
+            "median_deficit_mm": {
+              "short": 123.082,
+              "long": 175.68
+            },
+            "counts": {
+              "balanced": {
+                "all": {
+                  "short": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 44,
+                    "of": 44,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.92,
+                      1.0
+                    ]
+                  }
+                },
+                "normal": {
+                  "short": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 27,
+                    "of": 27,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.875,
+                      1.0
+                    ]
+                  }
+                },
+                "dry": {
+                  "short": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 9,
+                    "of": 9,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.701,
+                      1.0
+                    ]
+                  }
+                },
+                "el_nino": {
+                  "short": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  },
+                  "long": {
+                    "pass": 13,
+                    "of": 13,
+                    "not_scored": 0,
+                    "wilson95": [
+                      0.772,
+                      1.0
+                    ]
+                  }
+                }
+              }
+            },
+            "drainage_requirement": "well",
+            "limits_source": "DA crop production guide as compiled in crop_requirements_ph.csv (PHV_SNAPBEAN): the guide's published range for temperature and soil pH. A guide gives a recommended range only, with no survival limits, so the crop is SCREENED on it (inside the range or not) and never scored on a slope. Texture is scored only where the guide names a soil the field has.",
+            "cycle_source": "FAO-56 Table 11 total of the four stages, shortest and longest variant printed. NOT a Philippine figure: every variant is Californian or Mediterranean. The DA guide's days to first harvest are not time in the field and are not used."
+          }
+        },
+        "excluded": {
+          "cabbage": [
+            "warmer_than_guide_range"
+          ],
+          "lettuce": [
+            "warmer_than_guide_range"
+          ],
+          "potato": [
+            "warmer_than_guide_range"
+          ]
+        },
+        "rankings": {
+          "balanced": [
+            "eggplant",
+            "snapbean",
+            "tomato",
+            "squash",
+            "sitaw",
+            "rice",
+            "mungbean"
+          ],
+          "saving_water": [
+            "mungbean",
+            "eggplant",
+            "snapbean",
+            "tomato",
+            "squash",
+            "sitaw",
+            "rice"
+          ],
+          "healthier_soil": [
+            "snapbean",
+            "sitaw",
+            "mungbean",
+            "eggplant",
+            "tomato",
+            "squash",
+            "rice"
+          ],
+          "finishing_early": [
+            "mungbean",
+            "eggplant",
+            "tomato",
+            "snapbean",
+            "squash",
+            "rice",
+            "sitaw"
+          ]
+        }
+      }
+    },
+    "crop_coefficients": {
+      "rice": {
+        "kc": {
+          "ini": 1.05,
+          "mid": 1.2,
+          "end": 0.9,
+          "stages": [
+            30.0,
+            30.0,
+            60.0,
+            30.0
+          ],
+          "percolation": 4.0
+        },
+        "source": "FAO-56 T12 rice Kc 1.05/1.20/0.90-0.60; used 0.90 (upper end; FAO-56 gives no rule for picking within the range). T11 30/30/60/30 = 150 d, Dec/May, Tropics. Paddy seepage follows the field's soil texture: 4 mm/d heavy clay, 8 mm/d sandy, 6 mm/d on average (used for medium soils; that reading is ours), from FAO Irrigation Water Management Training Manual 3 ch.4 (NOT FAO-56; FAO-56 does not model paddy water balance). The 4.0 in percolation_mm_day only marks rice as a paddy crop; the model takes the figure for the soil. Manual 3's 200 mm saturation and 100 mm water layer are NOT included, so rice demand is understated. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "mungbean": {
+        "kc": {
+          "ini": 0.4,
+          "mid": 1.05,
+          "end": 0.35,
+          "stages": [
+            20.0,
+            30.0,
+            30.0,
+            20.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 'Green Gram and Cowpeas' Kc 0.4 (legume group value; no crop-specific Kc_ini printed)/1.05/0.60-0.35; used 0.35 per T12 note 6 = harvested dry, the normal case for mungbean as a pulse. T11 20/30/30/20 = 110 d, March, Mediterranean - the ONLY variant, no tropical one. 'Green gram' = Vigna radiata is standard synonymy, not stated by FAO-56. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "eggplant": {
+        "kc": {
+          "ini": 0.6,
+          "mid": 1.05,
+          "end": 0.9,
+          "stages": [
+            30.0,
+            40.0,
+            40.0,
+            20.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 'Egg Plant' Kc 0.6 (Solanaceae group value; no crop-specific Kc_ini printed)/1.05/0.90. T11 30/40/40/20 = 130 d, October, Arid Region. No tropical variant. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "tomato": {
+        "kc": {
+          "ini": 0.6,
+          "mid": 1.15,
+          "end": 0.9,
+          "stages": [
+            30.0,
+            40.0,
+            40.0,
+            25.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 tomato Kc 0.6 (Solanaceae group value)/1.15/0.70-0.90; used 0.90 (upper end). T11 30/40/40/25 = 135 d, January, Arid Region. All five T11 tomato variants are Arid/California/Mediterranean; none tropical. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "squash": {
+        "kc": {
+          "ini": 0.5,
+          "mid": 1.0,
+          "end": 0.8,
+          "stages": [
+            20.0,
+            30.0,
+            30.0,
+            20.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 'Pumpkin, Winter Squash' Kc 0.5 (cucumber-family group value; no crop-specific Kc_ini printed)/1.00/0.80. T11 20/30/30/20 = 100 d, Mar/Aug, Mediterranean; other variant 120 d, Europe. Kalabasa = Cucurbita maxima = winter squash is our reading. Texture: guide says 'well-drained sandy loam or clay loam'. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "sitaw": {
+        "kc": {
+          "ini": 0.4,
+          "mid": 1.05,
+          "end": 0.6,
+          "stages": [
+            20.0,
+            30.0,
+            30.0,
+            20.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 'Green Gram and Cowpeas' Kc 0.4 (legume group value)/1.05/0.60-0.35; used 0.60 per T12 note 6 = harvested fresh, the case for sitaw pods. T11 20/30/30/20 = 110 d, March, Mediterranean, the only variant. Sitaw is a cowpea subspecies; using the cowpea row is our reading. Texture: the guide names no soil class ('fertile, friable and organic matter rich'), so texture is not scored. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "snapbean": {
+        "kc": {
+          "ini": 0.5,
+          "mid": 1.05,
+          "end": 0.9,
+          "stages": [
+            15.0,
+            25.0,
+            25.0,
+            10.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 'Beans, green' Kc 0.5/1.05/0.90. T11 15/25/25/10 = 75 d, Aug/Sep, California, Egypt, Lebanon; other variant 90 d. Texture: guide says 'well-drained clay loam'. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "cabbage": {
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.05,
+          "end": 0.95,
+          "stages": [
+            40.0,
+            60.0,
+            50.0,
+            15.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 'Cabbage' Kc 0.7 (small-vegetables group value)/1.05/0.95. T11 40/60/50/15 = 165 d, Sept, California desert, the only variant. Texture: guide says 'sandy loam preferred'. The guide does not state a drainage requirement. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "lettuce": {
+        "kc": {
+          "ini": 0.7,
+          "mid": 1.0,
+          "end": 0.95,
+          "stages": [
+            20.0,
+            30.0,
+            15.0,
+            10.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 'Lettuce' Kc 0.7 (small-vegetables group value)/1.00/0.95. T11 20/30/15/10 = 75 d, April, Mediterranean; longest variant 140 d. Texture: guide says 'loamy soil'. The guide does not state a drainage requirement. Kc NOT climate-adjusted (Eq. 62/65)."
+      },
+      "potato": {
+        "kc": {
+          "ini": 0.5,
+          "mid": 1.15,
+          "end": 0.75,
+          "stages": [
+            25.0,
+            30.0,
+            30.0,
+            30.0
+          ],
+          "percolation": 0.0
+        },
+        "source": "FAO-56 T12 'Potato' Kc 0.5 (roots-and-tubers group value)/1.15/0.75. T11 25/30/30/30 = 115 d, Jan/Nov, semi-arid; longest variant 165 d, Idaho. Texture: guide says 'loose loam or sandy loam'. The guide's temperature is for best vegetative growth; the tuber stage differs. Kc NOT climate-adjusted (Eq. 62/65)."
+      }
+    }
+  }
+}

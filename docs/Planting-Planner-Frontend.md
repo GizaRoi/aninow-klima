@@ -1,32 +1,107 @@
 # Planting planner frontend
 
-The Next.js application lives in `apps/web` on `feat/planting-planner`. It follows the existing visual prototype's forest green palette, farm artwork, glass panels, and lime accents. The model remains separate in `model/`.
-
-The header and footer use the supplied `Version 2.png`, copied unchanged to `public/images/aninow-logo.png`. A shared SVG viewport excludes empty transparent margins when displaying it, preserving the complete leaf and wordmark. The logo appears directly on the page with a transparent background. An SVG display filter lightens the dark “Ani” and “Klima” lettering for contrast while preserving the leaf artwork and lime “Now” text. Filter IDs are unique to each logo instance. The page restores the visual prototype's broad olive-to-forest background gradient; the planner and planting-window surfaces use subtle tonal gradients. Logo dimensions adapt to desktop and phone widths without stretching the artwork.
+The Next.js application in `apps/web` calls the public historical rules-model API
+at `https://aninow-klima.onrender.com`. Vercel serves the frontend at
+`https://aninow-klima.vercel.app`. The olive-to-forest gradient, farm artwork,
+transparent logo, team page, responsive layout, and English/Tagalog switch remain.
 
 ## Run and verify
 
-From the checkout root, run `npm install`, then `npm run dev`. On Windows PowerShell use `npm.cmd`. The dev server runs at `http://127.0.0.1:3000`.
+From the checkout root, install dependencies with `npm install`, then run
+`npm run dev`. On Windows PowerShell use `npm.cmd`.
 
 - `npm run typecheck` checks TypeScript.
-- `npm test` checks fixture behavior, input validation, and language catalog parity.
-- `npm run build` exports the app to `dist/`.
-- With the app serving at port 4173, `npx playwright test` checks the desktop and phone flows in installed Chrome.
+- `npm test` checks the captured API contract, requests, error handling, validation,
+  language parity, and the archived sample adapter.
+- `npm run build` exports the application to `dist/`.
+- Serve `dist/` at `http://127.0.0.1:4173`, then run `npx playwright test` for the
+  desktop/phone flows, failures, retry, translations, download, and team page.
+- Set `KLIMA_LIVE_TEST=1` and run `npx playwright test live-model` for a real
+  browser-to-Render comparison. Optionally set `KLIMA_FRONTEND_URL` to the deployed
+  frontend URL. This test sends public demonstration inputs and may wait for a
+  sleeping Render instance.
 
-## Content and preview boundary
+## Form and API contract
 
-The form, English/Tagalog copy, four crop fixtures, and priority weights were imported from the user-supplied `orca_share_media1794688206295_7527467922416547931.html` in the workspace root. The frontend deliberately preserves that reference's sample figures, including its 115-day rice fixture and 44-season example history. These differ from the current Python model; they must not be presented as model output. Results and downloads explicitly identify their sample status.
+The catalogue supplies seven supported places and ten crops, including the main
+crop selector. It is fetched on page load; a failed catalogue has an explicit
+retry button, and comparison stays disabled until the catalogue is available.
+The form matches the deployed `klima-comparison.v1` API:
 
-The inputs are pilot location (Muñoz, fixed), soil type (including unknown), standing water (no/yes/unsure), water source, rice harvest, next rice planting, and optional soil pH. Output controls use the labels **Normal season**, **Dry season**, and **El Niño season**, plus four priorities. Tagalog uses **Karaniwang panahon**, **Tuyong panahon**, and **Panahon ng El Niño**. Each crop shows fit, sample history, days needed, calendar use, condition ratings, soil benefits, missing checks, and questions for an agriculturist. Hard calendar and drainage exclusions stay visible alongside the rice baseline.
+| Form | JSON field / behavior |
+|---|---|
+| Location | Exact catalogue `place` ID |
+| What do you grow now? | Catalogue `main_crop` ID |
+| Harvest and next planting | ISO `harvest`, `next_planting` dates |
+| Water stays after rain: no / yes / unsure | `drainage`: well_drained / poorly_drained / unknown |
+| Rain only / irrigation | `water`: rain / irrigation |
+| Soil-test switch | Enables measured `soil_ph` and light/medium/heavy `soil_texture`; blanks send null |
+| Days to prepare the field | Integer `turnaround_days`, 0–90; API default 0 |
+| Pass mark | `pass_mark`, 0–1; API default 0.6 |
+| Priority | balanced / saving_water / healthier_soil / finishing_early |
 
-`lib/preview.ts` provides a typed `getPreviewComparison` adapter that returns the full display contract. It ports only the reference's illustrative client logic. It makes no network calls and does not invoke or modify the Python model. A future model adapter can replace this function and map model fields into the display contract. The current `soil` selection uses the HTML's series labels, while the model takes different field inputs; that mapping needs evidence and explicit agreement before integration. Do not treat the sample weighted average as the model's geometric mean or the sample history counts as actual observations.
+No soil series is converted to a measured texture or pH. Without overrides, the
+model selects a nearby SARAI sample; the result shows the source and distinguishes
+measured values from the sample. Dates must fit one annual cycle and cannot be
+February 29, matching the API's historical replay constraints.
 
-The farm illustration was reused from `feat/visual-prototype`; it depicts no measured field. The browser stores only language preference. Field values and comparisons stay in memory until reload. Downloads contain a JSON comparison labeled `mode: sample`. Nothing is submitted to a server. Both languages preserve machine identifiers and input values; additional interface translations are AI-authored drafts awaiting farmer/agriculturist review.
+`lib/model.ts` fetches `/api/v1/catalog`, sends JSON to `/api/v1/compare`, and checks
+the contract, mode, and consumed response structure. `NEXT_PUBLIC_KLIMA_API_URL`
+can override the default Render URL at build time. Next.js loads local env files
+from `apps/web`, for example `apps/web/.env.local`; the URL is public configuration,
+not a secret. Vercel build environment changes require redeployment.
 
-The app supports phone and desktop layouts, keyboard navigation, input validation, document language, optional browser storage, expanded explanations, and reduced motion. The active hosting target is Vercel, using the planner-to-`prod` Git workflow. The private ChatGPT Site declared in `.openai/hosting.json` is a legacy preview; do not update or deploy it unless the user explicitly requests it. Local previews remain available for verification.
+Requests allow 180 seconds for Render wake-up and calculation. Busy, timeout,
+validation, network, non-JSON, and unsupported-response failures preserve answers
+and provide a retry. No failure substitutes sample results. Exact production and
+localhost origins are already allowed by the model service. Add an exact Vercel
+preview origin to Render's `CORS_ORIGINS` before using an alternate preview URL;
+do not allow every Vercel domain.
 
-## Team and detailed results
+## Results and data boundary
 
-`/team/` displays the four existing team portraits from the visual prototype at their original proportions. Names and roles are already part of the image artwork, so there are no duplicate visible captions. Each image retains the member's name as alternative text. Shared navigation and English/Tagalog controls are available on both pages.
+The page displays the returned water scenario, actual crops, hard exclusions,
+short/long cycle lengths, supplemental water gap, and scored history denominators.
+Counts and Wilson intervals come from `counts.balanced[season].short`. All, normal,
+dry, and El Niño histories are separate views. Zero scored seasons stay unavailable.
+Missing condition scores stay unscored, including water in the sufficient-irrigation
+scenario. Crop detail scores and gaps are all-season medians, explicitly labelled.
 
-The results screen has **Simple / More detailed** controls. More detailed opens every eligible crop's original HTML explanation: condition ratings, soil benefits, missing checks, and questions for an agriculturist. Simple collapses them again. Individual **Show why** controls still work, and changing language, season, or priority preserves the detail mode. Excluded crops retain their exclusion reason without receiving scores. This feature uses the existing sample adapter and does not connect to the Python model.
+Priority chooses a ranking already returned by the model. Season changes the
+history shown and never reranks crops. Fit labels use the same display bands as
+`model/serve.py` (0.7 / 0.45) on the weakest available median condition; the frontend
+does not run the model or calculate new agronomic scores. Excluded crops have no
+manufactured scores. All excluded is a valid result.
+
+Downloads include the complete raw `rules_model` response, model fingerprint,
+request ID, validated inputs, sources, warnings, and selected display season and
+priority. Inputs/results stay in page memory; only language preference persists
+in browser storage. Field answers are sent to Render for stateless calculation.
+
+Prototype, demo, sample-number, and disconnected-model claims have been removed
+from the active UI and metadata in both languages. Historical uncertainty and
+unvalidated yield/profit statements remain accurate. New translations are
+AI-authored drafts awaiting farmer/agriculturist review.
+
+`lib/preview.ts`, its four crop fixtures, and `reference-messages.json` retain the
+original HTML reference for history and tests. The active page calls only the
+model adapter; these fixtures are never a fallback. Test fixtures under
+`tests/fixtures` are trimmed public service responses, not application data.
+The model snapshot in this frontend branch is older than the deployed API;
+`feat/klima-model` owns the service. This integration changes no model calculations.
+
+## Production workflow and verification
+
+Make frontend changes on `feat/planting-planner`, push, then merge and push `prod`.
+The clean production worktree is `worktrees/prod`; its former name
+`prod-flat-design` was obsolete because `prod` already restored the gradient.
+Keep the production branch. No separate flat-design branch exists to remove.
+The local `main` checkout's existing documentation edits are preserved separately.
+
+The legacy ChatGPT Site metadata is retained for history. Do not publish to it
+unless explicitly requested; the active hosting target is Vercel.
+
+On 2026-11-15 the live Render health, catalogue, comparison, production-origin
+CORS, and a local browser-to-Render flow passed. Automated contract/browser tests
+also cover service failure, catalogue retry, all crops excluded, language changes,
+phone overflow, and model downloads.
