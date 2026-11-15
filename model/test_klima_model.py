@@ -428,5 +428,104 @@ class CommandLine(unittest.TestCase):
         self.assertTrue(K.parse_args(["--no-drainage-filter"]).no_drainage_filter)
 
 
+class Diagnostics(unittest.TestCase):
+    """The diagnostics are what a reviewer would check the model against, so the
+    statistics behind them are tested against cases with known answers."""
+
+    @classmethod
+    def setUpClass(cls):
+        cwd = os.getcwd()
+        os.chdir(HERE)
+        try:
+            spec = importlib.util.spec_from_file_location(
+                "diagnostics", os.path.join(HERE, "diagnostics.py"))
+            cls.D = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(cls.D)
+        finally:
+            os.chdir(cwd)
+
+    def test_trend_recovers_a_slope_it_was_given(self):
+        xs = list(range(20))
+        t = self.D.linear_trend(xs, [3.0 + 2.0 * x for x in xs])
+        self.assertAlmostEqual(t["slope"], 2.0, places=9)
+
+    def test_flat_series_has_no_trend(self):
+        xs = list(range(20))
+        t = self.D.linear_trend(xs, [5.0] * 20)
+        self.assertAlmostEqual(t["slope"], 0.0, places=9)
+
+    def test_trend_ignores_missing_points(self):
+        xs = list(range(10))
+        ys = [2.0 * x for x in xs]
+        ys[3] = None
+        t = self.D.linear_trend(xs, ys)
+        self.assertAlmostEqual(t["slope"], 2.0, places=9)
+        self.assertEqual(t["n"], 9)
+
+    def test_trend_needs_enough_points(self):
+        self.assertIsNone(self.D.linear_trend([1, 2], [1.0, 2.0]))
+
+    def test_alternating_series_is_negatively_autocorrelated(self):
+        a = self.D.lag1_autocorrelation([0, 1] * 20)
+        self.assertLess(a["r1"], -0.9)
+        self.assertGreater(a["n_eff"], a["n"])     # worth more than its length
+
+    def test_blocked_series_is_positively_autocorrelated(self):
+        a = self.D.lag1_autocorrelation([0] * 20 + [1] * 20)
+        self.assertGreater(a["r1"], 0.8)
+        self.assertLess(a["n_eff"], a["n"])        # worth less than its length
+
+    def test_constant_series_has_no_structure(self):
+        a = self.D.lag1_autocorrelation([1] * 30)
+        self.assertTrue(a["degenerate"])
+        self.assertEqual(a["n_eff"], 30)
+
+    def test_correlation_of_identical_series_is_one(self):
+        xs = [1.0, 4.0, 2.0, 8.0, 5.0]
+        self.assertAlmostEqual(self.D.correlation(xs, xs), 1.0, places=9)
+
+    def test_correlation_of_opposite_series_is_minus_one(self):
+        xs = [1.0, 4.0, 2.0, 8.0, 5.0]
+        self.assertAlmostEqual(self.D.correlation(xs, [-v for v in xs]), -1.0, places=9)
+
+    def test_correlation_of_a_constant_is_undefined(self):
+        self.assertIsNone(self.D.correlation([1.0, 1.0, 1.0], [1.0, 2.0, 3.0]))
+
+    def test_ties_are_reported_as_ties_not_as_an_order(self):
+        # At a low enough pass mark every crop clears it, and then there is no
+        # order to read: it must come back as one tied group, not four ranks.
+        sv = self.D.check_pass_mark_sensitivity(marks=(0.0,))
+        self.assertEqual(len(sv["orders"][0.0]), 1)
+        self.assertIn(" = ", sv["orders"][0.0][0])
+        self.assertEqual(sv["marks_with_no_separation"], [0.0])
+
+    def test_pass_mark_sensitivity_counts_match_the_model(self):
+        sv = self.D.check_pass_mark_sensitivity(marks=(K.PASS_MARK,))
+        for crop, got in sv["counts"][K.PASS_MARK].items():
+            want = K.fields["rain"]["crops"][crop]["counts"]["balanced"]["all"]["short"]["pass"]
+            self.assertEqual(got, want, f"{crop} recomputed count differs from the model")
+
+    def test_coverage_matches_the_loaded_data(self):
+        cov = self.D.check_coverage()
+        self.assertEqual(cov["T2M"]["days_present"], len(K.daily))
+        # Radiation starts later than temperature, which is why ETo does too.
+        self.assertLess(cov["TOA_SW_DWN"]["days_present"], cov["T2M"]["days_present"])
+        self.assertEqual(cov["TOA_SW_DWN"]["first_day"], "1984-01-01")
+
+    def test_soil_cleaning_adds_up(self):
+        s = self.D.check_soil_cleaning()
+        self.assertEqual(s["rows"],
+                         s["unreadable_numbers"] + s["outside_philippines"]
+                         + s["ph_out_of_range"] + s["usable"])
+
+    def test_window_stats_do_not_depend_on_crop_order(self):
+        # These are whole-window figures; nothing about them should change if
+        # crops.csv is reordered.
+        self.assertEqual(len(self.D.WINDOW), len(K.SEASONS))
+        for w, s in zip(self.D.WINDOW, K.SEASONS):
+            self.assertEqual(w["year"], s["year"])
+            self.assertEqual(w["rain_mm"], s["window_rain"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
