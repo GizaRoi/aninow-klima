@@ -39,55 +39,77 @@ DEFAULTS = dict(lat="15.72", lon="120.90", harvest="2026-11-15",
                 water="rain", soil_ph="", soil_texture="", pass_mark="0.6")
 
 CSS = """
-:root { --paper:#f7f4ec; --card:#fffdf8; --ink:#20261f; --soft:#5d655a; --line:#d9d3c3;
-        --green:#1f6a3d; --green-bg:#e3efe2; --amber:#8a5a00; --amber-bg:#f6e9c8;
-        --red:#9a2f1f; --red-bg:#f5ded8; --grey-bg:#ebe7dc; }
+/* Tokens taken from the Klima prototype so the harness sits in the same design
+   language: --bg #f0f1e9, --ink #26392c, --green #334c37, --muted #52614b,
+   --line #d8dfcf, --lime #d5ed8c, --red #a05143, --radius 18px, with Manrope
+   for display and DM Sans for text. */
+/* No webfont import: this is a local tool and must work offline, so Manrope and
+   DM Sans render where they are installed and fall back to the system stack
+   where they are not. */
+:root {
+  --bg:#f0f1e9; --paper:#fff; --ink:#26392c; --green:#334c37; --green-dark:#223024;
+  --lime:#d5ed8c; --line:#d8dfcf; --muted:#52614b; --soft:#e8eddf; --amber:#8c6928;
+  --red:#a05143; --danger:#8a4632; --success:#3d632c; --warning:#77551f;
+  --on-dark:#e1ecd3; --radius:18px;
+  --display:Manrope,"DM Sans",-apple-system,"Segoe UI",sans-serif;
+  --text:"DM Sans",-apple-system,"Segoe UI",sans-serif;
+}
 * { box-sizing:border-box }
-body { margin:0; background:var(--paper); color:var(--ink);
-       font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif }
-.wrap { max-width:860px; margin:0 auto; padding:0 16px 48px }
-header { padding:16px 0 8px }
-.brand { font-weight:700; font-size:20px; color:var(--green) }
-.notice { background:var(--amber-bg); color:#4d3300; font-size:14px; padding:8px 12px;
-          border-radius:6px; margin-bottom:16px }
-h1 { font-size:24px; margin:16px 0 12px }
-h2 { font-size:15px; margin:24px 0 8px; color:var(--soft); font-weight:600;
-     text-transform:uppercase; letter-spacing:.04em }
-form { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px }
-.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px }
-label { display:block; font-weight:600; font-size:14px; margin-bottom:5px }
-select, input { width:100%; font:inherit; padding:9px; border:1px solid #b9b2a0;
-                border-radius:6px; background:#fff; color:var(--ink) }
-.hint { font-size:13px; color:var(--soft); margin:4px 0 0; font-weight:400 }
-.go { margin-top:16px; min-height:46px; padding:0 22px; font:inherit; font-size:16px;
-      font-weight:700; background:var(--green); color:#fff; border:0; border-radius:8px;
-      cursor:pointer }
-.window { background:var(--card); border:1px solid var(--line); border-radius:8px;
-          padding:14px; margin-top:16px }
-.window strong { font-size:20px; display:block }
-.crop { background:var(--card); border:1px solid var(--line); border-radius:8px;
-        margin-top:12px; padding:14px }
-.top { display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 var(--text) }
+.wrap { max-width:900px; margin:0 auto; padding:0 20px 56px }
+header { padding:22px 0 6px }
+.brand { font:600 19px var(--display); letter-spacing:-0.6px; color:var(--green-dark) }
+.brand span { color:var(--muted); font-weight:500 }
+.eyebrow { font:600 10px var(--text); letter-spacing:2.6px; text-transform:uppercase;
+           color:var(--muted); margin:26px 0 8px }
+.notice { background:var(--soft); border:1px solid var(--line); color:var(--muted);
+          font-size:13.5px; padding:11px 14px; border-radius:12px; margin-bottom:20px }
+h1 { font:550 30px/1.15 var(--display); letter-spacing:-1.1px; margin:14px 0 18px;
+     color:var(--green-dark) }
+form { background:var(--paper); border:1px solid var(--line);
+       border-radius:var(--radius); padding:22px }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); gap:16px }
+label { display:block; font:600 13px var(--text); margin-bottom:6px; color:var(--green-dark) }
+select, input { width:100%; font:400 15px var(--text); padding:10px 11px;
+                border:1px solid var(--line); border-radius:10px; background:var(--paper);
+                color:var(--ink) }
+select:focus-visible, input:focus-visible, button:focus-visible, summary:focus-visible {
+  outline:2px solid var(--green); outline-offset:2px }
+.hint { font-weight:400; color:var(--muted); font-size:12.5px }
+.go { margin-top:20px; min-height:46px; padding:0 24px; font:600 15px var(--text);
+      background:var(--green-dark); color:var(--on-dark); border:0;
+      border-radius:999px; cursor:pointer }
+.go:hover { background:var(--green) }
+.window { background:var(--green-dark); color:var(--on-dark); border-radius:var(--radius);
+          padding:18px 20px; margin-top:20px; font-size:13.5px }
+.window strong { display:block; font:550 23px var(--display); letter-spacing:-0.8px;
+                 color:#fff; margin-bottom:4px }
+.crop { background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+        margin-top:14px; padding:18px 20px }
+.top { display:flex; justify-content:space-between; align-items:baseline; gap:14px;
        flex-wrap:wrap }
-.name { font-size:19px; font-weight:700 }
-.name small { font-size:14px; font-weight:400; color:var(--soft) }
-.fit { font-size:13px; font-weight:700; padding:3px 10px; border-radius:99px; white-space:nowrap }
-.good { background:var(--green-bg); color:var(--green) }
-.ok { background:var(--amber-bg); color:var(--amber) }
-.poor { background:var(--red-bg); color:var(--red) }
-.out { background:var(--grey-bg); color:var(--soft) }
-table { border-collapse:collapse; width:100%; font-size:14px; margin-top:10px }
-th, td { text-align:left; padding:5px 8px; border-bottom:1px solid #ece7da }
-th { color:var(--soft); font-weight:600 }
+.name { font:550 20px var(--display); letter-spacing:-0.6px; color:var(--green-dark) }
+.name small { font:400 13px var(--text); letter-spacing:0; color:var(--muted) }
+.fit { font:600 12px var(--text); padding:4px 12px; border-radius:999px; white-space:nowrap }
+.good { background:var(--lime); color:#2f4a1f }
+.ok { background:var(--soft); color:var(--warning) }
+.poor { background:#f0e2dd; color:var(--danger) }
+.out { background:var(--soft); color:var(--muted) }
+table { border-collapse:collapse; width:100%; font-size:13.5px; margin-top:12px }
+th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line) }
+th { font:600 10px var(--text); letter-spacing:1.4px; text-transform:uppercase;
+     color:var(--muted) }
 td.n { text-align:right; font-variant-numeric:tabular-nums }
-.g { color:var(--green); font-weight:700 } .o { color:var(--amber); font-weight:700 }
-.p { color:var(--red); font-weight:700 }
-.blocked { color:var(--soft); margin:8px 0 0 }
-details { margin-top:10px } summary { cursor:pointer; color:var(--green); font-size:14px }
-.src { font-size:13px; color:var(--soft); margin:6px 0 0; line-height:1.4 }
-.err { background:var(--red-bg); color:var(--red); padding:12px; border-radius:6px;
-       margin-top:16px; white-space:pre-wrap; font-family:ui-monospace,monospace; font-size:13px }
-footer { font-size:13px; color:var(--soft); margin-top:28px }
+.g { color:var(--success); font-weight:600 } .o { color:var(--warning); font-weight:600 }
+.p { color:var(--danger); font-weight:600 }
+.blocked { color:var(--muted); margin:10px 0 0; font-size:14px }
+details { margin-top:12px } summary { cursor:pointer; color:var(--green); font-size:13.5px;
+                                      font-weight:600 }
+.src { font-size:12.5px; color:var(--muted); margin:8px 0 0; line-height:1.5 }
+.err { background:#f0e2dd; color:var(--danger); padding:14px 16px; border-radius:12px;
+       margin-top:20px; white-space:pre-wrap; font:13px ui-monospace,monospace }
+footer { font-size:12.5px; color:var(--muted); margin-top:34px; padding-top:18px;
+         border-top:1px solid var(--line) }
 """
 
 
@@ -309,9 +331,9 @@ def results_html(r, water):
   {meta['seasons']} seasons · pass mark {meta['pass_mark']} ·
   drainage answer: {esc(soil['drainage'])}
 </div>
-<h2>Options, ranked for a balanced priority</h2>
+<p class="eyebrow">Options, ranked for a balanced priority</p>
 {cards}
-<h2>Where the numbers came from</h2>
+<p class="eyebrow">Where the numbers came from</p>
 <div class="crop"><p class="src">{prov}</p>
   <p class="src">{esc(r['method']['eto'])}, available from {esc(r['method']['eto_from'])}.</p>
   <p class="src">{esc(r['method']['etc'])}. Water score: {esc(r['method']['water_score'])}.</p>
@@ -325,7 +347,7 @@ def results_html(r, water):
 PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AniNow Klima &mdash; local test</title><style>{css}</style></head><body><div class="wrap">
-<header><div class="brand">AniNow Klima</div></header>
+<header><div class="brand">AniNow <span>Klima</span></div></header>
 <div class="notice">Local test harness. Every submission runs
 <code>klima_model.py</code> for real, so these are the model's own numbers, not
 mock data. Historical frequencies, not predictions, and not farming advice.</div>
