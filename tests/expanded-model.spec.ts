@@ -27,6 +27,7 @@ test('expanded catalogue, model verdict, partial crops and evidence remain disti
   const mungRating = comparison.results.fields.rain.crops.mungbean.median_S.short.balanced;
   await expect(page.locator('[data-crop="mungbean"] .model-rating strong')).toHaveText(`${mungRating.toFixed(2)} / 1`);
   await expect.poll(() => page.locator('.crop-card').first().locator('.crop-photo img').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBeTruthy();
+  expect(await page.locator('.crop-photo').first().evaluate(el => el.getBoundingClientRect().width / el.parentElement!.clientWidth)).toBeGreaterThan(.99);
   for (const id of ['maize', 'sweetpotato']) {
     const card = page.locator(`[data-crop="${id}"]`);
     await expect(card.locator('.fit')).toHaveText('Partly checked');
