@@ -1,12 +1,4 @@
-"""Tests for klima_model, focused on the inputs a farmer actually supplies.
-
-Standard library only, to match the model. Run from anywhere:
-
-    python -m unittest discover model -v
-
-Importing klima_model runs the data load (about 16,000 days of POWER), so it is
-imported once here and takes a few seconds. It writes nothing on import.
-"""
+"""klima_model: farmer inputs, scoring, water balance, pinned pilot numbers."""
 import contextlib
 import csv
 import importlib.util
@@ -19,8 +11,7 @@ from datetime import date
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 def _load():
-    """Import klima_model with the working directory set to its own folder, since
-    the model reads its data files by relative path."""
+    """Import klima_model from model/ (relative data paths); loads all POWER data, slow."""
     cwd = os.getcwd()
     os.chdir(HERE)
     try:
@@ -37,11 +28,7 @@ K = _load()
 _CWD = None
 
 def setUpModule():
-    """The model reads its data files by relative path, so the tests run with the
-    working directory set to model/. Without this, anything relying on a default
-    path silently finds no file: one test fails outright under `unittest discover`
-    and two more pass for the wrong reason, reporting None because the file is
-    missing rather than because the sample is too far away."""
+    """Run in model/: default data paths are relative."""
     global _CWD
     _CWD = os.getcwd()
     os.chdir(HERE)
@@ -52,8 +39,7 @@ def tearDownModule():
 
 
 class SeasonDates(unittest.TestCase):
-    """The farmer gives a harvest date and a next-planting date. Everything the
-    model does hangs off the window those two dates define."""
+    """The window between harvest and next planting."""
 
     def test_pilot_window(self):
         s = K.build_seasons((11, 15), (5, 31), 1981, 2024)
@@ -68,14 +54,12 @@ class SeasonDates(unittest.TestCase):
         self.assertEqual(s[0]["end"].year, 2001)
 
     def test_window_inside_one_year(self):
-        # Harvest March, next planting June: both in the same calendar year.
         s = K.build_seasons((3, 1), (6, 30), 2000, 2000)
         self.assertEqual(s[0]["start"], date(2000, 3, 1))
         self.assertEqual(s[0]["end"], date(2000, 6, 29))
         self.assertEqual(s[0]["n_days"], 121)
 
     def test_planting_equals_harvest_is_a_full_year(self):
-        # Not a zero-day window: the next planting is a year away.
         s = K.build_seasons((11, 15), (11, 15), 2000, 2000)
         self.assertEqual(s[0]["n_days"], 365)
 
@@ -98,7 +82,7 @@ class SeasonDates(unittest.TestCase):
             K.build_seasons((11, 15), (5, 31), 2010, 2000)
 
     def test_impossible_calendar_date_rejected(self):
-        # 29 February in a non-leap year must fail loudly, not silently shift.
+        # 29 Feb in a non-leap year
         with self.assertRaises(ValueError):
             K.build_seasons((2, 29), (5, 31), 2001, 2001)
 
@@ -114,8 +98,7 @@ class SeasonClassification(unittest.TestCase):
         self.assertEqual(sum(1 for x in s if x["dry"]), round(0.20 * 44))
 
     def test_identical_rainfall_does_not_collapse_the_dry_set(self):
-        # Seasons are matched by identity, not by value: two seasons with the same
-        # rainfall must stay distinct.
+        # ten seasons with equal rainfall
         fake = [dict(year=y, n_days=100, window_rain=50.0, nino_mean=None)
                 for y in range(2000, 2010)]
         K.classify_seasons(fake, dry_share=0.2)
@@ -130,7 +113,7 @@ class SeasonClassification(unittest.TestCase):
 
 
 class SoilLookup(unittest.TestCase):
-    """The farmer gives a location. Soil comes from the nearest measured sample."""
+    """Soil from the nearest measured sample."""
 
     def test_pilot_point_finds_the_expected_sample(self):
         s = K.read_soil_sample(15.72, 120.90)
@@ -144,7 +127,7 @@ class SoilLookup(unittest.TestCase):
         self.assertIsNone(K.read_soil_sample(15.72, 120.90, max_km=1.0))
 
     def test_point_far_from_every_sample_returns_nothing(self):
-        # Open sea northwest of Luzon, still inside the Philippine bounding box.
+        # open sea NW of Luzon, inside the Philippine bounding box
         self.assertIsNone(K.read_soil_sample(20.5, 117.5, max_km=10.0))
 
     def test_missing_file_returns_nothing(self):
@@ -181,7 +164,7 @@ class SoilLookup(unittest.TestCase):
             self.assertIsNone(s["texture_class"])
 
     class _fixture:
-        """A throwaway SARAI-shaped CSV holding only the given rows."""
+        """Temporary SARAI-shaped CSV of the given rows."""
         COLS = ["sample_id", "latitude", "longitude", "soil_ph", "soil_ph_class",
                 "organic_matter_percent", "organic_matter_class", "nitrogen_percent",
                 "phosphorus_ppm", "potassium_cmolc_per_kg", "soil_texture_as_reported",
@@ -205,8 +188,7 @@ class SoilLookup(unittest.TestCase):
 
 
 class HardFilters(unittest.TestCase):
-    """Spec section 5. The drainage answer is the farmer's, and it decides whether
-    any alternative survives at all."""
+    """Decision-Engine-Spec section 5."""
 
     def crop(self, cycle_min=50, drainage="well"):
         return dict(cycle_min=cycle_min, drainage=drainage)
@@ -272,7 +254,6 @@ class ScoringPrimitives(unittest.TestCase):
         self.assertEqual(K.suitability({"a": 0.0, "b": 1.0}), 0.0)
 
     def test_suitability_is_the_weakest_condition(self):
-        # Three perfect scores must not lift a poor one: that was the old fault.
         self.assertEqual(K.suitability({"a": 0.25, "b": 1.0, "c": 1.0, "d": 1.0}), 0.25)
 
     def test_suitability_skips_unscored_conditions(self):
@@ -300,11 +281,7 @@ class WaterBalance(unittest.TestCase):
         self.assertEqual(len(set(round(x, 9) for x in c[:30])), 1)   # flat at Kc_ini
 
     def test_kc_curve_mean_is_unchanged_by_cycle_length(self):
-        # Scaling the stage lengths must preserve the shape of the curve, so the
-        # mean Kc is the same whatever cycle length it is sampled at. The two means
-        # are not bit-identical: each samples the same continuous curve at a
-        # different number of midpoints, which leaves a discretisation difference
-        # around 1e-5. A real shape change would move the mean far more than that.
+        # same curve sampled at 130 and 60 midpoints: means differ by ~1e-5
         a = K.kc_curve(self.KC, 130)
         b = K.kc_curve(self.KC, 60)
         self.assertAlmostEqual(sum(a) / len(a), sum(b) / len(b), delta=1e-3)
@@ -328,7 +305,7 @@ class Geometry(unittest.TestCase):
         self.assertAlmostEqual(K.haversine_km(15.72, 120.90, 15.72, 120.90), 0.0)
 
     def test_known_separation(self):
-        # One degree of latitude is about 111 km anywhere.
+        # 1 degree of latitude = 111.2 km
         self.assertAlmostEqual(K.haversine_km(15.0, 120.0, 16.0, 120.0), 111.2, delta=0.5)
 
     def test_symmetry(self):
@@ -338,8 +315,7 @@ class Geometry(unittest.TestCase):
 
 
 class PilotRegression(unittest.TestCase):
-    """Pins the numbers the pitch quotes. If one of these moves, the change was
-    either a real improvement worth re-quoting or a mistake; either way, say so."""
+    """Pins the numbers the pitch quotes."""
 
     def test_pilot_soil(self):
         self.assertEqual(K.SOIL_PH, 6.3)
@@ -357,8 +333,7 @@ class PilotRegression(unittest.TestCase):
     def test_mungbean_needs_least_water_and_rice_most(self):
         rain = K.fields["rain"]["crops"]
         short = {n: c["median_deficit_mm"]["short"] for n, c in rain.items()}
-        # Among the four crops the pilot was built on, mungbean needs least. Across
-        # all the crops now rated only the 35-day radish needs less; rice needs most.
+        # of all rated crops only the 35-day radish needs less than mungbean
         pilot = ("rice", "mungbean", "eggplant", "tomato")
         self.assertEqual(min(pilot, key=lambda n: short[n]), "mungbean")
         self.assertEqual(sorted(short, key=lambda n: short[n])[:2], ["radish", "mungbean"])
@@ -367,9 +342,7 @@ class PilotRegression(unittest.TestCase):
         self.assertAlmostEqual(short["rice"], 964, delta=2)
 
     def test_seasons_without_a_water_balance_are_not_counted(self):
-        # Reference ET needs TOA_SW_DWN, which starts in 1984. The 1981-1983
-        # seasons used to pass on heat and soil alone, which gave rice two "dry
-        # season" passes it never earned.
+        # ETo needs TOA_SW_DWN, which starts in 1984: 1981-1983 have no water balance
         rain = K.fields["rain"]["crops"]
         for name, c in rain.items():
             for row in c["seasons"]:
@@ -387,13 +360,12 @@ class PilotRegression(unittest.TestCase):
         self.assertEqual((mung["pass"], mung["of"]), (22, 41))
 
     def test_irrigated_field_still_counts_every_season(self):
-        # Water is not scored on an irrigated field, so nothing is missing.
+        # irrigated: water is not scored
         for c in K.fields["irrigation"]["crops"].values():
             self.assertEqual(c["counts"]["balanced"]["all"]["short"]["of"], 44)
 
     def test_rice_growing_time_is_the_local_variety_not_the_global_span(self):
-        # NSIC Rc222 from the Pinoy Rice Knowledge Bank: 106 days direct seeded,
-        # 114 transplanted. EcoCrop's 80-180 days spans every rice variety there is.
+        # NSIC Rc222, Pinoy Rice Knowledge Bank: 106 d direct seeded, 114 transplanted
         rice = K.CROPS["rice"]
         self.assertEqual((rice["cycle_min"], rice["cycle_max"]), (106, 114))
         self.assertIn("Rc222", rice["cycle_source"])
@@ -401,8 +373,6 @@ class PilotRegression(unittest.TestCase):
             self.assertTrue(c["cycle_source"], f"{name} has no growing-time source")
 
     def test_a_passing_year_means_rain_covered_the_pass_mark_share(self):
-        # With the weakest condition deciding, a rainfed year passes only when rain
-        # met at least the pass-mark share of the crop's water need.
         for c in K.fields["rain"]["crops"].values():
             for row in c["seasons"]:
                 b = row["by_length"]["short"]
@@ -410,14 +380,13 @@ class PilotRegression(unittest.TestCase):
                     self.assertGreaterEqual(b["scores"]["water"], K.PASS_MARK)
 
     def test_ties_are_not_settled_by_the_row_order_of_the_crops_file(self):
-        # On an irrigated field rice, eggplant and tomato tie on score. Rice is the
-        # first row of crops.csv and needs by far the most water, so it must not lead.
+        # irrigated: rice, eggplant, tomato tie on score; rice is row 1 of crops.csv
         res = K.fields["irrigation"]
         order = res["rankings"]["balanced"]
         self.assertNotEqual(order[0], "rice")
         self.assertLess(order.index("eggplant"), order.index("rice"))
         self.assertLess(order.index("tomato"), order.index("rice"))
-        # Among crops that tie on years passed and on score, less water comes first.
+        # equal passes and score: less water first
         key = lambda n: (res["crops"][n]["counts"]["balanced"]["all"]["short"]["pass"],
                          res["crops"][n]["median_S"]["short"]["balanced"])
         for a_, b_ in zip(order, order[1:]):
@@ -442,7 +411,7 @@ class PilotRegression(unittest.TestCase):
         self.assertEqual(mung["kc"]["percolation"], 0.0)
 
     def test_land_preparation_days_count_against_the_window(self):
-        rice = K.CROPS["rice"]                      # 106 days in a 197-day window
+        rice = K.CROPS["rice"]                      # 106 of 197 days
         self.assertEqual(K.hard_filters(rice, turnaround=0)[0], [])
         self.assertEqual(K.hard_filters(rice, turnaround=91)[0], [])
         self.assertEqual(K.hard_filters(rice, turnaround=92)[0], ["does_not_fit_window"])
@@ -452,8 +421,7 @@ class PilotRegression(unittest.TestCase):
 
     def test_el_nino_comes_from_the_oni_file(self):
         self.assertIn("ONI", K.NINO_SOURCE)
-        # 'NDJ 1997' is filed under its centre month, December 1997: the peak of
-        # the strongest El Nino in the record.
+        # NDJ 1997 is keyed by its centre month, Dec 1997
         self.assertGreater(K.nino[(1997, 12)], 2.0)
 
     def test_a_field_outside_the_weather_cell_is_refused(self):
@@ -466,19 +434,17 @@ class PilotRegression(unittest.TestCase):
         self.assertIn("No weather data for 14.6, 121.0", p.stderr)
 
     def test_crops_known_only_from_a_guide_are_screened_not_sloped(self):
-        # A DA crop guide gives a recommended range and no survival limits. Such a
-        # crop is either inside the range or not recommended; it is never scored
-        # part-way, and never given a zero it has not earned.
+        # DA guide gives a range, no survival limits: in or out, no ramp
         guide = {n: c for n, c in K.CROPS.items() if c["limits"] == "da_guide_range"}
         self.assertEqual(set(guide), {"squash", "sitaw", "snapbean", "cabbage",
                                       "lettuce", "potato"})
         for name, c in guide.items():
-            self.assertEqual(c["temp"][0], c["temp"][1], name)       # no slope below
+            self.assertEqual(c["temp"][0], c["temp"][1], name)       # no ramp below
             self.assertEqual(c["temp"][2], c["temp"][3], name)       # none above
             self.assertTrue(c["limits_source"] and c["cycle_source"] and c["kc_source"], name)
             self.assertIsNotNone(K.ph_guide_for(c), f"{name} has no guide row")
         rain = K.fields["rain"]
-        # The pilot is a warm lowland: the cool-season crops are not recommended.
+        # pilot is warm lowland
         for name in ("cabbage", "lettuce", "potato"):
             self.assertIn("warmer_than_guide_range", rain["excluded"][name])
             self.assertGreater(rain["screened"][name]["median_temp_c"],
@@ -488,10 +454,7 @@ class PilotRegression(unittest.TestCase):
             self.assertEqual(rain["crops"][name]["median_scores"]["short"]["temp"], 1.0)
 
     def test_soil_texture_follows_one_rule_for_every_crop(self):
-        # A guide crop's soil texture comes from its EcoCrop sheet, like any other
-        # crop's: 1 where the sheet calls the soil optimal, 0.5 where it only
-        # tolerates it. Before, a soil the guide did not name went unscored, which
-        # passed clay for snap bean while capping it for mungbean.
+        # EcoCrop sheet for every crop: 1 where optimal, 0.5 where tolerated
         kept = K.SOIL_TEXTURE
         try:
             K.SOIL_TEXTURE = "heavy"
@@ -506,7 +469,7 @@ class PilotRegression(unittest.TestCase):
         finally:
             K.SOIL_TEXTURE = kept
         for name, c in K.CROPS.items():
-            if name not in ("maize", "sweetpotato"):      # their sheets print no texture
+            if name not in ("maize", "sweetpotato"):      # sheets print no texture
                 self.assertTrue(c["tex_abs"], name)
 
     def test_each_place_reads_its_own_weather_file(self):
@@ -521,7 +484,7 @@ class PilotRegression(unittest.TestCase):
                 self.assertLessEqual(abs(point[1] - lon), 0.3125)
                 seen.add(name)
                 self.assertIsNotNone(K.read_soil_sample(lat, lon), row["place"])
-        self.assertEqual(len(seen), 22)      # every place has a file of its own
+        self.assertEqual(len(seen), 22)      # one file per place
 
     def test_an_unknown_main_crop_is_refused(self):
         import subprocess, sys
@@ -534,10 +497,8 @@ class PilotRegression(unittest.TestCase):
     def test_saving_water_does_not_rank_rice_first(self):
         for water in ("rain", "irrigation"):
             order = K.fields[water]["rankings"]["saving_water"]
-            # The two shortest crops need the least water; rice needs the most.
             self.assertEqual(order[:2], ["radish", "mungbean"])
-            # ...among crops scored on every condition. Maize and sweet potato, whose
-            # sheets print no soil texture, are listed after them.
+            # partly scored crops (maize, sweet potato) are listed after the rest
             crops = K.fields[water]["crops"]
             full = [n for n in order if not crops[n]["not_scored"]]
             self.assertEqual(full[-1], "rice")
@@ -549,8 +510,7 @@ class PilotRegression(unittest.TestCase):
 
 
 class CommandLine(unittest.TestCase):
-    """The farmer's answers arrive as command-line options, so bad answers have to
-    be refused at the edge rather than quietly producing a wrong window."""
+    """Farmer answers as command-line options."""
 
     def test_defaults_are_the_pilot(self):
         a = K.parse_args([])
@@ -572,8 +532,7 @@ class CommandLine(unittest.TestCase):
         self.assertEqual(a.harvest, b.harvest)
 
     def _refused(self, argv):
-        """argparse prints usage to stderr before exiting; swallow it so a failing
-        answer does not look like a broken test run."""
+        """Expect SystemExit; swallow argparse's usage on stderr."""
         with contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit):
                 K.parse_args(argv)
@@ -602,8 +561,7 @@ class CommandLine(unittest.TestCase):
 
 
 class Diagnostics(unittest.TestCase):
-    """The diagnostics are what a reviewer would check the model against, so the
-    statistics behind them are tested against cases with known answers."""
+    """diagnostics.py statistics against known cases."""
 
     @classmethod
     def setUpClass(cls):
@@ -665,8 +623,7 @@ class Diagnostics(unittest.TestCase):
         self.assertIsNone(self.D.correlation([1.0, 1.0, 1.0], [1.0, 2.0, 3.0]))
 
     def test_ties_are_reported_as_ties_not_as_an_order(self):
-        # At a low enough pass mark every crop clears it, and then there is no
-        # order to read: it must come back as one tied group, not four ranks.
+        # pass mark 0: every crop clears it, one tied group
         sv = self.D.check_pass_mark_sensitivity(marks=(0.0,))
         self.assertEqual(len(sv["orders"][0.0]), 1)
         self.assertIn(" = ", sv["orders"][0.0][0])
@@ -681,7 +638,6 @@ class Diagnostics(unittest.TestCase):
     def test_coverage_matches_the_loaded_data(self):
         cov = self.D.check_coverage()
         self.assertEqual(cov["T2M"]["days_present"], len(K.daily))
-        # Radiation starts later than temperature, which is why ETo does too.
         self.assertLess(cov["TOA_SW_DWN"]["days_present"], cov["T2M"]["days_present"])
         self.assertEqual(cov["TOA_SW_DWN"]["first_day"], "1984-01-01")
 
@@ -692,8 +648,6 @@ class Diagnostics(unittest.TestCase):
                          + s["ph_out_of_range"] + s["usable"])
 
     def test_window_stats_do_not_depend_on_crop_order(self):
-        # These are whole-window figures; nothing about them should change if
-        # crops.csv is reordered.
         self.assertEqual(len(self.D.WINDOW), len(K.SEASONS))
         for w, s in zip(self.D.WINDOW, K.SEASONS):
             self.assertEqual(w["year"], s["year"])

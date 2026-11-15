@@ -3,12 +3,7 @@
     python insights.py                     # the table, printed
     python insights.py --out insights.json # and the numbers, as JSON
 
-Runs the real model once per row of places.csv, with the same answers each time
-(harvest 15 November, next planting 31 May, rain only, field drains), and puts
-the results side by side. Changes nothing.
-
-Every figure is a count or a median over past seasons. None is a forecast, and
-none has been checked against a harvest.
+One model run per places.csv row. Past-season counts and medians, not forecasts.
 """
 import argparse
 import csv
@@ -55,7 +50,7 @@ def median(v):
 
 
 def summarise(place, r):
-    """One place's headline figures, all on the crop's shortest cycle, rain only."""
+    """One place's headline figures: shortest cycle, rain only."""
     field, meta = r["fields"]["rain"], r["meta"]
     crops, main = field["crops"], meta["main_crop"]
     order = field["rankings"]["balanced"]
@@ -91,8 +86,7 @@ def summarise(place, r):
         wettest_window_mm=max(s["window_rain"] for s in r["seasons"]),
         main_crop=main, top_crop=top, rated=rated,
         not_recommended={n: why for n, why in field["excluded"].items()},
-        # Water the leading crop needs less than the main crop, in a typical year.
-        # 1 mm over one hectare is 10 cubic metres.
+        # main crop's shortfall minus the leader's; 1 mm over 1 ha = 10 m3
         water_saved_mm=saved,
         water_saved_m3_per_ha=None if saved is None else saved * 10,
         crop_seasons_scored=scored)

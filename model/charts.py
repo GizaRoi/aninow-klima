@@ -3,12 +3,7 @@
     python charts.py                  write charts/ and charts/index.html
     python charts.py --out mydir      somewhere else
 
-Standard library only, like the rest of the model: no matplotlib, no numpy. SVG
-because it stays sharp on a projector at any size, opens in any browser, and
-PowerPoint and Google Slides both insert it as vector art rather than a bitmap.
-
-Every chart is drawn from the model's own output, so none of these are
-illustrations of what the result might look like: they are the result.
+Standard library only; drawn from the model's own output.
 """
 import argparse
 import math
@@ -19,32 +14,24 @@ from xml.sax.saxutils import escape
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# Tokens read straight off the two AniNow front ends rather than picked here, so
-# the charts sit inside the same design language:
-#   aninow-ph.vercel.app ...... --aninow-ink #153522, --aninow-dark #075a32
-#   the Klima prototype ....... --bg #f0f1e9, --ink #26392c, --green #334c37,
-#                               --muted #52614b, --line #d8dfcf, --lime #d5ed8c,
-#                               --amber #8c6928, --red #a05143, --soft #e8eddf
-PAPER = "#f0f1e9"          # the page, a pale sage rather than white
+# colours from the AniNow front ends
+PAPER = "#f0f1e9"          # page
 CARD = "#ffffff"
 INK = "#26392c"            # body text
-DARK = "#223024"           # headings, near-black green
+DARK = "#223024"           # headings
 SOFT = "#52614b"           # secondary text
-LINE = "#d8dfcf"           # hairline rules
+LINE = "#d8dfcf"           # rules
 TINT = "#e8eddf"           # faint fills
-GREEN = "#334c37"          # the brand's working green, muted not bright
-DEEP = "#075a32"           # aninow-dark, for emphasis
-LIME = "#d5ed8c"           # pale highlight, never a line colour
+GREEN = "#334c37"          # brand green
+DEEP = "#075a32"           # emphasis
+LIME = "#d5ed8c"           # highlight fill only
 AMBER = "#8c6928"
-RED = "#a05143"            # muted brick: a warning, not an alarm
+RED = "#a05143"            # warning
 
-# Four crops need four readable hues, and the brand is almost entirely green, so
-# these are spaced by lightness as well as hue. Rice, the baseline being compared
-# against, carries the brick; the alternatives run from green to amber.
+# rice, the baseline, is red
 CROP_COLOUR = {"mungbean": GREEN, "eggplant": SOFT, "tomato": AMBER, "rice": RED}
 
-# Manrope for display and DM Sans for text, as both front ends use, with a system
-# fallback so the files still look right where those are not installed.
+# front-end fonts, system fallback
 FONT_DISPLAY = "Manrope, 'DM Sans', -apple-system, 'Segoe UI', sans-serif"
 FONT = "'DM Sans', -apple-system, 'Segoe UI', sans-serif"
 
@@ -67,7 +54,7 @@ K = D.K
 
 # ---------------- a very small SVG plotter ----------------
 class Chart:
-    """Draws into a fixed pixel box with a data-to-pixel mapping on each axis."""
+    """Fixed pixel box with a data-to-pixel mapping on each axis."""
 
     def __init__(self, title, subtitle="", width=880, height=480,
                  pad=(74, 28, 62, 150), eyebrow=""):   # left, top, bottom, right
@@ -75,8 +62,7 @@ class Chart:
         self.pl, self.pt, self.pb, self.pr = pad
         self.parts = []
         self.title, self.subtitle = title, subtitle
-        # An uppercase label in wide tracking above the title, the same device
-        # both front ends use ("ROOTED IN YOUR REALITY", "A BIGGER PICTURE").
+        # uppercase label above the title
         self.eyebrow = eyebrow
         self.x0 = self.y0 = 0.0
         self.x1 = self.y1 = 1.0
@@ -156,8 +142,7 @@ class Chart:
 
     # -- furniture
     def axes(self, xticks, yticks, xlab="", ylab="", xfmt=str, yfmt=str, grid=True):
-        # Hairline horizontals only, no frame and no vertical rules: the baseline
-        # does the work and the plot keeps its air.
+        # horizontal grid lines only
         if grid:
             for t in yticks:
                 self.line(self.left, self.py(t), self.right, self.py(t), LINE, 1.0)
@@ -179,7 +164,6 @@ class Chart:
         y = self.top + 4 if y is None else y
         for i, (label, colour) in enumerate(items):
             yy = y + i * 20
-            # A short rule reads as a line on a line chart; a swatch reads as a box.
             self.line(x, yy - 3, x + 14, yy - 3, colour, 2.6)
             self.text(x + 20, yy + 1, label, 11.5, INK)
         return self
@@ -196,7 +180,6 @@ class Chart:
                         f'{escape(self.eyebrow.upper())}</text>')
             y += 14
         if self.title:
-            # Manrope at 550 with tight negative tracking, as both front ends set it.
             head.append(f'<text x="{self.pl}" y="{y + 20}" font-size="19" '
                         f'font-weight="550" fill="{DARK}" font-family="{FONT_DISPLAY}" '
                         f'letter-spacing="-0.6">{escape(self.title)}</text>')
@@ -217,7 +200,7 @@ class Chart:
 
 
 def nice_ticks(lo, hi, count=5):
-    """Round tick values spanning lo..hi, chosen from 1 / 2 / 2.5 / 5 x a power of ten."""
+    """Round ticks spanning lo..hi: 1 / 2 / 2.5 / 5 x a power of ten."""
     if hi <= lo:
         return [lo]
     raw = (hi - lo) / count
@@ -233,7 +216,7 @@ def nice_ticks(lo, hi, count=5):
 
 # ---------------- the charts ----------------
 def chart_water_balance(out):
-    """Why November. Demand against rainfall for every candidate planting date."""
+    """Water demand against rainfall for each candidate planting date."""
     crop = "mungbean" if "mungbean" in K.WINDOW_OPTIONS else next(iter(K.WINDOW_OPTIONS))
     opts = K.WINDOW_OPTIONS[crop]
     xs = [o["offset_days"] for o in opts]
@@ -249,13 +232,12 @@ def chart_water_balance(out):
     c.axes(xs, nice_ticks(0, top), "planting date", "mm over the cycle",
            xfmt=lambda t: next(o["plant_month_day"] for o in opts if o["offset_days"] == t),
            yfmt=lambda v: f"{v:.0f}")
-    # The shortfall is the derived quantity, so it carries the only strong fill;
-    # the two inputs stay as quiet lines. Filled as one band, not a row of bars.
+    # shortfall band between demand and rainfall
     gap = list(etc) + list(reversed(rain))
     c.path(gap, "none", 0, fill=RED, fill_opacity=0.14, close=True)
     c.path(etc, DARK, 2.2)
     c.path(rain, GREEN, 2.2)
-    # Heat days on their own scale, as a quiet band along the floor.
+    # heat days, own scale
     hmax = max(v for _, v in heat) or 1
     for x, v in heat:
         h = (v / hmax) * (c.bottom - c.top) * 0.20
@@ -264,7 +246,6 @@ def chart_water_balance(out):
               (f"days over {K.HEAT_LIMIT_C:.0f}C", AMBER)])
     best = min((o for o in opts if o["median_deficit_mm"] is not None),
                key=lambda o: o["median_deficit_mm"])
-    # Label the two ends in plain words on the plot, rather than only in prose.
     c.text(c.px(xs[0]) + 8, c.py(top * 0.93), "plant now: least to supply, no heat",
            11, DARK, "start", "600")
     c.text(c.right - 4, c.py(top * 0.93), "plant late: more rain, but it cooks",
@@ -277,7 +258,7 @@ def chart_water_balance(out):
 
 
 def chart_seasons(out):
-    """Every season, not just the median, with the rainfall trend behind it."""
+    """Each season's score per crop, against the pass mark."""
     c = Chart("Suitability season by season",
               f"Each dot is one season's score. Pass mark {K.PASS_MARK}. "
               f"Open dots are dry seasons, rings are El Nino seasons.",
@@ -307,7 +288,7 @@ def chart_seasons(out):
 
 
 def chart_halves(out):
-    """The non-stationarity, shown rather than buried in a caveat."""
+    """Share of seasons passing, first half of the record against second."""
     h = D.check_stationarity()["halves"]
     crops = [c for c in CROP_COLOUR if c in h]
     c = Chart("The record is not one climate",
@@ -341,7 +322,7 @@ def chart_halves(out):
 
 
 def chart_wilson(out):
-    """The count with its interval, and the interval it deserves."""
+    """Pass share per crop, Wilson 95% at n and at n_eff."""
     ind = D.check_independence()
     crops = [c for c in CROP_COLOUR if c in ind]
     c = Chart("How often past seasons passed, with 95% intervals",
@@ -384,7 +365,7 @@ def chart_wilson(out):
 
 
 def chart_sensitivity(out):
-    """Whether 0.6 is doing the deciding."""
+    """Seasons passing per crop at each pass mark."""
     sv = D.check_pass_mark_sensitivity(marks=(0.4, 0.5, 0.6, 0.7, 0.8))
     c = Chart("Does the pass mark decide the answer?",
               "Seasons passing at each pass mark. Where lines touch, the crops tie "
@@ -439,16 +420,14 @@ def chart_rainfall_check(out):
 
 
 def chart_decomposition(out):
-    """Which condition is actually limiting each crop."""
-    # The pilot chart keeps to the ten crops it was drawn for; analysis.py covers
-    # all of them, for every place, as tables.
+    """Median condition scores per crop."""
+    # pilot crops only; analysis.py covers the rest
     pilot = ("rice", "mungbean", "eggplant", "tomato", "squash", "sitaw", "snapbean",
              "cabbage", "lettuce", "potato")
     crops = [c for c in K.fields["rain"]["crops"] if c in pilot]
     keys = ("temp", "water", "ph", "texture")
     names = {"temp": "heat", "water": "water", "ph": "soil pH", "texture": "soil texture"}
-    # Water is the condition that decides, so it is the one that carries colour;
-    # the three that never bind stay quiet.
+    # only water gets a strong colour
     shades = {"temp": LINE, "water": RED, "ph": TINT, "texture": LINE}
     edges = {"temp": SOFT, "water": RED, "ph": SOFT, "texture": SOFT}
     c = Chart("What limits each crop",
@@ -481,7 +460,7 @@ def chart_decomposition(out):
 
 
 def chart_coverage(out):
-    """What data actually exists, which is the honest start of any pipeline slide."""
+    """Share of days present for each input variable."""
     cov = D.check_coverage()
     items = list(cov.items())
     c = Chart("What the inputs actually cover",
@@ -508,7 +487,7 @@ def chart_coverage(out):
 
 
 def chart_scoring_function(out):
-    """The method itself: there are no margins of ours in here."""
+    """EcoCrop four-breakpoint score curve, for one crop's temperature."""
     crop = "mungbean" if "mungbean" in K.CROPS else next(iter(K.CROPS))
     a, b, cc, d = K.CROPS[crop]["temp"]
     ch = Chart(f"How a condition becomes a score: {crop} temperature",
@@ -540,7 +519,7 @@ def chart_scoring_function(out):
 
 
 def chart_kc(out):
-    """How crop water demand is built, stage by stage."""
+    """FAO-56 Kc curve over one crop's cycle, with stage boundaries."""
     crop = next((n for n in ("mungbean", "rice") if n in K.CROPS and K.CROPS[n]["kc"]),
                 None)
     if crop is None:
@@ -569,11 +548,7 @@ def chart_kc(out):
 
 
 def chart_pipeline(out):
-    """Where every number comes from, including the sources that led nowhere.
-
-    One diagram covering sources, cleaning, statistics, scores and output. The
-    dead ends are drawn in deliberately: a source that was fetched and then
-    rejected is evidence of method, not an embarrassment to hide."""
+    """Pipeline diagram; sources fetched but unused are greyed."""
     c = Chart("Where every number comes from",
               "Sources, what was done to them, and what came out. Greyed boxes were "
               "fetched and then NOT used, with the reason given.",
@@ -674,7 +649,7 @@ def chart_pipeline(out):
         box(col_x[4], y, col_w[4], h, title, body, fill="#eaf2e8", stroke=GREEN)
         y += h + 18
 
-    # wiring: sources into cleaning, cleaning into statistics, then forward
+    # arrows, column to column
     for i, (x, yy) in enumerate(src_ports):
         target = clean_ports[0] if i == 0 else clean_ports[min(1 + i // 3, 3)]
         arrow(x, yy, col_x[1], target[1], dim=sources[i][2])
@@ -697,8 +672,7 @@ CHARTS = [chart_pipeline, chart_water_balance, chart_seasons, chart_halves, char
 
 
 def index_html(paths, directory):
-    # The SVG is inlined rather than linked, so this one file can be emailed,
-    # opened anywhere, and printed straight to PDF with the charts intact.
+    # SVG inlined: one self-contained file
     cards = []
     for p in paths:
         if not p:

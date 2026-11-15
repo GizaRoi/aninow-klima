@@ -1,12 +1,8 @@
 """Read the FAO EcoCrop data sheets saved in sources/ecocrop/.
 
-The model does not use this at run time: crops.csv is what it reads. This exists so
-a test can prove that every EcoCrop number in crops.csv is the number printed on
-the official sheet, and so a new crop row can be filled from the sheet instead of
-typed by hand. Parser adapted from Romano's model/ecocrop.py.
-
-A sheet prints each limit as: optimal min, optimal max, absolute min, absolute max.
-crops.csv stores them as: absolute min, optimal min, optimal max, absolute max.
+Not used at run time; tests check crops.csv against these sheets.
+Parser adapted from Romano's model/ecocrop.py.
+Sheets print opt min, opt max, abs min, abs max; crops.csv stores abs, opt, opt, abs.
 """
 import os
 import re
@@ -27,8 +23,7 @@ def has_sheet(sheet_id):
 
 
 def texture_classes(cell):
-    """'medium, organic' -> ['medium']; 'wide' -> all three. 'organic' is not one
-    of the three mineral classes the model scores, so it is dropped."""
+    """'medium, organic' -> ['medium']; 'wide' -> all three; 'organic' is dropped."""
     words = [w.strip() for w in cell.split(",")]
     if "wide" in words:
         return list(CLASSES)
@@ -68,7 +63,7 @@ def read_sheet(sheet_id):
         temp=limits("Temperat. requir."), rain=limits("Rainfall (annual)"),
         ph=limits("Soil PH"),
         tex_opt=tex_opt,
-        # a soil the sheet calls optimal is also one the crop tolerates
+        # optimal implies tolerated
         tex_abs=[c for c in CLASSES if c in tex_opt or c in tex_abs],
         drainage=("well" if drain_opt.startswith("well") else
                   "poorly" if drain_opt.startswith("poorly") else "unstated"),

@@ -3,24 +3,7 @@
     python diagnostics.py                 report to the screen
     python diagnostics.py --out diag.json also write the numbers
 
-Standard library only, like the model. It imports klima_model, so it describes
-that module's default configuration, which it prints first.
-
-What it covers, and why each one is here:
-
-  1 Coverage          what share of each input variable actually exists.
-  2 Soil cleaning     how many samples were dropped, and by which rule.
-  3 Stationarity      whether the 44 seasons describe one climate or several.
-                      They do not, so pooling them hides a real change.
-  4 Independence      the Wilson interval assumes seasons are independent draws.
-                      This measures the autocorrelation and the effective n.
-  5 Pass-mark         spec section 9.3: does the crop order survive a different
-      sensitivity     pass mark, or is 0.6 doing the deciding?
-  6 Rainfall          spec section 9.2: POWER's two precipitation columns
-      cross-check     against each other.
-  7 Spread of S       we publish the median; this is what it hides.
-
-None of these change a score. They say how much weight a score can carry.
+Runs on klima_model's default configuration. Changes no score.
 """
 import argparse
 import csv
@@ -48,14 +31,13 @@ def load_model():
 
 
 K = load_model()
-TAG = "short"          # the crop's own shortest cycle
+TAG = "short"          # shortest cycle
 PROFILE = "balanced"
 
 
 # ---------------- small statistics, written out rather than imported ----------
 def linear_trend(xs, ys):
-    """Least-squares slope with its t statistic. |t| above about 2 means the
-    slope is unlikely to be noise at 44 points."""
+    """Least-squares slope and its t statistic."""
     pairs = [(x, y) for x, y in zip(xs, ys) if y is not None]
     n = len(pairs)
     if n < 3:
@@ -75,14 +57,13 @@ def linear_trend(xs, ys):
 
 
 def lag1_autocorrelation(x):
-    """Lag-1 autocorrelation of a 0/1 series, and the sample size a correlated
-    series is worth: n_eff = n (1 - r) / (1 + r)."""
+    """Lag-1 autocorrelation of a 0/1 series; n_eff = n (1 - r) / (1 + r)."""
     n = len(x)
     if n < 3:
         return None
     p = sum(x) / n
     den = sum((v - p) ** 2 for v in x)
-    if den == 0:                      # every season identical: no structure to find
+    if den == 0:                      # constant series
         return dict(r1=None, n=n, n_eff=n, degenerate=True)
     r1 = sum((x[i] - p) * (x[i + 1] - p) for i in range(n - 1)) / den
     n_eff = n * (1 - r1) / (1 + r1) if r1 > -1 else float(n)
@@ -99,7 +80,7 @@ def correlation(a, b):
 
 # ---------------- the checks ----------------
 def season_values(crop, tag=TAG, profile=PROFILE):
-    """Per-season suitability for one crop, in season order, Nones dropped."""
+    """(season, S) for one crop, in season order, Nones dropped."""
     rows = K.fields["rain"]["crops"][crop]["seasons"]
     out = []
     for r in rows:
@@ -110,8 +91,7 @@ def season_values(crop, tag=TAG, profile=PROFILE):
 
 
 def check_coverage():
-    """What share of each input variable exists. -999 was turned into 'missing'
-    on load, so this is real coverage, not a count of rows."""
+    """Share of days present per input variable; -999 is already None."""
     total = len(K.daily)
     out = {}
     for col in ("T2M", "T2M_MAX", "T2M_MIN", "PRECTOTCORR", "GWETROOT",
@@ -125,9 +105,7 @@ def check_coverage():
 
 
 def check_soil_cleaning():
-    """How many soil samples each rule removed. The shared-coordinate rule from
-    the spec's section 2.5 is counted but NOT applied by the model yet, so it is
-    reported as a known gap rather than as work already done."""
+    """Soil samples removed per rule; shared coordinates (spec 2.5) counted, not dropped."""
     path = os.path.join(HERE, K.SARAI_FILE)
     if not os.path.exists(path):
         return dict(error="no SARAI file")
@@ -163,9 +141,7 @@ def check_soil_cleaning():
 
 
 def window_stats():
-    """Per-season statistics over the WHOLE window, so nothing here depends on
-    which crop happens to be first in crops.csv. The spec's section 9.2 defines
-    its rainfall cross-check on the window total too."""
+    """Per-season rain and mean temperature over the whole window."""
     out = []
     for s in K.SEASONS:
         period = K.days(s["start"], s["n_days"])
@@ -180,14 +156,11 @@ WINDOW = window_stats()
 
 
 def check_stationarity():
-    """Whether the seasons describe one climate. If they do not, a count pooled
-    over all of them is an average of climates, not a frequency for next year."""
+    """Rain and temperature trends by window slice; pass counts by half of the record."""
     years = [w["year"] for w in WINDOW]
     out = dict(rainfall=linear_trend(years, [w["rain_mm"] for w in WINDOW]),
                window_mean_temp=linear_trend(years, [w["mean_temp_c"] for w in WINDOW]))
-    # A trend measured over one slice of the window does not hold across the rest
-    # of it, so measure several. Quoting a single slice as "the" trend is an easy
-    # mistake: the warming here is confined to the first weeks after harvest.
+    # trend differs by slice, so measure several
     slices, n = {}, min(s["n_days"] for s in K.SEASONS)
     for off, length in ((0, 50), (0, 80), (0, 120), (0, n),
                         (n // 2, n - n // 2)):
@@ -219,8 +192,7 @@ def check_stationarity():
 
 
 def check_independence():
-    """The Wilson interval treats seasons as independent draws. Where they are
-    positively correlated the interval is narrower than the data deserves."""
+    """Lag-1 autocorrelation of pass/fail; Wilson interval at n and n_eff."""
     out = {}
     for crop in K.fields["rain"]["crops"]:
         vals = season_values(crop)
@@ -239,17 +211,14 @@ def check_independence():
 
 
 def check_pass_mark_sensitivity(marks=(0.4, 0.5, 0.6, 0.7, 0.8)):
-    """Spec section 9.3. Recomputes the counts at other pass marks from the stored
-    per-season values, and reports whether the crop order holds."""
+    """Spec 9.3: counts and crop order at other pass marks."""
     vals = {c: season_values(c) for c in K.fields["rain"]["crops"]}
     vals = {c: v for c, v in vals.items() if v}
     rows, orders, tops = {}, {}, []
     for m in marks:
         counts = {c: sum(1 for _, v in s if v >= m) for c, s in vals.items()}
         rows[m] = counts
-        # Group crops that tie on the count. A low pass mark can let every crop
-        # through, and then there is no order at all: reporting one would be an
-        # artefact of however the crops happen to be listed.
+        # group ties: equal counts have no order
         groups = []
         for c in sorted(counts, key=lambda c: -counts[c]):
             if groups and counts[groups[-1][0]] == counts[c]:
@@ -267,8 +236,7 @@ def check_pass_mark_sensitivity(marks=(0.4, 0.5, 0.6, 0.7, 0.8)):
 
 
 def check_rainfall_cross_check():
-    """Spec section 9.2. POWER's bias-corrected PRECTOTCORR against its other
-    precipitation column, over the seasons where both exist."""
+    """Spec 9.2: PRECTOTCORR against POWER's other precipitation column."""
     pairs = [(w["other_rain_mm"], w["rain_mm"]) for w in WINDOW
              if w["other_rain_mm"] is not None and w["rain_mm"] is not None]
     if len(pairs) < 3:
@@ -291,7 +259,7 @@ def check_rainfall_cross_check():
 
 
 def check_spread_of_S():
-    """The report publishes a median. This is the distribution behind it."""
+    """Distribution of S behind the published median."""
     out = {}
     for crop in K.fields["rain"]["crops"]:
         vals = [v for _, v in season_values(crop)]

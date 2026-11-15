@@ -1,7 +1,4 @@
-"""HTTP validation, process isolation and real model output at the API boundary.
-
-Install requirements-dev.txt, then run from model/: python -m unittest discover .
-"""
+"""API boundary: validation, process isolation, real model output. Needs requirements-dev.txt."""
 import json
 import subprocess
 import unittest
@@ -200,7 +197,7 @@ class RealComparisons(unittest.TestCase):
         self.assertIn("suitability", results["method"])
         self.assertIn("crop_coefficients", results)
         self.assertEqual(len(results["seasons"]), 44)
-        # Response contains the complete JSON result, with both water scenarios.
+        # both water scenarios returned
         self.assertIn("irrigation", results["fields"])
         json.dumps(body, allow_nan=False)
 

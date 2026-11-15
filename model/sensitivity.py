@@ -1,15 +1,8 @@
-"""How much do the values we had to choose move the answer?
+"""One-at-a-time sensitivity of the water shortfall to the chosen crop values.
 
     python sensitivity.py
 
-FAO-56 leaves some cells blank or gives a range, and EcoCrop's growing times are
-global spans. Each such value is pushed to the other end of its range, one at a
-time, and the typical water shortfall on a rainfed field is worked out again.
-Nothing here changes the model or its results file.
-
-The step sizes for early-stage Kc (plus or minus 0.1) and for stage lengths (half
-as much again) are test sizes chosen here, not published ranges. The late-stage
-Kc ranges, the seepage figures and the growing times are the sources' own.
+Kc_ini +/-0.1 and stage x1.5 are step sizes chosen here, not published ranges.
 """
 import contextlib
 import copy

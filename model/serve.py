@@ -2,18 +2,7 @@
 
     python serve.py            then open http://127.0.0.1:8000
 
-Standard library only, like the model. It binds to 127.0.0.1 so it is reachable
-only from this machine: it runs a subprocess per request and is a development
-tool, not something to expose.
-
-Each submission runs klima_model.py as a subprocess with the answers as options,
-so the browser exercises exactly the same code path as the command line. A run
-takes about a second. Arguments are passed as a list, never through a shell.
-
-The page has two levels. The default view is written for a farmer: a place name
-instead of coordinates, plain words, and four facts per crop. Soil test values
-and the pass mark sit behind switches, and "Advanced view" adds the scores, the
-year counts with their ranges, the planting-date table and the sources.
+Dev tool, bound to 127.0.0.1. Runs klima_model.py per submission, args as a list, no shell.
 """
 import csv
 import html
@@ -44,7 +33,7 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 CONDITIONS = (("temp", "Temperature"), ("water", "Water"),
               ("ph", "Soil pH"), ("texture", "Soil texture"))
-# Why a crop was ruled out, in the farmer's words rather than the model's codes.
+# EXCLUDED: exclusion code -> plain words
 FALLOW = ("fallow", "Nothing: the field is resting")
 EXCLUDED = {
     "does_not_fit_window": "Your whole plan for it (preparing, growing, picking and "
@@ -58,8 +47,7 @@ EXCLUDED = {
 
 
 def excluded_reason(code, seen):
-    """A ruled-out crop's reason in plain words. `seen` holds what was compared for
-    a crop known only from a DA crop guide."""
+    """Exclusion code in plain words; `seen` is the DA-guide comparison."""
     if code in EXCLUDED:
         return EXCLUDED[code]
     if seen and code in ("warmer_than_guide_range", "cooler_than_guide_range"):
@@ -75,7 +63,7 @@ def excluded_reason(code, seen):
 
 
 def read_crop_names():
-    """Crop key -> name the farmer knows it by, in the order of crops.csv."""
+    """Crop key -> local name, in crops.csv order."""
     import csv as _csv
     with open(CROPS_FILE, newline="", encoding="utf-8") as f:
         return {r["crop"].strip(): (r.get("local_name") or r["crop"]).strip()
@@ -93,13 +81,12 @@ def read_english_names():
 
 
 CROP_ENGLISH = read_english_names()
-# How each condition is named inside a sentence.
+# condition names mid-sentence
 IN_WORDS = {"temp": "temperature", "water": "water", "ph": "soil pH", "texture": "soil texture"}
 
 
 def read_places():
-    """Places the farmer can pick, each with the coordinates the model needs. The
-    farmer names a place; turning it into a latitude and longitude is our job."""
+    """'place, province' -> its places.csv row, with lat and lon."""
     out = {}
     with open(PLACES_FILE, newline="", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
@@ -238,7 +225,7 @@ def esc(v):
 
 
 def num(v, lo, hi, name):
-    """Parse a number the farmer typed, refusing anything outside a sane range."""
+    """Parse a number, refusing anything outside lo..hi."""
     try:
         x = float(v)
     except (TypeError, ValueError):
@@ -253,8 +240,7 @@ def answer(q, key):
 
 
 def to_args(q):
-    """Turn the submitted form into klima_model.py options. Everything the farmer
-    typed is validated here; nothing reaches a shell."""
+    """Validated form -> klima_model.py options."""
     g = lambda k: answer(q, k)
     place = PLACES.get(g("place") or DEFAULTS["place"])
     if place is None:
@@ -267,9 +253,7 @@ def to_args(q):
             dates[key] = date.fromisoformat(g(key) or DEFAULTS[key])
         except ValueError:
             raise ValueError(f"{label}: {g(key)!r} is not a date.") from None
-    # The model keeps only month and day, so it would read a planting date before
-    # the harvest as one a year later and quietly return a 364-day window. A farmer
-    # typing two real dates in that order has made a mistake; say so.
+    # model keeps month/day only: reversed dates would wrap to a ~364-day window
     if dates["next_planting"] <= dates["harvest"]:
         raise ValueError("Your next planting date is before your harvest date. "
                          "Check the two dates.")
@@ -286,8 +270,7 @@ def to_args(q):
             "--harvest", dates["harvest"].isoformat(),
             "--next-planting", dates["next_planting"].isoformat(),
             "--drainage", drainage]
-    # A switched-off section is ignored even if its fields still hold values, so
-    # what the farmer sees hidden is never quietly used.
+    # fields in a switched-off section are ignored
     if g("advanced"):
         args += ["--pass-mark", repr(num(g("pass_mark") or "0.6", 0.0, 1.0, "Pass mark"))]
         days = num(g("turnaround") or "0", 0, 90, "Days to prepare the field")
@@ -295,7 +278,6 @@ def to_args(q):
             raise ValueError("Days to prepare the field: give a whole number of days.")
         args += ["--turnaround-days", str(int(days))]
     if g("plan"):
-        # The farmer's whole plan for the field, not only the crop's growing time.
         for key, option, label in (("prep", "--prep-days", "Days before planting"),
                                    ("picking", "--picking-days", "Days of picking")):
             days = num(g(key) or "0", 0, 180, label)
@@ -348,9 +330,7 @@ def mm(v):
 
 
 def water_plain(deficit_mm, days, rice_mm=None, is_rice=False, main_name="Rice"):
-    """The water gap in words a farmer can picture: a depth of water standing on
-    the field, and how it compares with rice. Returns (headline, small print).
-    Millimetres to centimetres is only a change of unit, so nothing is assumed."""
+    """Water gap as a depth in cm: (headline, small print)."""
     if deficit_mm is None:
         return "Not worked out", ""
     if deficit_mm < 1:
@@ -364,9 +344,7 @@ def water_plain(deficit_mm, days, rice_mm=None, is_rice=False, main_name="Rice")
 
 
 def weakest(scores):
-    """The lowest scored condition: (key, value), or None if nothing was scored.
-    The headline rating follows this, not the combined score, because a combined
-    0.77 next to a water score of 0.33 reads as good news when it is not."""
+    """Lowest scored condition (key, value), or None; sets the headline rating."""
     have = [(k, scores[k]) for k, _ in CONDITIONS if scores.get(k) is not None]
     return min(have, key=lambda kv: kv[1]) if have else None
 
@@ -449,7 +427,7 @@ def form_html(q):
 
 
 def details_html(c, opts, kc_source, profile, water, heat_limit):
-    """The advanced block for one crop: scores, year counts, planting dates, notes."""
+    """Advanced block for one crop."""
     short_d, long_d = c["scored_days"]["short"], c["scored_days"]["long"]
     head = (f'<th class="n">{short_d}-day crop</th><th class="n">{long_d}-day crop</th>')
     rows = ""
@@ -532,7 +510,7 @@ def details_html(c, opts, kc_source, profile, water, heat_limit):
 
 
 def crop_html(rank, name, c, opts, kc_source, ctx):
-    """One crop card: the verdict and four facts, then the detail if asked for."""
+    """One crop card."""
     local = ctx["names"].get(name, name.title())
     is_main = name == ctx["main"]
     label = (f'{esc(local)} <small>{esc(CROP_ENGLISH.get(name, name.title()))}'
@@ -757,7 +735,7 @@ def choice(q, key, allowed):
 
 
 def page_html(q):
-    """The whole page for one request. Split out so it can be tested without a socket."""
+    """The whole page for one request."""
     body = ""
     if q:
         try:
@@ -790,9 +768,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class Server(ThreadingHTTPServer):
-    # HTTPServer sets this, and on Windows it lets a second instance bind a port
-    # the first still holds: the new process looks fine while the old one keeps
-    # answering, so edits appear to do nothing. Better to refuse to start.
+    # Windows: reuse would let a second instance bind the same port
     allow_reuse_address = False
 
 

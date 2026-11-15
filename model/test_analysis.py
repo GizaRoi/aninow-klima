@@ -1,8 +1,4 @@
-"""Tests for the statistics in analysis.py and the plot-history record.
-
-Each statistic is checked against a value worked by hand or a textbook case, so the
-figures quoted in the pitch rest on arithmetic that has been verified, not assumed.
-"""
+"""Statistics in analysis.py against hand-worked cases; the plot-history record."""
 import copy
 import json
 import os
@@ -22,7 +18,7 @@ class Statistics(unittest.TestCase):
         self.assertEqual(A.fisher_exact(0, 5, 0, 5), 1.0)        # nothing to compare
 
     def test_mann_kendall_on_a_rising_series(self):
-        # 1..10 strictly rising: S = 45, variance 10*9*25/18 = 125, z = 44/sqrt(125).
+        # 1..10 rising: S = 45, var = 10*9*25/18 = 125, z = 44/sqrt(125)
         s, z, p = A.mann_kendall(list(range(1, 11)))
         self.assertEqual(s, 45)
         self.assertAlmostEqual(z, 44 / 125 ** 0.5, places=12)
@@ -40,7 +36,7 @@ class Statistics(unittest.TestCase):
 
     def test_least_squares_recovers_a_known_line(self):
         x = [0, 1, 2, 3, 4]
-        # by hand: sum of (x - 2)(y - 5) = 19.7, sum of (x - 2)^2 = 10, slope 1.97
+        # by hand: Sxy = 19.7, Sxx = 10, slope 1.97
         slope, t = A.ols_trend(x, [1, 3.1, 4.9, 7.2, 8.8])
         self.assertAlmostEqual(slope, 1.97, places=9)
         self.assertGreater(t, 10)
@@ -52,7 +48,7 @@ class Statistics(unittest.TestCase):
         self.assertIsNone(A.spearman([1, 2, 3], [5, 5, 5]))
 
     def test_benjamini_hochberg_worked_example(self):
-        # p = .01 .02 .03 .04 .05, m = 5: q = p * 5 / rank, made monotone.
+        # p = .01 .. .05, m = 5: q = p * 5 / rank, made monotone
         q = A.benjamini_hochberg([0.01, 0.02, 0.03, 0.04, 0.05])
         for got in q:
             self.assertAlmostEqual(got, 0.05)
@@ -100,7 +96,7 @@ class PlotHistory(unittest.TestCase):
         self.assertEqual(get("--harvest"), "2026-11-15")
         self.assertEqual(get("--next-planting"), "2027-05-31")
         self.assertEqual(get("--soil-ph"), "6.1")
-        self.assertNotIn("--soil-texture", opts)          # N/A: the sample fills it
+        self.assertNotIn("--soil-texture", opts)          # N/A: sample fills it
         self.assertEqual(get("--prep-days"), "10")
         self.assertNotIn("--picking-days", opts)          # N/A is not zero
         self.assertEqual(get("--clearing-days"), "7")

@@ -1,7 +1,4 @@
-"""Tests for the local form: what it sends to the model and what it shows.
-
-    python -m unittest discover model -v
-"""
+"""The local form: what it sends to the model and what it shows."""
 import importlib.util
 import os
 import unittest
@@ -16,7 +13,7 @@ PLACE = next(iter(S.PLACES))
 
 
 def q(**kw):
-    """A submitted form, in the shape urllib.parse.parse_qs gives."""
+    """A submitted form, parse_qs-shaped."""
     base = dict(place=PLACE, harvest="2026-11-15", next_planting="2027-05-31",
                 drainage="well_drained", water="rain", priority="balanced")
     base.update(kw)
@@ -106,7 +103,6 @@ class FormToModel(unittest.TestCase):
         self.assertIn("Suitable here in a typical year:</strong> Labanos, Munggo.", pilot)
 
     def test_every_place_on_the_list_has_weather_and_soil(self):
-        # A place is only offered if the model can actually score it.
         self.assertGreaterEqual(len(S.PLACES), 7)
         for name in S.PLACES:
             page = S.page_html(q(place=name))
@@ -123,7 +119,7 @@ class FormToModel(unittest.TestCase):
 
 
 class Page(unittest.TestCase):
-    """These run the real model, once per case, so they take a few seconds."""
+    """Runs the real model once per case; slow."""
 
     def test_the_form_never_asks_for_coordinates(self):
         page = S.page_html({})
@@ -184,7 +180,6 @@ class Page(unittest.TestCase):
 
     def test_a_field_that_holds_water_leaves_only_rice(self):
         page = S.page_html(q(drainage="poorly_drained"))
-        # Every crop that needs drained soil is ruled out; rice stays.
         self.assertIn("Not recommended here", page)
         rated = page.split("Not recommended here")[0]
         self.assertIn("Palay", rated)
@@ -193,8 +188,7 @@ class Page(unittest.TestCase):
         self.assertIn("you said water stays on your field", page)
 
     def test_the_rating_follows_the_weakest_condition(self):
-        # Rain covers about a sixth of rice's need on a rainfed field, so rice
-        # must not be shown as a good or fair fit whatever the combined score is.
+        # rainfed: rain covers ~1/6 of rice's need
         page = S.page_html(q())
         rice = page.split("</form>")[1].split("Palay <small>")[1].split("</div>")[0]
         self.assertIn("Poor fit", rice)

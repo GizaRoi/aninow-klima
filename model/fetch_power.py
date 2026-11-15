@@ -3,14 +3,7 @@
     python fetch_power.py            # fetch what is missing
     python fetch_power.py --list     # show what would be fetched
 
-This is the ONLY script here that uses the internet, and the model never calls it:
-klima_model.py reads the files already in this folder. Run it after adding a row
-to places.csv, then run the tests, which check every place has weather and soil.
-
-One file per place, at the coordinates in places.csv (those of the SARAI soil
-sample the place uses), with the same parameters as the pilot download:
-T2M, T2M_MAX, T2M_MIN, PRECTOTCORR, GWETROOT, TOA_SW_DWN; community AG;
-1981-01-01 to 2025-12-31; CSV; time standard LST.
+The only script that uses the network. One file per places.csv point.
 """
 import csv
 import os
@@ -42,7 +35,7 @@ def places():
 
 
 def has_file(lat, lon):
-    """True if a POWER file in this folder was downloaded for exactly this point."""
+    """True if a POWER file here was downloaded for this point."""
     import glob
     for path in glob.glob(os.path.join(HERE, "POWER_Point_Daily_*_LST.csv")):
         with open(path) as f:

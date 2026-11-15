@@ -3,22 +3,8 @@
     python plot_history.py plot_history_example.json
     python plot_history.py my_plot.json --args-only     # show the options, run nothing
 
-The record holds what an agriculturist asks first: what was grown, when it was
-planted and harvested, what pests and diseases turned up, what fertilizer went on,
-and any soil test. ANY field may be "N/A" when the farmer does not know. Nothing is
-guessed in its place: an N/A soil test means the nearest measured sample is used
-and the report says so; an N/A harvest date means the model cannot run, and the
-report says which field is missing.
-
-What the model uses from the record, and what it only keeps:
-
-    used      place, the last season's crop (or fallow) and harvest date, the next
-              planting date, drainage, irrigation, the most recent soil test, the plan
-    kept      planting dates, pests and diseases, fertilizer: recorded and shown back,
-              NOT scored. No sourced rule turns them into a number yet.
-    reported  crops in the same plant family as recent seasons, as a rotation caution
-
-Standard library only.
+Any field may be "N/A"; nothing is guessed in its place.
+Planting dates, pests and fertilizer are recorded, not scored.
 """
 import argparse
 import csv
@@ -38,7 +24,7 @@ SEASON_FIELDS = ("crop", "planted", "harvested", "pests_diseases", "fertilizer")
 
 
 def known(v):
-    """False for N/A in any spelling, an empty value or a missing one."""
+    """False for N/A in any spelling, empty or missing."""
     return v is not None and str(v).strip().lower() not in ("", "n/a", "na", "unknown")
 
 
@@ -55,8 +41,7 @@ def a_date(v, what):
 
 
 def normalise(record):
-    """The record with every missing field written out as N/A, and its problems.
-    Returns (record, errors). Errors stop the model; N/A does not."""
+    """(record with gaps as N/A, errors). Errors stop the model; N/A does not."""
     errors = []
     plot = dict(record.get("plot") or {})
     for k in ("name", "place", "drainage", "irrigation"):
@@ -101,8 +86,7 @@ def normalise(record):
 
 
 def latest_soil_test(tests):
-    """The most recent test that has a date; a test with no date cannot be ordered
-    against the others, so it is used only if it is the only one."""
+    """Most recent dated test; an undated one only if it is the only test."""
     dated = [t for t in tests if t["date"] != NA]
     if dated:
         return max(dated, key=lambda t: a_date(t["date"], "soil test date"))
@@ -110,7 +94,7 @@ def latest_soil_test(tests):
 
 
 def model_options(rec):
-    """(options, used, missing). `missing` lists what stops the model from running."""
+    """(options, used, missing); anything in `missing` stops the run."""
     crops, places = read_csv("crops.csv", "crop"), {}
     for r in read_csv("places.csv", "place").values():
         places[f"{r['place'].strip()}, {r['province'].strip()}"] = r
@@ -174,7 +158,7 @@ def model_options(rec):
 
 
 def family_history(rec, n=3):
-    """Plant families of the last n seasons, most recent first, fallows left out."""
+    """(crop, family) for the last n seasons, newest first, fallows skipped."""
     crops = read_csv("crops.csv", "crop")
     out = []
     for s in reversed(rec["seasons"][-n:]):

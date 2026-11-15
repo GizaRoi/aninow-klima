@@ -1,10 +1,4 @@
-"""Tests for the wider crop list, the wider place list and the whole-schedule check.
-
-    python -m unittest discover model -v
-
-The point of most of these is provenance: a number in crops.csv that claims to come
-from an FAO EcoCrop sheet has to BE the number on the sheet saved in sources/.
-"""
+"""Wider crop and place lists, whole-schedule check; crops.csv against the sheets in sources/."""
 import csv
 import json
 import os
@@ -54,7 +48,7 @@ class CropSources(unittest.TestCase):
             self.assertEqual(r["texture_absolute"], "|".join(s["tex_abs"]), r["crop"])
             self.assertEqual(r["soil_drainage"], s["drainage"], r["crop"])
             checked += 1
-        self.assertEqual(checked, 23)       # the four first crops and the 19 added
+        self.assertEqual(checked, 23)       # 4 pilot crops + 19 added
 
     def test_guide_crops_take_their_soil_texture_from_their_sheet(self):
         seen = 0
@@ -77,8 +71,7 @@ class CropSources(unittest.TestCase):
                 self.assertTrue(r[col].strip(), f"{r['crop']} has no {col}")
 
     def test_stage_lengths_add_up_or_the_row_says_why(self):
-        # FAO-56 Table 11 prints a total that its own four stages do not add to for
-        # sesame, sorghum and cowpea. Those rows have to say so.
+        # FAO-56 Table 11: sesame, sorghum, cowpea totals differ from their stage sums
         for r in crop_rows():
             if r["limits"] != "ecocrop" or r["crop"] in ("rice", "mungbean", "eggplant", "tomato"):
                 continue
@@ -87,10 +80,8 @@ class CropSources(unittest.TestCase):
                 self.assertIn("add to", r["kc_source"], r["crop"])
 
     def test_crop_water_need_is_inside_faos_published_range(self):
-        # FAO Irrigation Water Management Training Manual 3, chapter 3, "approximate
-        # values of seasonal crop water needs" (https://www.fao.org/4/s2022e/s2022e07.htm).
-        # An independent check on the Kc rows: median ETc over each crop's longest
-        # growing time at the pilot field. FAO's ranges are for full-length crops.
+        # ranges: FAO Training Manual 3 ch. 3, https://www.fao.org/4/s2022e/s2022e07.htm
+        # compared with median ETc over cycle_max at the pilot field
         from statistics import median
         ranges = {"maize": (500, 800), "soybean": (450, 700), "peanut": (500, 700),
                   "sweetpepper": (600, 900), "tomato": (400, 800)}
@@ -100,9 +91,7 @@ class CropSources(unittest.TestCase):
             return median(w["etc_mm"] for w in got if w)
         for name, (lo, hi) in ranges.items():
             self.assertTrue(lo <= need(name) <= hi, f"{name}: {need(name):.0f} mm")
-        # Two do NOT agree, and the documents say so instead of hiding it: onion and
-        # cabbage come out above FAO's range (350-550 and 350-500 mm). Both use long
-        # Mediterranean or Californian stage rows in a hot dry-season window.
+        # known misses: onion and cabbage exceed FAO's 350-550 and 350-500 mm
         self.assertGreater(need("onion"), 550)
         self.assertGreater(need("cabbage"), 500)
 
@@ -127,21 +116,18 @@ class NewRules(unittest.TestCase):
         self.assertIn("does_not_fit_window",
                       K.hard_filters(mung, window_days=91, turnaround=7, prep=14,
                                      picking=21)[0])
-        # with nothing added it is the old rule: the growing time alone
         self.assertEqual(K.schedule_days(mung, turnaround=0, prep=0, picking=0), 50)
 
     def test_guide_check_reports_and_never_scores(self):
-        # Tomato is scored on EcoCrop alone, as it always was. The DA guide's range
-        # is reported beside it and changes nothing.
+        # tomato: scored on EcoCrop; DA guide range only reported
         res = K.fields["rain"]["crops"]
         self.assertEqual(res["tomato"]["guide_check"]["outside"], "warmer")
         self.assertEqual(res["tomato"]["guide_check"]["guide_temp_c"], [21.0, 24.0])
         self.assertEqual(res["tomato"]["median_scores"]["short"]["temp"], 1.0)
-        self.assertIsNone(res["rice"]["guide_check"])     # rice is not in the DA file
+        self.assertIsNone(res["rice"]["guide_check"])     # not in the DA file
 
     def test_cool_season_crops_are_screened_on_the_guide_in_the_lowlands(self):
-        # EcoCrop alone would pass carrot and garden pea at 25 C. The DA guide says
-        # 15-21 and 10-18 C, so here they are not recommended, like cabbage.
+        # DA guide: carrot 15-21 C, garden pea 10-18 C; EcoCrop alone passes both at 25 C
         rain = K.fields["rain"]
         for name in ("carrot", "gardenpea"):
             self.assertEqual(rain["excluded"][name], ["warmer_than_guide_range"])
@@ -155,7 +141,7 @@ class NewRules(unittest.TestCase):
             res = K.fields[water]
             for order in res["rankings"].values():
                 partial = [bool(res["crops"][n]["not_scored"]) for n in order]
-                self.assertEqual(partial, sorted(partial), order)   # False first, then True
+                self.assertEqual(partial, sorted(partial), order)   # False first
             self.assertEqual(res["crops"]["maize"]["not_scored"], ["texture"])
             self.assertEqual(res["crops"]["mungbean"]["not_scored"], [])
 
@@ -173,10 +159,10 @@ class NoSuitableRecommendation(unittest.TestCase):
             c = K.fields["rain"]["crops"][n]
             self.assertGreaterEqual(c["median_S"]["short"]["balanced"], K.PASS_MARK)
             k = c["counts"]["balanced"]["all"]["short"]
-            self.assertGreaterEqual(2 * k["pass"], k["of"])     # good in half the years
+            self.assertGreaterEqual(2 * k["pass"], k["of"])     # passes half the years
 
     def test_a_place_where_every_crop_is_capped_says_so(self):
-        # Batac: pH 7.5 on clay. No crop's typical season reaches the pass mark.
+        # Batac: pH 7.5 on clay
         out, err = run_model("--lat", "18.0636", "--lon", "120.549",
                              "--place", "Batac", "--province", "Ilocos Norte")
         self.assertIsNotNone(out, err)
@@ -184,12 +170,11 @@ class NoSuitableRecommendation(unittest.TestCase):
         self.assertEqual(rec["status"], "none")
         self.assertEqual(rec["suitable"], [])
         self.assertTrue(rec["held_back_by"])
-        # the crops are still listed, so the farmer can see what was checked
+        # crops still listed
         self.assertTrue(out["fields"]["rain"]["rankings"]["balanced"])
 
     def test_a_partly_checked_crop_cannot_be_the_recommendation(self):
-        # Acid clay at Maramag: maize and sweet potato pass on what could be checked,
-        # but their soil texture could not be, so they do not make it suitable.
+        # Maramag: acid clay; maize and sweet potato have no texture score
         out, _ = run_model("--lat", "7.8542", "--lon", "125.0578",
                            "--place", "Maramag", "--province", "Bukidnon")
         rec = out["fields"]["rain"]["recommendation"]
@@ -234,7 +219,7 @@ class Schedule(unittest.TestCase):
         l = late["fields"]["rain"]["crops"]["mungbean"]["counts"]["balanced"]["all"]["short"]
         self.assertEqual(b["pass"], 22)
         self.assertLess(l["pass"], b["pass"])
-        # the first planting date offered is the day preparation ends
+        # first planting date = end of preparation
         self.assertEqual(late["planting_dates"]["mungbean"][0]["offset_days"], 60)
 
     def test_a_fallow_field_is_accepted_and_rates_every_crop(self):
@@ -257,7 +242,7 @@ class Places(unittest.TestCase):
             rows = list(csv.DictReader(f))
         self.assertEqual(len(rows), 22)
         self.assertEqual(len({r["place"] for r in rows}), 22)
-        for r in rows[7:]:                 # the 15 added: the place IS the sample point
+        for r in rows[7:]:                 # the 15 added: place = sample point
             lat, lon = float(r["latitude"]), float(r["longitude"])
             sample = K.read_soil_sample(lat, lon)
             self.assertEqual(sample["sample_id"], r["soil_sample"], r["place"])

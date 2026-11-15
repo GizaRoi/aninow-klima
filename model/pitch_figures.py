@@ -3,9 +3,7 @@
     python analysis.py --out ../docs/analysis     # the numbers, first
     python pitch_figures.py --out ../docs/pitch   # then the figures
 
-Writes nine SVG files and an index.html that shows them all. Every figure is drawn
-from docs/analysis/*.csv, the NOAA index file and real model runs; nothing is typed
-in by hand. Standard library only. Past seasons, not a forecast.
+Nine SVGs and an index.html, from docs/analysis/*.csv, oni.ascii.txt and model runs.
 """
 import argparse
 import csv
@@ -18,8 +16,7 @@ from html import escape
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 W, H = 1280, 720
-# Dark field-green with a faint grid, one bright element per frame, a short yellow
-# headline: the look of a data cutaway in a short explainer video.
+# palette
 INK, MUTED, BG, PAPER = "#eef3e2", "#9db59a", "#0f2a1c", "#163524"
 GREEN, LIME, AMBER, RED, LINE = "#8fd05a", "#d5ed8c", "#f2c14e", "#ff7a6b", "#2c4a36"
 DARK, YELLOW, DULL = "#0f2a1c", "#ffd84a", "#4a3531"
@@ -66,7 +63,7 @@ def frame(title, body, note, tag="ANINOW KLIMA"):
 
 
 def hbars(rows, x0=330, y0=130, width=820, height=500, colour=GREEN, fmt="{:.0f}", special=None):
-    """rows: (label, value). Horizontal bars with the value written at the end."""
+    """Horizontal bars from (label, value) rows."""
     special = special or {}
     top = max(v for _, v in rows) or 1
     step = height / len(rows)
@@ -310,7 +307,7 @@ def main(argv=None):
     crops = read(os.path.join(a.analysis, "crop_by_place.csv"))
     seasons = read(os.path.join(a.analysis, "seasons.csv"))
     seen, unique = set(), []
-    for r in seasons:                       # one row per place and year, for rainfall
+    for r in seasons:                       # one row per place and year
         if (r["place"], r["year"]) not in seen:
             seen.add((r["place"], r["year"]))
             unique.append(r)

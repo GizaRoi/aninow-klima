@@ -1,7 +1,7 @@
-"""Stateless HTTP access to the existing rules model; no frontend fixtures.
+"""Stateless HTTP API over the rules model.
 
 Run from model/: uvicorn api:app --host 0.0.0.0 --port 8000 --workers 1
-Each calculation uses the unmodified CLI in a separate process and temp file.
+Each request runs the CLI in its own process and temp file.
 """
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ CROPS = {row["crop"]: row for row in read_rows("crops.csv")}
 
 
 def model_version() -> str:
-    """Fingerprint the engine and committed input files, independent of checkout."""
+    """sha256 over the engine and its committed input files."""
     digest = hashlib.sha256()
     files = sorted({HERE / "klima_model.py", *HERE.glob("*.csv"), *HERE.glob("*.txt")})
     for path in files:
@@ -161,7 +161,7 @@ class ErrorResponse(BaseModel):
 
 
 def run_comparison(payload: ComparisonRequest) -> dict[str, Any]:
-    # Never mutate the model's module globals or share results.json across requests.
+    # own temp dir per request; never mutate model globals
     with tempfile.TemporaryDirectory(prefix="klima-api-") as directory:
         output = Path(directory) / "results.json"
         process = subprocess.run(

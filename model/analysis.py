@@ -2,33 +2,8 @@
 
     python analysis.py --out ../docs/analysis
 
-Runs the real model once per place (same answers everywhere: harvest 15 November,
-next planting 31 May, rain only, field drains, main crop rice) and writes:
-
-    places.csv         one row per place: soil, rainfall, its trend, the leading crop
-    crop_by_place.csv  one row per place and crop: scores, good years, intervals, tests
-    crops.csv          one row per crop: how it does across all places
-    seasons.csv        one row per place, crop and year: the raw material for any chart
-    pitch_stats.md     the headline figures and what each test does and does not show
-
-Standard library only. Changes no score. Every figure describes PAST SEASONS at the
-places listed; none is a forecast and none has been checked against a harvest.
-
-The statistics, and why each was chosen:
-
-    Wilson 95% interval      a share from 41 seasons; behaves at 0 of 41 and 41 of 41
-    Ordinary least squares   the trend in window rainfall, mm per decade, with its t
-    Mann-Kendall + Sen       the same trend without assuming a straight line or normal
-                             errors; robust to one extreme season
-    Benjamini-Hochberg       22 places means 22 trend tests; this keeps the share of
-                             false alarms among the "significant" ones at 5%
-    Fisher's exact test      good years in one group against another (El Nino against
-                             other years, first half of the record against the second);
-                             exact, so it is valid at these small counts
-    Spearman's rho           does a crop's score follow window rainfall, by rank
-    Lag-1 autocorrelation    whether one season predicts the next, and the effective
-                             number of independent seasons that leaves
-    Sign test                across places, does the leading alternative beat rice
+One model run per place. Writes places.csv, crop_by_place.csv, crops.csv,
+seasons.csv and pitch_stats.md. Past seasons only, not forecasts.
 """
 import argparse
 import csv
@@ -56,7 +31,7 @@ def normal_p(z):
 
 
 def ols_trend(x, y):
-    """Slope and its t statistic for y on x. (slope, t), or (None, None)."""
+    """OLS (slope, t) for y on x, or (None, None)."""
     n = len(x)
     if n < 3:
         return None, None
@@ -71,8 +46,7 @@ def ols_trend(x, y):
 
 
 def mann_kendall(y):
-    """Mann-Kendall trend test on a series in time order. (S, z, two-sided p).
-    The variance carries the correction for tied values."""
+    """Mann-Kendall trend test, tie-corrected: (S, z, two-sided p)."""
     n = len(y)
     s = sum((y[j] > y[i]) - (y[j] < y[i]) for i in range(n) for j in range(i + 1, n))
     ties = {}
@@ -87,14 +61,13 @@ def mann_kendall(y):
 
 
 def sen_slope(x, y):
-    """Median of the slopes between every pair of points."""
+    """Sen's slope: median of all pairwise slopes."""
     return median((y[j] - y[i]) / (x[j] - x[i])
                   for i in range(len(x)) for j in range(i + 1, len(x)) if x[j] != x[i])
 
 
 def fisher_exact(a, b, c, d):
-    """Two-sided Fisher exact p for the table [[a, b], [c, d]]: the chance of a
-    table at least as unlikely as this one, with the margins fixed."""
+    """Two-sided Fisher exact p for the table [[a, b], [c, d]]."""
     r1, r2, c1, n = a + b, c + d, a + c, a + b + c + d
     if n == 0 or r1 == 0 or r2 == 0 or c1 == 0 or c1 == n:
         return 1.0
@@ -147,7 +120,7 @@ def lag1(v):
 
 
 def benjamini_hochberg(pvalues):
-    """Adjusted p-values (q) controlling the false discovery rate."""
+    """Benjamini-Hochberg adjusted p-values (q)."""
     m = len(pvalues)
     order = sorted(range(m), key=lambda i: pvalues[i])
     q, running = [0.0] * m, 1.0
@@ -159,7 +132,7 @@ def benjamini_hochberg(pvalues):
 
 
 def sign_test(wins, losses):
-    """Two-sided exact binomial p for wins against losses, ties left out."""
+    """Two-sided exact binomial p, ties left out."""
     n = wins + losses
     if n == 0:
         return 1.0
@@ -183,8 +156,7 @@ CONDITIONS = ("temp", "water", "ph", "texture")
 
 
 def cell(lat, lon):
-    """The MERRA-2 grid cell a point falls in: 0.5 by 0.625 degrees, centred on
-    multiples of those. Places in one cell share their weather."""
+    """MERRA-2 grid cell of a point (0.5 x 0.625 deg)."""
     return (round(lat / 0.5), round(lon / 0.625))
 
 
@@ -226,9 +198,7 @@ def place_rows(place, r):
         rho = spearman([s["window_rain"] for s, _ in have],
                        [b["S"]["balanced"] for _, b in have])
         g = c.get("guide_check") or {}
-        # The 0.5 for a soil the sheet only tolerates is the team's own figure and
-        # sits below the pass mark. This recount shows what it costs: good years
-        # if soil texture were left out of the weakest-condition rule.
+        # STAND-IN: texture 0.5 is the team's figure; recount without texture
         def without_texture(b):
             v = [b["scores"][x] for x in CONDITIONS
                  if x != "texture" and b["scores"].get(x) is not None]
@@ -294,8 +264,7 @@ def place_rows(place, r):
         leading_rain_covers=top["score_water"] if top else None,
         leading_extra_water_mm=top["extra_water_mm"] if top else None,
         leading_weakest_condition=top["weakest_condition"] if top else "",
-        # "Leading" only means first in the order. Whether it is any good is this:
-        # the model's own answer to "is there anything to recommend here?"
+        # leading = first in the order, not necessarily suitable
         recommendation=field["recommendation"]["status"],
         suitable_crops=" ".join(field["recommendation"]["suitable"]),
         suitable_count=len(field["recommendation"]["suitable"]),
@@ -337,9 +306,7 @@ def crop_summary(crop_rows, places):
             median_extra_water_mm=median(c["extra_water_mm"] for c in rated),
             pooled_good_seasons=k, pooled_seasons=n,
             pooled_share=k / n if n else None,
-            # Pooled across places that share weather cells and years, so the
-            # seasons are not independent: read this interval as a lower bound
-            # on the uncertainty, not as the uncertainty.
+            # pooled seasons are not independent: interval too narrow
             pooled_low95=lo, pooled_high95=hi,
             most_common_weakest_condition=max(weak, key=weak.get) if weak else ""))
     return out
