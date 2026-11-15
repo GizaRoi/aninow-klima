@@ -39,6 +39,8 @@ Deliver the rules/simulation decision prototype before claiming a predictive MVP
 
 The Next.js frontend lives in `apps/web`; see [the frontend guide](docs/Planting-Planner-Frontend.md). It uses the visual prototype's design and the user-supplied HTML's sample form/output contract. `apps/web/lib/preview.ts` isolates the sample adapter. It does not call or modify the model. Keep the sample fixtures distinct from actual model output. Run `npm run typecheck`, `npm test`, and `npm run build`; use `npm.cmd` in Windows PowerShell. With the app serving on port 4173, `npx playwright test` verifies the browser flow.
 
+Publishing target: **Vercel**. Make frontend changes on `feat/planting-planner`, push that branch, then merge and push `prod` through the established workflow. Do not sync source to, package for, or deploy the legacy ChatGPT Sites preview unless the user explicitly asks. Existing `.openai/hosting.json` metadata does not authorize a ChatGPT Sites publication. Use local previews for verification.
+
 Model state as of 2026-11-15, from `feat/klima-model`: the decision model is **built and running**. The frontend above is separate; database and predictive model integration remain pending.
 
 Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonical account of the method, the results, and the problems, with the charts. [docs/Model-Explained.md](docs/Model-Explained.md) works every formula by hand for a newcomer, and [docs/Audit-and-Decision-Checklist.md](docs/Audit-and-Decision-Checklist.md) lists the findings and the decisions still open.
