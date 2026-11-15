@@ -9,7 +9,7 @@ test('live Render service calculates a comparison through the browser', async ({
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(process.env.KLIMA_FRONTEND_URL || '/');
   await expect(page.locator('#location')).toBeEnabled({ timeout: 190_000 });
-  const cropCount = await page.locator('#main-crop option').count();
+  const cropCount = await page.locator('#main-crop option:not([value="fallow"])').count();
   expect(cropCount).toBeGreaterThan(0);
   const responsePromise = page.waitForResponse(response => response.url().endsWith('/api/v1/compare') && response.request().method() === 'POST', { timeout: 190_000 });
   await page.getByRole('button', { name: 'See my options', exact: true }).click();
@@ -43,6 +43,8 @@ test('live custom parameters and drainage edits match the request, model respons
   await page.locator('#ph').fill('6.4');
   await page.locator('#soil-texture').selectOption('medium');
   await page.getByText('Advanced settings', { exact: true }).click();
+  await page.locator('#prep-days').fill('7');
+  await page.locator('#picking-days').fill('5');
   await page.locator('#preparation').fill('9');
   await page.locator('#pass-mark').fill('0.65');
 
@@ -51,7 +53,7 @@ test('live custom parameters and drainage edits match the request, model respons
     await page.getByRole('button', { name: 'Finishing early', exact: true }).click();
     const expected: ModelInputs = {
       place: 'Batac, Ilocos Norte', main_crop: 'tomato', harvest: '2026-06-01', next_planting: '2026-09-30',
-      water: 'irrigation', drainage, soil_ph: 6.4, soil_texture: 'medium', turnaround_days: 9, pass_mark: 0.65, priority: 'finishing_early',
+      water: 'irrigation', drainage, soil_ph: 6.4, soil_texture: 'medium', prep_days: 7, picking_days: 5, turnaround_days: 9, pass_mark: 0.65, priority: 'finishing_early',
     };
     const responsePromise = page.waitForResponse(response => response.url().endsWith('/api/v1/compare') && response.request().method() === 'POST', { timeout: 190_000 });
     await page.getByRole('button', { name: 'See my options', exact: true }).click();
@@ -72,7 +74,7 @@ test('live custom parameters and drainage edits match the request, model respons
       const card = page.locator(`[data-crop="${id}"]`);
       const counts = crop.counts.balanced.all.short;
       await expect(card.locator('.crop-history')).toContainText(`${counts.pass} of ${counts.of}`);
-      await expect(card.locator('.crop-time')).toContainText(`${121 - crop.scored_days.short - 9} days to spare`);
+      await expect(card.locator('.crop-time')).toContainText(`${field.schedule![id].spare_days} days to spare`);
       if (crop.median_deficit_mm.short !== null) {
         const gap = new Intl.NumberFormat('en-PH', { maximumFractionDigits: 0 }).format(crop.median_deficit_mm.short);
         await expect(card.locator('.model-fact')).toContainText(`${gap} mm`);

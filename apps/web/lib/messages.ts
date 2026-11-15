@@ -1,5 +1,6 @@
 import reference from './reference-messages.json';
 import { modelCopy } from './model-messages';
+import { expandedModelCopy } from './expanded-model-messages';
 import type { Language } from './preview';
 // The farmer-facing form and output copy is imported from the user's HTML.
 // Additional translations are AI-authored drafts awaiting local review.
@@ -76,6 +77,6 @@ const interfaceCopy = {
   },
 };
 export function messages(language: Language) {
-  return { ...reference[language], ...interfaceCopy[language], ...modelCopy[language] };
+  return { ...reference[language], ...interfaceCopy[language], ...modelCopy[language], ...expandedModelCopy[language] };
 }
 export type Messages = ReturnType<typeof messages>;

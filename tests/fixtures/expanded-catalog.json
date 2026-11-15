@@ -1,0 +1,322 @@
+{
+  "contract_version": "klima-comparison.v1",
+  "model_version": "sha256:52506c939e144058076153528c30c29a1653d718d978c471ea84a35a39da1f93",
+  "places": [
+    {
+      "id": "Science City of Muñoz, Nueva Ecija",
+      "name": "Science City of Muñoz",
+      "province": "Nueva Ecija"
+    },
+    {
+      "id": "Batac, Ilocos Norte",
+      "name": "Batac",
+      "province": "Ilocos Norte"
+    },
+    {
+      "id": "Echague, Isabela",
+      "name": "Echague",
+      "province": "Isabela"
+    },
+    {
+      "id": "Los Baños, Laguna",
+      "name": "Los Baños",
+      "province": "Laguna"
+    },
+    {
+      "id": "Ligao, Albay",
+      "name": "Ligao",
+      "province": "Albay"
+    },
+    {
+      "id": "Lambunao, Iloilo",
+      "name": "Lambunao",
+      "province": "Iloilo"
+    },
+    {
+      "id": "Maramag, Bukidnon",
+      "name": "Maramag",
+      "province": "Bukidnon"
+    },
+    {
+      "id": "Lupao, Nueva Ecija",
+      "name": "Lupao",
+      "province": "Nueva Ecija"
+    },
+    {
+      "id": "Piddig, Ilocos Norte",
+      "name": "Piddig",
+      "province": "Ilocos Norte"
+    },
+    {
+      "id": "Sinait, Ilocos Sur",
+      "name": "Sinait",
+      "province": "Ilocos Sur"
+    },
+    {
+      "id": "Jones, Isabela",
+      "name": "Jones",
+      "province": "Isabela"
+    },
+    {
+      "id": "Bay, Laguna",
+      "name": "Bay",
+      "province": "Laguna"
+    },
+    {
+      "id": "Magdalena, Laguna",
+      "name": "Magdalena",
+      "province": "Laguna"
+    },
+    {
+      "id": "Sariaya, Quezon",
+      "name": "Sariaya",
+      "province": "Quezon"
+    },
+    {
+      "id": "Victoria, Oriental Mindoro",
+      "name": "Victoria",
+      "province": "Oriental Mindoro"
+    },
+    {
+      "id": "Aborlan, Palawan",
+      "name": "Aborlan",
+      "province": "Palawan"
+    },
+    {
+      "id": "Alimodian, Iloilo",
+      "name": "Alimodian",
+      "province": "Iloilo"
+    },
+    {
+      "id": "La Carlota, Negros Occidental",
+      "name": "La Carlota",
+      "province": "Negros Occidental"
+    },
+    {
+      "id": "Barili, Cebu",
+      "name": "Barili",
+      "province": "Cebu"
+    },
+    {
+      "id": "Claveria, Misamis Oriental",
+      "name": "Claveria",
+      "province": "Misamis Oriental"
+    },
+    {
+      "id": "Kabacan, North Cotabato",
+      "name": "Kabacan",
+      "province": "North Cotabato"
+    },
+    {
+      "id": "Kidapawan, North Cotabato",
+      "name": "Kidapawan",
+      "province": "North Cotabato"
+    }
+  ],
+  "crops": [
+    {
+      "id": "rice",
+      "name": "Rice",
+      "local_name": "Palay",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "mungbean",
+      "name": "Mungbean",
+      "local_name": "Munggo",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "eggplant",
+      "name": "Eggplant",
+      "local_name": "Talong",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "tomato",
+      "name": "Tomato",
+      "local_name": "Kamatis",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "squash",
+      "name": "Squash",
+      "local_name": "Kalabasa",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "sitaw",
+      "name": "Yardlong bean",
+      "local_name": "Sitaw",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "snapbean",
+      "name": "Snap bean",
+      "local_name": "Habichuelas",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "cabbage",
+      "name": "Cabbage",
+      "local_name": "Repolyo",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "lettuce",
+      "name": "Lettuce",
+      "local_name": "Letsugas",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "local_name": "Patatas",
+      "limits_basis": "da_guide_range"
+    },
+    {
+      "id": "maize",
+      "name": "Maize (grain corn)",
+      "local_name": "Mais",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "sweetcorn",
+      "name": "Sweet corn",
+      "local_name": "Matamis na mais",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "peanut",
+      "name": "Peanut",
+      "local_name": "Mani",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "soybean",
+      "name": "Soybean",
+      "local_name": "Soya",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "sweetpotato",
+      "name": "Sweet potato",
+      "local_name": "Kamote",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "cassava",
+      "name": "Cassava",
+      "local_name": "Kamoteng kahoy",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "onion",
+      "name": "Onion (bulb)",
+      "local_name": "Sibuyas",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "sweetpepper",
+      "name": "Sweet pepper",
+      "local_name": "Atsal",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "watermelon",
+      "name": "Watermelon",
+      "local_name": "Pakwan",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "melon",
+      "name": "Melon",
+      "local_name": "Melon",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "carrot",
+      "name": "Carrot",
+      "local_name": "Karot",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "sesame",
+      "name": "Sesame",
+      "local_name": "Linga",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "sweetsorghum",
+      "name": "Sweet sorghum",
+      "local_name": "Batad",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "broccoli",
+      "name": "Broccoli",
+      "local_name": "Brokoli",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "cucumber",
+      "name": "Cucumber",
+      "local_name": "Pipino",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "radish",
+      "name": "Radish",
+      "local_name": "Labanos",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "gardenpea",
+      "name": "Garden pea",
+      "local_name": "Sitsaro",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "cauliflower",
+      "name": "Cauliflower",
+      "local_name": "Koliplor",
+      "limits_basis": "ecocrop"
+    },
+    {
+      "id": "cowpea",
+      "name": "Cowpea",
+      "local_name": "Paayap",
+      "limits_basis": "ecocrop"
+    }
+  ],
+  "capabilities": [
+    "fallow",
+    "whole_schedule"
+  ],
+  "drainage": [
+    "well_drained",
+    "poorly_drained",
+    "unknown"
+  ],
+  "soil_texture": [
+    "light",
+    "medium",
+    "heavy"
+  ],
+  "water": [
+    "rain",
+    "irrigation"
+  ],
+  "priorities": [
+    "balanced",
+    "saving_water",
+    "healthier_soil",
+    "finishing_early"
+  ],
+  "season_groups": [
+    "all",
+    "normal",
+    "dry",
+    "el_nino"
+  ]
+}

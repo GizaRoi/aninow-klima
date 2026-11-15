@@ -40,8 +40,8 @@ From the checkout root, install dependencies with `npm install`, then run
   sleeping Render instance.
 
 The live parameter test submits non-default location, main crop, dates, soil,
-preparation days, pass mark, and priority. It checks the request against the
-service's echoed inputs and crop cards, then changes only drainage while keeping
+preparation, picking and clearing days, pass mark, and priority. It checks the
+request against the service's echoed inputs and crop cards, then changes only drainage while keeping
 irrigation selected to confirm that standing-water exclusions clear correctly.
 
 ## Form and API contract
@@ -55,12 +55,14 @@ The form matches the deployed `klima-comparison.v1` API:
 | Form | JSON field / behavior |
 |---|---|
 | Location | Exact catalogue `place` ID |
-| What do you grow now? | Catalogue `main_crop` ID |
+| What do you grow now? | Catalogue `main_crop` ID, or `fallow` when advertised by the service |
 | Harvest and next planting | ISO `harvest`, `next_planting` dates |
 | Water stays after rain: no / yes / unsure | `drainage`: well_drained / poorly_drained / unknown |
 | Rain only / irrigation | `water`: rain / irrigation |
 | Soil-test switch | Enables measured `soil_ph` and light/medium/heavy `soil_texture`; blanks send null |
-| Days to prepare the field | Integer `turnaround_days`, 0–90; API default 0 |
+| Preparation / rest before planting | Integer `prep_days`, 0–180; moves the planting/weather check later |
+| Extra picking days | Integer `picking_days`, 0–180, reserved after growing |
+| Clearing before next main crop | Integer `turnaround_days`, 0–90, reserved after growing and picking |
 | Pass mark | `pass_mark`, 0–1; API default 0.6 |
 | Priority | balanced / saving_water / healthier_soil / finishing_early |
 
@@ -99,8 +101,31 @@ service. Drainage exclusions explicitly refer to the standing-water answer.
 Priority chooses a ranking already returned by the model. Season changes the
 history shown and never reranks crops. Fit labels use the same display bands as
 `model/serve.py` (0.7 / 0.45) on the weakest available median condition; the frontend
-does not run the model or calculate new agronomic scores. Excluded crops have no
+does not run the model or calculate new agronomic scores. Crops with `not_scored`
+conditions display Partly checked and cannot get a Good label. Excluded crops have no
 manufactured scores. All excluded is a valid result.
+
+The expanded model (`feat/klima-model` engine fe13958, HTTP update 8b0d6eb)
+provides 22 places and 29 crops. The catalogue advertises `fallow` and
+`whole_schedule` capabilities; fallow is a field state, never a 30th crop card.
+All three schedule allowances default to zero rather than assuming a local rest
+period. The calendar starts at harvest or the date a fallow field is available.
+
+Results display the returned `recommendation.status` and `suitable` crop IDs.
+No suitable recommendation is an explicit result even when crops are ranked.
+The model's all-season, submitted-pass-mark verdict is distinct from the display
+rating and is unchanged by season/priority views. `held_back_by` is labelled as
+common limiting conditions, not an individual crop's rejection reason.
+
+Each crop's returned `schedule` supplies total and spare days for the shortest
+cycle. Details show preparation, growing, picking and clearing separately, plus
+DA-guide cautions and shared crop family where reported. These reported cautions
+do not change scores. Alternative planting starts show the model's historical
+water gaps and scored-season denominators, with no forecast claim. Unknown
+drainage requirements on waterlogged fields have their own exclusion explanation.
+The contract parser validates the new evidence when supplied and retains support
+for genuine older responses without manufacturing a missing verdict or schedule.
+The separate plot-history CLI is outside this stateless form/API integration.
 
 Downloads include the complete raw `rules_model` response, model fingerprint,
 request ID, validated inputs, sources, warnings, and selected display season and

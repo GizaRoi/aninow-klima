@@ -18,7 +18,7 @@ test('model flow, historical filters, API order, explanations and real download'
   await expect(page.locator('body')).not.toContainText(/prototype|sample results|not connected|interactive demo/i);
   const request = page.waitForRequest('**/api/v1/compare');
   await page.getByRole('button', { name: 'See my options', exact: true }).click();
-  expect((await request).postDataJSON()).toEqual(comparison.inputs);
+  expect((await request).postDataJSON()).toEqual({ ...comparison.inputs, prep_days: 0, picking_days: 0 });
   await expect(page.getByRole('heading', { name: 'Your options', exact: true })).toBeVisible();
   await expect(page.locator('.crop-card')).toHaveCount(10);
   await expect(page.locator('.fit-out')).toHaveCount(3);
@@ -180,7 +180,7 @@ test('irrigation and standing water stay separate through submission, results, e
   await expect(page.locator('form')).toContainText('Irrigation provides water, but it does not drain waterlogged soil.');
   const request = page.waitForRequest('**/api/v1/compare');
   await page.getByRole('button', { name: 'See my options', exact: true }).click();
-  expect((await request).postDataJSON()).toEqual(standingWater.inputs);
+  expect((await request).postDataJSON()).toEqual({ ...standingWater.inputs, prep_days: 0, picking_days: 0 });
   await expect(page.locator('.model-context')).toContainText('Water supply: Irrigation');
   await expect(page.locator('.model-context')).toContainText('Drainage: Water stays for days after rain');
   await expect(page.locator('.crop-card:not(.crop-excluded)')).toHaveCount(1);
@@ -198,7 +198,7 @@ test('irrigation and standing water stay separate through submission, results, e
   await expect(page.locator('form')).not.toContainText('Irrigation provides water, but it does not drain waterlogged soil.');
   const revised = page.waitForRequest('**/api/v1/compare');
   await page.getByRole('button', { name: 'See my options', exact: true }).click();
-  expect((await revised).postDataJSON()).toEqual({ ...standingWater.inputs, drainage: 'well_drained' });
+  expect((await revised).postDataJSON()).toEqual({ ...standingWater.inputs, prep_days: 0, picking_days: 0, drainage: 'well_drained' });
   await expect(page.locator('.model-context')).toContainText('Drainage: Water drains after rain');
   await expect(page.locator('[data-crop="mungbean"]')).not.toHaveClass(/crop-excluded/);
   await expect(page.locator('.exclusion').filter({ hasText: 'You answered that water stays' })).toHaveCount(0);
