@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, CircleHelp, CloudRain, Download, Droplets, Earth, Info, Leaf, MapPin, Menu, RotateCcw, ShieldCheck, SlidersHorizontal, Sprout, Sun, Thermometer, Waves, Wheat, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, CircleHelp, CloudRain, Download, Droplets, Earth, Info, Leaf, MapPin, RotateCcw, ShieldCheck, SlidersHorizontal, Sprout, Sun, Thermometer, Waves, Wheat } from 'lucide-react';
 import { messages, type Messages } from '../lib/messages';
+import { useLanguagePreference } from '../lib/language';
+import { SiteFooter, SiteHeader } from './components/site-shell';
 import { dateLabel, defaults, format, getPreviewComparison, validateInputs, windowDays, type CropOption, type FieldInputs, type Language, type Priority, type Season, type Soil } from '../lib/preview';
 
 type View = 'field' | 'results';
@@ -22,8 +24,10 @@ function Choice<T extends string>({ value, options, onChange, label, className =
   </div>;
 }
 
-function CropCard({ option, days, language, m, water, season }: { option: CropOption; days: number; language: Language; m: Messages; water: FieldInputs['water']; season: Season }) {
+function CropCard({ option, days, language, m, water, season, detailed }: { option: CropOption; days: number; language: Language; m: Messages; water: FieldInputs['water']; season: Season; detailed: boolean }) {
   const { crop, fit, blocked, conditions } = option;
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => { if (detailsRef.current) detailsRef.current.open = detailed; }, [detailed, blocked]);
   const icon = crop.id === 'rice' ? <Wheat/> : crop.id === 'mung' ? <Sprout/> : crop.id === 'egg' ? <Leaf/> : <Sun/>;
   const used = Math.min(100, crop.days / days * 100);
   return <article className={`crop-card ${fit === 'out' ? 'crop-excluded' : ''}`} data-crop={crop.id}>
@@ -33,7 +37,7 @@ function CropCard({ option, days, language, m, water, season }: { option: CropOp
       <div className="crop-history"><span className="micro-label">{m.sampleHistory}</span><p>{format(m.hist, { a: option.history[0], b: option.history[1], s: m.hs[season] })}</p></div>
       <div className="crop-time"><span><CalendarDays size={15}/><strong>{crop.days}</strong> {m.daysUnit}</span><span>{format(m.remaining, { n: days - crop.days })}</span></div>
       <div className="duration-track" role="img" aria-label={format(m.days, { d: crop.days, n: days })}><span style={{ width: `${used}%` }}/></div>
-      <details className="crop-details"><summary>{m.more}<ChevronDown size={16}/></summary><div className="details-body">
+      <details ref={detailsRef} className="crop-details"><summary>{m.more}<ChevronDown size={16}/></summary><div className="details-body">
         {option.checkDrainage && <p className="drainage-warning"><Info size={16}/>{m.x_pond_unsure}</p>}
         <h4>{m.why}</h4>
         {(['temp', 'rain', 'moist', 'tex', 'ph', 'time'] as const).filter(key => conditions[key] !== undefined).map(key => {
@@ -50,14 +54,13 @@ function CropCard({ option, days, language, m, water, season }: { option: CropOp
 }
 
 export default function Home() {
-  const [language, setLanguage] = useState<Language>('en');
-  const [ready, setReady] = useState(false);
+  const { language, setLanguage, ready } = useLanguagePreference();
   const [view, setView] = useState<View>('field');
   const [inputs, setInputs] = useState<FieldInputs>({ ...defaults });
   const [applied, setApplied] = useState<FieldInputs>({ ...defaults });
   const [season, setSeason] = useState<Season>('typical');
   const [priority, setPriority] = useState<Priority>('even');
-  const [mobileMenu, setMobileMenu] = useState(false);
+  const [detailed, setDetailed] = useState(false);
   const [error, setError] = useState<ReturnType<typeof validateInputs>>(null);
   const [toast, setToast] = useState(false);
   const resultsHeading = useRef<HTMLHeadingElement>(null);
@@ -67,20 +70,11 @@ export default function Home() {
   const days = windowDays(inputs);
   const comparison = getPreviewComparison(applied, season, priority);
 
-  useEffect(() => {
-    try { const stored = localStorage.getItem('aninow-tool-language'); if (stored === 'en' || stored === 'tl') setLanguage(stored); } catch { /* Storage is optional. */ }
-    setReady(true);
-  }, []);
-  useEffect(() => {
-    document.documentElement.lang = language;
-    if (!ready) return;
-    try { localStorage.setItem('aninow-tool-language', language); } catch { /* Storage is optional. */ }
-  }, [language, ready]);
   useEffect(() => { if (toast) { const timer = setTimeout(() => setToast(false), 4000); return () => clearTimeout(timer); } }, [toast]);
 
   function update<K extends keyof FieldInputs>(key: K, value: FieldInputs[K]) { setInputs(old => ({ ...old, [key]: value })); setError(null); }
   function showForm() {
-    setView('field'); setMobileMenu(false);
+    setView('field');
     setTimeout(() => { document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); formHeading.current?.focus({ preventScroll: true }); }, 30);
   }
   function submit(event: FormEvent) {
@@ -99,13 +93,7 @@ export default function Home() {
 
   return <div id="top" className="app-shell">
     <a className="skip-link" href="#planner">{m.navPlan}</a>
-    <header className="site-header">
-      <a className="brand" href="#top" aria-label="AniNow Klima"><span className="brand-symbol"><Sprout size={25}/></span><span>AniNow<span className="brand-sub">K L I M A</span></span></a>
-      <nav aria-label={language === 'en' ? 'Main navigation' : 'Pangunahing menu'} className={mobileMenu ? 'nav-open' : ''}>
-        <a href="#top" onClick={() => setMobileMenu(false)}>{m.navField}</a><button onClick={showForm}>{m.navPlan}</button><a href="#about" onClick={() => setMobileMenu(false)}>{m.navAbout}<ArrowUpRight size={13}/></a>
-      </nav>
-      <div className="header-tools"><div className="language-switch" role="group" aria-label="Language / Wika"><button disabled={!ready} aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>English</button><button disabled={!ready} aria-pressed={language === 'tl'} onClick={() => setLanguage('tl')}>Tagalog</button></div><button className="menu-button" aria-label={m.menu} aria-expanded={mobileMenu} onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X/> : <Menu/>}</button></div>
-    </header>
+    <SiteHeader language={language} ready={ready} onLanguageChange={setLanguage} onPlan={showForm}/>
 
     <main>
       <section className="landscape-hero" aria-labelledby="hero-title">
@@ -140,18 +128,19 @@ export default function Home() {
           <div className="section-heading results-heading"><div><span className="eyebrow">{m.resultsKicker}</span><h2 id="planner-title" tabIndex={-1} ref={resultsHeading}>{m.r_title}</h2><p>{m.resultsIntro}</p></div><button className="button secondary" onClick={showForm}><ArrowLeft size={16}/>{m.edit}</button></div>
           <div className="result-window"><span className="result-window-icon"><CalendarDays size={24}/></span><div><h3>{format(m.win, { n: comparison.days })}</h3><p>{dateLabel(applied.harvest, language)} <ArrowRight size={13}/> {dateLabel(applied.next, language)}<span>·</span><MapPin size={13}/> Muñoz, Nueva Ecija</p></div><span className="window-leaf"><Sprout size={65} strokeWidth={.8}/></span></div>
           <div className="results-notice"><Info size={18}/><p><strong>{m.sampleLabel}.</strong> {m.sampleNote}</p></div>
+          <div className="detail-toolbar"><p id="detail-hint">{m.detailHint}</p><div className="detail-switch" role="group" aria-label={m.resultView} aria-describedby="detail-hint"><button type="button" aria-pressed={!detailed} onClick={() => setDetailed(false)}>{m.simpleView}</button><button type="button" aria-pressed={detailed} onClick={() => setDetailed(true)}>{m.moreDetailed}</button></div></div>
           <div className="results-layout"><aside className="filter-card"><div className="filter-heading"><SlidersHorizontal size={20}/><h3>{m.filtersTitle}</h3></div><p>{m.filtersHint}</p><fieldset><legend>{m.season}</legend><Choice className="vertical" value={season} onChange={setSeason} label={m.season} options={[
             { value: 'typical', label: m.s_typical, icon: <Sun size={18}/> }, { value: 'dry', label: m.s_dry, icon: <Thermometer size={18}/> }, { value: 'nino', label: m.s_nino, icon: <CloudRain size={18}/> },
           ]}/></fieldset><fieldset><legend>{m.priority}</legend><Choice className="vertical" value={priority} onChange={setPriority} label={m.priority} options={[
             { value: 'even', label: m.p_even, icon: <SlidersHorizontal size={18}/> }, { value: 'water', label: m.p_water, icon: <Droplets size={18}/> }, { value: 'soil', label: m.p_soil, icon: <Leaf size={18}/> }, { value: 'time', label: m.p_time, icon: <CalendarDays size={18}/> },
-          ]}/></fieldset></aside><div className="crop-area"><div className="crop-area-heading"><h3>{format(m.compareCount, { n: comparison.options.length })}</h3><span>{m.sampleOrder}</span></div><div className="crop-grid">{comparison.options.map(option => <CropCard key={option.crop.id} option={option} days={comparison.days} language={language} m={m} water={applied.water} season={season}/>)}</div></div></div>
-          <div className="results-actions"><button className="text-button" onClick={() => { setInputs({ ...defaults }); setApplied({ ...defaults }); setSeason('typical'); setPriority('even'); setError(null); showForm(); }}><RotateCcw size={16}/>{m.reset}</button><button className="button secondary" onClick={download}><Download size={17}/>{m.download}</button></div>
+          ]}/></fieldset></aside><div className="crop-area"><div className="crop-area-heading"><h3>{format(m.compareCount, { n: comparison.options.length })}</h3><span>{m.sampleOrder}</span></div><div className="crop-grid">{comparison.options.map(option => <CropCard key={option.crop.id} option={option} days={comparison.days} language={language} m={m} water={applied.water} season={season} detailed={detailed}/>)}</div></div></div>
+          <div className="results-actions"><button className="text-button" onClick={() => { setInputs({ ...defaults }); setApplied({ ...defaults }); setSeason('typical'); setPriority('even'); setDetailed(false); setError(null); showForm(); }}><RotateCcw size={16}/>{m.reset}</button><button className="button secondary" onClick={download}><Download size={17}/>{m.download}</button></div>
         </>}
       </section>
 
       <section className="about-section" id="about" aria-labelledby="about-title"><div className="about-intro"><span className="eyebrow"><Leaf size={15}/>{m.aboutKicker}</span><h2 id="about-title">{m.sourceTitle}</h2><p>{m.sourceCopy}</p></div><div className="about-grid">{[{ icon: <Earth/>, title: m.sourceOne, copy: m.sourceOneCopy }, { icon: <CloudRain/>, title: m.sourceTwo, copy: m.sourceTwoCopy }, { icon: <Sprout/>, title: m.sourceThree, copy: m.sourceThreeCopy }].map((item, index) => <div className="about-card" key={item.title}><div>{item.icon}<span>0{index + 1}</span></div><h3>{item.title}</h3><p>{item.copy}</p></div>)}</div><p className="source-note"><Info size={16}/>{m.sourceFoot}</p></section>
     </main>
-    <footer className="site-footer"><a href="#top" className="footer-brand"><Sprout size={23}/>AniNow Klima</a><p>{m.foot}</p><a href="#top">{m.backTop}<ArrowUpRight size={15}/></a></footer>
+    <SiteFooter language={language}/>
     {toast && <div className="toast" role="status"><Check size={18}/>{m.downloaded}</div>}
   </div>;
 }

@@ -77,3 +77,46 @@ test('phone layout and Tagalog results fit within the viewport', async ({ page }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/mobile-results.png', fullPage: true });
 });
+
+test('more detailed opens the HTML explanations and preserves mode across filters and language', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'See my options', exact: true }).click();
+  await expect(page.locator('.crop-details[open]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'More detailed', exact: true }).click();
+  await expect(page.locator('.crop-details[open]')).toHaveCount(4);
+  const mung = page.locator('[data-crop="mung"]');
+  await expect(mung.getByRole('heading', { name: 'Why', exact: true })).toBeVisible();
+  await expect(mung.getByRole('heading', { name: 'For your soil', exact: true })).toBeVisible();
+  await expect(mung.getByRole('heading', { name: 'We could not check', exact: true })).toBeVisible();
+  await expect(mung.getByRole('heading', { name: 'Ask your agriculturist first', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Dry year', exact: true }).click();
+  await page.getByRole('button', { name: 'Saving water', exact: true }).click();
+  await expect(page.locator('.crop-details[open]')).toHaveCount(4);
+  await page.getByRole('button', { name: 'Tagalog', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Mas detalyado', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(mung.getByRole('heading', { name: 'Hindi namin nasuri', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Simple', exact: true }).click();
+  await expect(page.locator('.crop-details[open]')).toHaveCount(0);
+  await mung.getByText('Ipakita kung bakit', { exact: true }).click();
+  await expect(mung.locator('details')).toHaveAttribute('open', '');
+});
+
+test('team route shows full portraits with accessible names and no duplicate name captions', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('nav').getByRole('link', { name: 'Our team', exact: true }).click();
+  await expect(page).toHaveURL(/\/team\/$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Our team', exact: true })).toBeVisible();
+  await expect(page.locator('.team-card img')).toHaveCount(4);
+  await expect(page.locator('.team-card').filter({ hasText: /\S/ })).toHaveCount(0);
+  await expect(page.locator('nav a[aria-current="page"]')).toHaveText('Our team');
+  await expect.poll(() => page.locator('.team-card img').evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  await page.screenshot({ path: 'test-results/desktop-team.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Tagalog', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Ang aming koponan', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/mobile-team.png', fullPage: true });
+  await page.getByRole('link', { name: 'Bumalik sa pagpaplano ng tanim', exact: true }).click();
+  await expect(page).toHaveURL(/\/#planner$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'tl');
+});

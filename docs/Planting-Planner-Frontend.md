@@ -22,3 +22,9 @@ The inputs are pilot location (Muñoz, fixed), soil type (including unknown), st
 The farm illustration was reused from `feat/visual-prototype`; it depicts no measured field. The browser stores only language preference. Field values and comparisons stay in memory until reload. Downloads contain a JSON comparison labeled `mode: sample`. Nothing is submitted to a server. Both languages preserve machine identifiers and input values; additional interface translations are AI-authored drafts awaiting farmer/agriculturist review.
 
 The app supports phone and desktop layouts, keyboard navigation, input validation, document language, optional browser storage, expanded explanations, and reduced motion. The preview is a separate private Site, declared in `.openai/hosting.json`.
+
+## Team and detailed results
+
+`/team/` displays the four existing team portraits from the visual prototype at their original proportions. Names and roles are already part of the image artwork, so there are no duplicate visible captions. Each image retains the member's name as alternative text. Shared navigation and English/Tagalog controls are available on both pages.
+
+The results screen has **Simple / More detailed** controls. More detailed opens every eligible crop's original HTML explanation: condition ratings, soil benefits, missing checks, and questions for an agriculturist. Simple collapses them again. Individual **Show why** controls still work, and changing language, season, or priority preserves the detail mode. Excluded crops retain their exclusion reason without receiving scores. This feature uses the existing sample adapter and does not connect to the Python model.

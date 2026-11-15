@@ -5,7 +5,9 @@ import type { Language } from './preview';
 // Additional translations are AI-authored drafts awaiting local review.
 const interfaceCopy = {
   en: {
-    navField: 'My field', navPlan: 'Plan next planting', navAbout: 'About the tool', menu: 'Open navigation',
+    navField: 'My field', navPlan: 'Plan next planting', navAbout: 'About the tool', navTeam: 'Our team', menu: 'Open navigation',
+    backToPlanner: 'Back to planting planner', simpleView: 'Simple', moreDetailed: 'More detailed', resultView: 'Result detail level',
+    detailHint: 'See condition checks, soil benefits, missing information, and questions to ask for each crop.',
     tagline: 'A little space. A new season.', kicker: 'BETWEEN HARVESTS, NEW POSSIBILITIES',
     heroCopy: 'Make room for what comes next. Explore crops that fit your field, your water, and the time before your next rice planting.',
     start: 'Plan my next planting', explore: 'See how it works', pilot: 'PILOT LOCATION',
@@ -43,7 +45,9 @@ const interfaceCopy = {
     validationTitle: 'Check your field details', unknown: 'Not checked',
   },
   tl: {
-    navField: 'Aking bukid', navPlan: 'Planuhin ang susunod na tanim', navAbout: 'Tungkol sa tool', menu: 'Buksan ang menu',
+    navField: 'Aking bukid', navPlan: 'Planuhin ang susunod na tanim', navAbout: 'Tungkol sa tool', navTeam: 'Ang aming koponan', menu: 'Buksan ang menu',
+    backToPlanner: 'Bumalik sa pagpaplano ng tanim', simpleView: 'Simple', moreDetailed: 'Mas detalyado', resultView: 'Detalye ng resulta',
+    detailHint: 'Tingnan ang mga kondisyon, pakinabang sa lupa, kulang na impormasyon, at mga tanong para sa bawat pananim.',
     tagline: 'Bagong pagkakataon sa bawat panahon.', kicker: 'PAGKATAPOS NG ANI, MAY BAGONG PAGKAKATAON',
     heroCopy: 'Paghandaan ang susunod na tanim. Tingnan kung anong pananim ang kasya sa iyong bukid, suplay ng tubig, at oras bago muling magpalay.',
     start: 'Planuhin ang susunod kong tanim', explore: 'Paano ito gumagana', pilot: 'LUGAR NG PILOT',
