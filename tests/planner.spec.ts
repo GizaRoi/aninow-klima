@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import catalog from './fixtures/catalog.json';
 import comparison from './fixtures/comparison.json';
+import standingWater from './fixtures/irrigated-standing-water.json';
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/v1/catalog', route => route.fulfill({ json: catalog }));
@@ -102,6 +103,48 @@ test('catalogue failure can be retried and submit stays disabled', async ({ page
   await expect(page.locator('button[type="submit"]')).toBeDisabled();
   await page.getByRole('button', { name: 'Try again', exact: true }).first().click();
   await expect(page.locator('button[type="submit"]')).toBeEnabled();
+});
+
+test('irrigation and standing water stay separate through submission, results, edits and language changes', async ({ page }) => {
+  const irrigatedDrained = structuredClone(comparison);
+  irrigatedDrained.inputs.water = 'irrigation';
+  irrigatedDrained.ranking = irrigatedDrained.results.fields.irrigation.rankings.balanced;
+  await page.route('**/api/v1/compare', route => {
+    const inputs = route.request().postDataJSON();
+    expect(inputs.water).toBe('irrigation');
+    return route.fulfill({ json: inputs.drainage === 'poorly_drained' ? standingWater : irrigatedDrained });
+  });
+  await page.goto('/');
+  const drainage = page.getByRole('group', { name: 'Does water stay on the field for days after rain?', exact: true });
+  await page.getByRole('group', { name: 'Where does the water come from?', exact: true }).getByRole('button', { name: 'Irrigation', exact: true }).click();
+  await drainage.getByRole('button', { name: 'Yes', exact: true }).click();
+  await expect(page.locator('form')).toContainText('Irrigation provides water, but it does not drain waterlogged soil.');
+  const request = page.waitForRequest('**/api/v1/compare');
+  await page.getByRole('button', { name: 'See my options', exact: true }).click();
+  expect((await request).postDataJSON()).toEqual(standingWater.inputs);
+  await expect(page.locator('.model-context')).toContainText('Water supply: Irrigation');
+  await expect(page.locator('.model-context')).toContainText('Drainage: Water stays for days after rain');
+  await expect(page.locator('.crop-card:not(.crop-excluded)')).toHaveCount(1);
+  await expect(page.locator('[data-crop="rice"] .crop-history')).toContainText('44 of 44');
+  await expect(page.locator('[data-crop="mungbean"] .exclusion')).toHaveText('You answered that water stays for days after rain. This crop needs well-drained soil.');
+  await expect(page.locator('[data-crop="cabbage"] .exclusion')).not.toContainText('water stays');
+  await page.getByRole('button', { name: 'Tagalog', exact: true }).click();
+  await expect(page.locator('.model-context')).toContainText('Pinanggagalingan ng tubig: Patubig');
+  await expect(page.locator('[data-crop="mungbean"] .exclusion')).toContainText('Ang sagot mo ay naiipon ang tubig');
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'English', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit field details', exact: true }).click();
+  await drainage.getByRole('button', { name: 'No', exact: true }).click();
+  await expect(page.locator('form')).not.toContainText('Irrigation provides water, but it does not drain waterlogged soil.');
+  const revised = page.waitForRequest('**/api/v1/compare');
+  await page.getByRole('button', { name: 'See my options', exact: true }).click();
+  expect((await revised).postDataJSON()).toEqual({ ...standingWater.inputs, drainage: 'well_drained' });
+  await expect(page.locator('.model-context')).toContainText('Drainage: Water drains after rain');
+  await expect(page.locator('[data-crop="mungbean"]')).not.toHaveClass(/crop-excluded/);
+  await expect(page.locator('.exclusion').filter({ hasText: 'You answered that water stays' })).toHaveCount(0);
+  const counts = comparison.results.fields.irrigation.crops.mungbean.counts.balanced.all.short;
+  await expect(page.locator('[data-crop="mungbean"] .crop-history')).toContainText(`${counts.pass} of ${counts.of}`);
 });
 
 test('all crops excluded stays a valid result without manufactured scores', async ({ page }) => {

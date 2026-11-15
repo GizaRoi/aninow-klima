@@ -31,6 +31,11 @@ From the checkout root, install dependencies with `npm install`, then run
   frontend URL. This test sends public demonstration inputs and may wait for a
   sleeping Render instance.
 
+The live parameter test submits non-default location, main crop, dates, soil,
+preparation days, pass mark, and priority. It checks the request against the
+service's echoed inputs and crop cards, then changes only drainage while keeping
+irrigation selected to confirm that standing-water exclusions clear correctly.
+
 ## Form and API contract
 
 The catalogue supplies seven supported places and ten crops, including the main
@@ -76,6 +81,11 @@ Counts and Wilson intervals come from `counts.balanced[season].short`. All, norm
 dry, and El Niño histories are separate views. Zero scored seasons stay unavailable.
 Missing condition scores stay unscored, including water in the sufficient-irrigation
 scenario. Crop detail scores and gaps are all-season medians, explicitly labelled.
+
+Water supply and drainage are separate inputs. Irrigation assumes enough water;
+it does not override the standing-water exclusion for crops needing drained soil.
+The form explains this distinction, and results show both answers echoed by the
+service. Drainage exclusions explicitly refer to the standing-water answer.
 
 Priority chooses a ranking already returned by the model. Season changes the
 history shown and never reranks crops. Fit labels use the same display bands as
