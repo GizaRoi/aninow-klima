@@ -265,14 +265,14 @@ Add a row to `model/crops.csv`. Every number needs a source in `limits_source`,
 
 In rough order of value:
 
-2. One rule for soil texture across both kinds of crop (7.2).
-3. Local growing times for the nine crops that lack them.
-4. A harvest record, even a small one, to check the model against.
-5. A water score that still means something on an irrigated field.
-6. Soil moisture at planting.
-7. Review the six new places the way Muñoz was reviewed.
-8. Filipino wording for the form.
-9. Update slides and scripts to the figures in section 4.
+1. One rule for soil texture across both kinds of crop (7.2).
+2. Local growing times for the nine crops that lack them.
+3. A harvest record, even a small one, to check the model against.
+4. A water score that still means something on an irrigated field.
+5. Soil moisture at planting.
+6. Review the six new places the way Muñoz was reviewed.
+7. Filipino wording for the form.
+8. Update slides and scripts to the figures in section 4.
 
 ## 10. File map
 
