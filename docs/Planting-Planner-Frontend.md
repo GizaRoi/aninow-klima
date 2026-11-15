@@ -2,11 +2,12 @@
 
 The Next.js application in `apps/web` calls the public historical rules-model API
 at `https://aninow-klima.onrender.com`. Vercel serves the frontend at
-`https://aninow-klima.vercel.app`. The olive-to-forest gradient, farm artwork,
+`https://aninow-klima.vercel.app`. The olive-to-forest gradient, field photograph,
 transparent logo, team page, responsive layout, and English/Tagalog switch remain.
 
-The home page opens with a roughly two-second welcome using the farm artwork
-and logo, then reveals a compact headline and the start of the planting form
+The home page opens with a roughly two-second welcome using the supplied
+`pexels-elmer0224-31391951.jpg` photograph and logo, with a visible credit to
+Elmer Domingo in both languages. It then reveals a compact headline and the start of the planting form
 without scrolling. The catalogue request runs during the welcome; slow or failed
 requests keep their own visible status afterward. The welcome does not run again
 on form submission or language changes. Background controls stay inert until it

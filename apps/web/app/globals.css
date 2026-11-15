@@ -304,7 +304,7 @@ html:has(.app-intro) { overflow: hidden; scrollbar-gutter: auto; }
 .app-intro { position: fixed; inset: 0; z-index: 100; isolation: isolate; overflow: hidden; background: #263c2e; color: #f5f7e9; opacity: 1; transition: opacity .3s ease; }
 .app-intro.is-leaving { opacity: 0; }
 .app-intro::after { content: ''; position: absolute; inset: 24px; border: 1px solid #e3ecc331; border-radius: 18px; pointer-events: none; }
-.intro-landscape { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 63% 58%; z-index: -2; animation: intro-landscape 2.1s ease-out both; }
+.intro-landscape { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; z-index: -2; animation: intro-landscape 2.1s ease-out both; }
 .intro-shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #152c23ed, #18302799 35%, #1830270a 75%), linear-gradient(0deg, #182f2580, transparent 45%); }
 .intro-content { position: absolute; top: 50%; left: 9%; transform: translateY(-50%); width: min(360px, 40%); }
 .intro-content .brand-logo { width: 230px; max-width: 100%; filter: drop-shadow(0 8px 22px #13271b40); }
@@ -312,7 +312,7 @@ html:has(.app-intro) { overflow: hidden; scrollbar-gutter: auto; }
 .intro-status { margin-top: 38px; display: flex; flex-direction: column; gap: 15px; font-size: 16px; color: #e3eccf; }
 .intro-track { width: 100px; height: 3px; background: #d8ed9b33; overflow: hidden; border-radius: 3px; }
 .intro-track > span { display: block; height: 100%; background: #d8ed9b; transform-origin: left; animation: intro-line 1.8s cubic-bezier(.2,.7,.3,1) both; }
-.intro-artwork { position: absolute; bottom: 42px; right: 46px; color: #f2f5e5; font-size: 12px; }
+.intro-credit { position: absolute; bottom: 42px; right: 46px; padding: 8px 12px; border: 1px solid #e3ecc333; border-radius: 6px; background: #152c23cc; color: #f2f5e5; font-size: 14px; }
 @keyframes intro-landscape { from { transform: scale(1.035); } to { transform: scale(1); } }
 @keyframes intro-line { from { transform: scaleX(.08); } to { transform: scaleX(1); } }
 .planner-shell .site-header { height: 100px; }
@@ -339,13 +339,13 @@ html:has(.app-intro) { overflow: hidden; scrollbar-gutter: auto; }
 }
 @media (max-width: 680px) {
   .app-intro::after { inset: 14px; border-radius: 14px; }
-  .intro-landscape { object-position: 65% bottom; }
+  .intro-landscape { object-position: 60% center; }
   .intro-shade { background: linear-gradient(180deg, #152c23eb, #183027a3 35%, #18302705 70%, #182f25a6); }
   .intro-content { top: max(38px, 7vh); left: 28px; right: 28px; transform: none; width: auto; display: flex; flex-direction: column; align-items: center; text-align: center; }
   .intro-content .brand-logo { width: clamp(150px, 24vh, 190px); }
   .intro-tagline { font-size: 24px; margin-top: 16px; }
   .intro-status { align-items: center; margin-top: 24px; font-size: 15px; }
-  .intro-artwork { bottom: 30px; left: 28px; right: 28px; text-align: center; }
+  .intro-credit { bottom: 30px; left: 28px; right: 28px; width: fit-content; max-width: calc(100% - 56px); margin: auto; text-align: center; }
   .planner-shell .site-header { height: 88px; }
   .planner-shell .brand-logo { width: 96px; }
   .planner-shell .site-header nav.nav-open { top: 82px; }

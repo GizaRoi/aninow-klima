@@ -11,6 +11,7 @@ test('welcome finishes in about two seconds even when the catalogue is still loa
   await page.goto('/');
   const intro = page.locator('.app-intro');
   await expect(intro).toBeVisible();
+  await expect(intro).toContainText('Photo by Elmer Domingo');
   await expect(intro.getByRole('img', { name: 'AniNow Klima' })).toBeVisible();
   await expect.poll(() => page.locator('.intro-landscape').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   await page.keyboard.press('Tab');
