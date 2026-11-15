@@ -5,6 +5,14 @@ at `https://aninow-klima.onrender.com`. Vercel serves the frontend at
 `https://aninow-klima.vercel.app`. The olive-to-forest gradient, farm artwork,
 transparent logo, team page, responsive layout, and English/Tagalog switch remain.
 
+The home page opens with a roughly two-second welcome using the farm artwork
+and logo, then reveals a compact headline and the start of the planting form
+without scrolling. The catalogue request runs during the welcome; slow or failed
+requests keep their own visible status afterward. The welcome does not run again
+on form submission or language changes. Background controls stay inert until it
+finishes, and reduced-motion preferences disable the zoom and fade. Form labels,
+controls, and explanatory copy use larger type on both desktop and phones.
+
 ## Run and verify
 
 From the checkout root, install dependencies with `npm install`, then run
