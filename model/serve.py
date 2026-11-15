@@ -3,6 +3,8 @@
     python serve.py            then open http://127.0.0.1:8000
 
 Dev tool, bound to 127.0.0.1. Runs klima_model.py per submission, args as a list, no shell.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import csv
 import html

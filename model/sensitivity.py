@@ -3,6 +3,8 @@
     python sensitivity.py
 
 Kc_ini +/-0.1 and stage x1.5 are step sizes chosen here, not published ranges.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import contextlib
 import copy

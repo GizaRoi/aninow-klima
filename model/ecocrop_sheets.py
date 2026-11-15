@@ -3,6 +3,8 @@
 Not used at run time; tests check crops.csv against these sheets.
 Parser adapted from Romano's model/ecocrop.py.
 Sheets print opt min, opt max, abs min, abs max; crops.csv stores abs, opt, opt, abs.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import os
 import re

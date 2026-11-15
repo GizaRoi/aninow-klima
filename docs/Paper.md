@@ -1,4 +1,4 @@
-# Replaying forty-four seasons: a transparent requirement-matching model for post-rice crop choice in the Philippines
+# Replaying forty-four seasons: a transparent requirement-matching model for crop choice after harvest in the Philippines
 
 **Team AniNow** · NASA Space Apps Challenge 2026 · *Field Shift: Adapting Farms with NASA Data*
 
@@ -9,14 +9,17 @@ Code, data and every figure: this repository. Computational companion:
 
 ## Abstract
 
-Filipino rice farmers hold a field for about 197 days between the November harvest and
-the next planting, and must decide whether to plant rice again or a rotation crop. We
-present AniNow Klima, a deterministic requirement-matching model that answers this from
-open data: 45 years of daily NASA POWER agroclimatology, FAO EcoCrop crop limits, FAO-56
-crop water requirements and measured soil samples. For each of 29 crops at 22 sites, the
-model replays every fallow season from 1981 to 2024, scores temperature, water, soil pH
-and soil texture against published limits, takes the weakest score as the season's
-suitability, and counts the seasons that clear a pass mark. It has no fitted parameters.
+Between a harvest and the next main-crop planting a field is free for a season, and a
+farmer must decide what, if anything, to plant in it. We present AniNow Klima, a
+deterministic requirement-matching model that answers this from open data: 45 years of
+daily NASA POWER agroclimatology, FAO EcoCrop crop limits, FAO-56 crop water requirements
+and measured soil samples. The farmer chooses the site, the crop grown now (any of 29
+crops, or fallow) and the two dates. For each candidate crop the model replays every such
+window from 1981 to 2024, scores temperature, water, soil pH and soil texture against
+published limits, takes the weakest score as the season's suitability, and counts the
+seasons that clear a pass mark. It has no fitted parameters. We report one case in
+detail: rice harvested in mid-November and planted again at the end of May, a window of
+about 197 days, at 22 Philippine sites.
 Across 19,311 scored crop-seasons, at least one crop is suitable at 17 of 22 sites; at
 the other five the model returns "no suitable recommendation" rather than a ranking. The
 best alternative needs less supplemental water than a second rice crop at all 22 sites
@@ -34,12 +37,12 @@ rice-based cropping systems, crop diversification, limiting factor.
 
 ## 1. Introduction
 
-Lowland rice dominates Philippine smallholder agriculture, and in much of the country
-the main crop is harvested at the end of the wet season. The months that follow are dry.
-Planting rice again risks a crop without water; leaving the field fallow forgoes a second
-income. Diversification after rice is a long-standing extension recommendation, but the
-advice is generic: it does not say which crop, on which soil, planted when, or how often
-the choice would have worked.
+After a main crop is harvested, a field is free until the next planting. Rice is the
+leading example in the Philippines: in much of the country it is harvested at the end of
+the wet season, and the months that follow are dry. Planting the same crop again risks a
+crop without water; leaving the field fallow forgoes a second income. Diversification is
+a long-standing extension recommendation, but the advice is generic: it does not say
+which crop, on which soil, planted when, or how often the choice would have worked.
 
 The data needed to make that advice specific are open. NASA POWER provides daily
 temperature, precipitation and radiation for any point from 1981. FAO EcoCrop gives
@@ -152,11 +155,17 @@ is `model/klima_model.py`.
 
 **Figure 1.** The model in three steps.
 
-### 3.1 Seasons and the fallow window
+### 3.1 Inputs, seasons and the fallow window
+
+The farmer supplies the site, the crop grown now, the harvest date, the next main-crop
+planting date, the field's drainage and its water source. The site is one of the 22 in
+Table 1; soil pH and texture come from that site's sample unless the farmer gives a soil
+test. The current crop may be any of the 29 crops or fallow. It is the baseline the
+alternatives are compared with and is itself scored as "the same crop again".
 
 For each harvest year $y \in \{1981, \dots, 2024\}$ the fallow window runs from the
-harvest date to the day before the next rice planting. With the default dates
-(15 November and 31 May) the window is 197 days. Each crop is scored over its shortest
+harvest date to the day before the next planting. For the case reported here (rice,
+15 November and 31 May) the window is 197 days. Each crop is scored over its shortest
 cycle $n$ starting at the planting date; alternative planting dates at 15-day offsets are
 evaluated separately (Section 4.1).
 

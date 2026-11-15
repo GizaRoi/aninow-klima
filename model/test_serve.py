@@ -1,4 +1,7 @@
-"""The local form: what it sends to the model and what it shows."""
+"""The local form: what it sends to the model and what it shows.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
+"""
 import importlib.util
 import os
 import unittest

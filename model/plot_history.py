@@ -5,6 +5,8 @@
 
 Any field may be "N/A"; nothing is guessed in its place.
 Planting dates, pests and fertilizer are recorded, not scored.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import argparse
 import csv

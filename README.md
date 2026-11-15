@@ -4,7 +4,7 @@
 
 NASA Space Apps Challenge 2026 · [Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/field-shift-adapting-farms-with-nasa-data/) · Team AniNow
 
-What to plant after the rice harvest, from 44 seasons of NASA data.
+What to plant after harvest, from 44 seasons of NASA data.
 Full write-up: **[docs/Paper.md](docs/Paper.md)**.
 
 ---
@@ -15,19 +15,20 @@ AniNow Klima
 
 ## Summary
 
-AniNow Klima helps Filipino rice farmers decide what to plant after harvest: rice again,
-or a rotation crop. Between the November harvest and the next planting, a field sits idle
-for about 197 days in the driest part of the year. Our model replays 44 past seasons
-(1981–2024) of daily NASA POWER weather for the farmer's own field and checks each of 29
+AniNow Klima helps Filipino farmers decide what to plant after harvest. A farmer picks
+the field's location, the crop grown now (rice, any of 28 other crops, or fallow), the
+harvest and next planting dates, drainage and water source. The model replays 44 past
+seasons (1981–2024) of daily NASA POWER weather for that place and checks each of 29
 crops against published FAO limits for temperature, water, soil pH and soil texture,
-using measured Philippine soil samples and the FAO-56 crop water method. A season's score
-is its weakest condition. The tool reports how many past seasons each crop would have had
-what it needs, how much extra water it would have required, and why. Across 22 Philippine
-sites a suitable crop exists at 17; the best alternative needs a median 573 mm less
+using a measured soil sample for the site or the farmer's own soil test, and the FAO-56
+crop water method. A season's score is its weakest condition. The tool reports how many
+past seasons each crop would have had what it needs, how much extra water it would have
+required, and why. In our test case, a rice field harvested in November, a suitable crop
+exists at 17 of 22 Philippine sites; the best alternative needs a median 573 mm less
 irrigation than a second rice crop; and where the soil rules everything out, the tool
-says "no suitable recommendation" instead of guessing. Nothing is a black box: the model
-has no fitted parameters, every threshold is traced to a source, and its statistical
-weaknesses are published alongside its results.
+says "no suitable recommendation" instead of guessing. The model has no fitted
+parameters, every threshold is traced to a source, and its statistical weaknesses are
+published alongside its results.
 
 ## Project Demonstration
 
@@ -40,11 +41,13 @@ weaknesses are published alongside its results.
 
 ## Project Details
 
-**What it does.** The farmer gives the field's location, the harvest and next planting
-dates, whether water stays on the field, and whether there is irrigation. For each of 29
-crops the tool returns whether it fits the window, in how many past seasons its
-requirements were met, how much water it was short of, which condition limits it, and
-when to plant.
+**What it does.** The farmer gives the field's location, the crop grown now, the harvest
+and next planting dates, whether water stays on the field, and whether there is
+irrigation. Location is one of 22 sites, each with its own weather record and tested soil
+sample; a farmer's own soil test can replace the sample. The current crop can be any of
+the 29 crops, or fallow. For each of 29 crops the tool returns whether it fits the
+window, in how many past seasons its requirements were met, how much water it was short
+of, which condition limits it, and when to plant.
 
 **How it works.**
 
@@ -60,7 +63,8 @@ ETo = 0.0023 (Tmean + 17.8) sqrt(Tmax - Tmin) Ra
 Crops that cannot fit the window or the field's drainage are excluded before scoring. A
 season with S ≥ 0.6 is a good year. Nothing is trained or fitted.
 
-**Results.**
+**Results.** Test case: rice as the current crop, harvest 15 November, next planting
+31 May, rainfed.
 
 | Planting date | 22 sites | Water saved |
 |---|---|---|
@@ -107,6 +111,7 @@ AI tools were used throughout this project, directed and reviewed by the team.
 | Code: model, tests, analysis and figure scripts | Largely drafted and debugged with Claude (Anthropic) |
 | Writing: this README and the paper | Drafted and edited with Claude |
 | Data analysis | Statistical scripts and their interpretation drafted with Claude; every number comes from running the committed code on the committed data |
+| Data tables | The crop and site tables were compiled from the cited sources with AI assistance; `crops.csv` is checked against the archived FAO sheets by a test. NASA POWER and NOAA files are unmodified downloads |
 | Research | AI-assisted search for sources; the FAO pages used are archived in `model/sources/` |
 | Idea and approach | Brainstormed with AI tools |
 | Web app front end | Built with AI assistance (`ADD TOOL`) |
@@ -115,6 +120,10 @@ AI tools were used throughout this project, directed and reviewed by the team.
 
 Not AI: the model has no machine learning, the app has no AI feature, and the figures
 are plots drawn by code from the model's output, not generated images.
+
+The same acknowledgement is carried in the files themselves: in the header of every
+source file in `model/` and `notebooks/`, in the notebook's metadata, in the metadata of
+each figure, and as a visible label and metadata on the logo.
 
 Form options that apply: Coding, Debugging, or Troubleshooting · Writing, Editing, or
 Translation · Data Analysis and Interpretation · Research or Information Gathering ·

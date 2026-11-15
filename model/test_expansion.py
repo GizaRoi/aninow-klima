@@ -1,4 +1,7 @@
-"""Wider crop and place lists, whole-schedule check; crops.csv against the sheets in sources/."""
+"""Wider crop and place lists, whole-schedule check; crops.csv against the sheets in sources/.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
+"""
 import csv
 import json
 import os

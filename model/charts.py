@@ -4,6 +4,8 @@
     python charts.py --out mydir      somewhere else
 
 Standard library only; drawn from the model's own output.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import argparse
 import math

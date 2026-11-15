@@ -4,6 +4,8 @@
 
 Reads docs/analysis/*.csv (model/analysis.py) and model/results.json
 (model/klima_model.py). Each fig_* function returns (figure, file name).
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import argparse
 import json
@@ -27,6 +29,11 @@ RICE = "#b4553f"
 ALT = ["#2f6b4f", "#4878a8", "#8a6d3b", "#6b5b95", "#4f8a8b"]
 GREY = "#5b5b5b"
 FAINT = "#c9c9c9"
+PNG_METADATA = {
+    "Author": "Team AniNow",
+    "Description": "Plotted from AniNow Klima model output by notebooks/make_figures.py. "
+                   "Plotting code drafted with AI assistance (Claude, Anthropic).",
+}
 PILOT_CROPS = [("rice", RICE), ("mungbean", ALT[0]), ("eggplant", ALT[1]), ("tomato", ALT[2])]
 
 plt.rcParams.update({
@@ -417,7 +424,7 @@ def main(argv=None):
     data = load()
     for fn in FIGURES:
         fig, name = fn(data)
-        fig.savefig(os.path.join(args.out, name + ".png"), dpi=args.dpi)
+        fig.savefig(os.path.join(args.out, name + ".png"), dpi=args.dpi, metadata=PNG_METADATA)
         plt.close(fig)
         print(name + ".png")
 

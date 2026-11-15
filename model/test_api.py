@@ -1,4 +1,7 @@
-"""API boundary: validation, process isolation, real model output. Needs requirements-dev.txt."""
+"""API boundary: validation, process isolation, real model output. Needs requirements-dev.txt.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
+"""
 import json
 import subprocess
 import unittest

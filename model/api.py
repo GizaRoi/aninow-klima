@@ -2,6 +2,8 @@
 
 Run from model/: uvicorn api:app --host 0.0.0.0 --port 8000 --workers 1
 Each request runs the CLI in its own process and temp file.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 from __future__ import annotations
 

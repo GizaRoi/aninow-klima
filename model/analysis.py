@@ -4,6 +4,8 @@
 
 One model run per place. Writes places.csv, crop_by_place.csv, crops.csv,
 seasons.csv and pitch_stats.md. Past seasons only, not forecasts.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import argparse
 import csv

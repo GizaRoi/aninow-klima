@@ -4,6 +4,8 @@
     python pitch_figures.py --out ../docs/pitch   # then the figures
 
 Nine SVGs and an index.html, from docs/analysis/*.csv, oni.ascii.txt and model runs.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import argparse
 import csv

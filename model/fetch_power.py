@@ -4,6 +4,8 @@
     python fetch_power.py --list     # show what would be fetched
 
 The only script that uses the network. One file per places.csv point.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import csv
 import os

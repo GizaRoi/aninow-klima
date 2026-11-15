@@ -2,6 +2,8 @@
 
     python klima_model.py           pilot's answers
     python klima_model.py --help    every option
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import argparse, csv, glob, json, math, os, sys
 from datetime import date, timedelta

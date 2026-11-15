@@ -1,4 +1,7 @@
-"""klima_model: farmer inputs, scoring, water balance, pinned pilot numbers."""
+"""klima_model: farmer inputs, scoring, water balance, pinned pilot numbers.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
+"""
 import contextlib
 import csv
 import importlib.util

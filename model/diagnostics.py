@@ -4,6 +4,8 @@
     python diagnostics.py --out diag.json also write the numbers
 
 Runs on klima_model's default configuration. Changes no score.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import argparse
 import csv

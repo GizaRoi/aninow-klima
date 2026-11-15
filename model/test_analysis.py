@@ -1,4 +1,7 @@
-"""Statistics in analysis.py against hand-worked cases; the plot-history record."""
+"""Statistics in analysis.py against hand-worked cases; the plot-history record.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
+"""
 import copy
 import json
 import os

@@ -4,6 +4,8 @@
     python insights.py --out insights.json # and the numbers, as JSON
 
 One model run per places.csv row. Past-season counts and medians, not forecasts.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
 """
 import argparse
 import csv

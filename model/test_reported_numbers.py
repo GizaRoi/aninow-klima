@@ -1,4 +1,7 @@
-"""The counts quoted in docs/Paper.md, checked against docs/analysis/*.csv."""
+"""The counts quoted in docs/Paper.md, checked against docs/analysis/*.csv.
+
+Drafted with AI assistance (Claude, Anthropic); reviewed by Team AniNow.
+"""
 import csv
 import os
 import statistics
