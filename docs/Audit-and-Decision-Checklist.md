@@ -10,6 +10,93 @@ is in [Model-Explained.md](Model-Explained.md).
 
 ---
 
+> After this review the model was extended to seven places and ten crops, and the farmer's
+> main crop can be any of them. That round, its figures and a third scorecard are in
+> [HANDOFF.md](HANDOFF.md). The figures below are for the Muñoz pilot.
+
+## Where things stand after the decisions
+
+Every open decision from the first review was given a definite answer and carried out
+where it could be. This section is the current state; sections 2 to 4 below are the first
+review and are kept as the record of what was found.
+
+### Decisions made
+
+| # | Decision | Answer | Carried out | How it was checked |
+|---|---|---|---|---|
+| 1 | Geometric mean, or weakest condition? | **Weakest condition.** A season's score is the lowest of its four scores | Yes | Test: three perfect scores no longer lift a poor one. Mungbean 1997 (rain covered 14%) no longer passes |
+| 2 | Is 0.6 still the pass mark? | **Yes.** It now means rain covered at least 60% of the need | Yes | Mungbean leads at every mark from 0.4 to 0.8, so the mark no longer picks the winner |
+| 3 | Do priorities change the score? | **No.** The water-times-three weighting is gone; a priority only reorders | Yes | One score per season in the results file |
+| 4 | Which growing time is the headline? | **The shortest**, for the figures and for every ranking | Yes | Rankings previously used the longest; both now agree with the README |
+| 5 | Form rating: weakest condition or combined score? | **Weakest condition**, which is now also the model's rule | Yes | Form and model give the same rating |
+| 6 | Ties on an irrigated field | **Broken by the smaller water gap** | Yes | Test: rice, first in the crops file, no longer leads. Order is eggplant, tomato, rice, mungbean |
+| 7 | Which document is the contract? | **`Decision-Engine-Spec.md`.** There is no `Model-Math-Spec.md` | Yes | The spec now lists eight ways the pilot model differs, with what closes each |
+| 8 | Rice variety | **NSIC Rc222**, 106 days direct seeded | Yes | Read in the paper itself: Glover, Kim and Stone surveyed farmers in Muñoz and Zaragoza and found Rc222 the most popular inbred in both, Rc216 second |
+| 9 | Transplanted or direct seeded as the headline? | **Direct seeded**, so no seedbed days are counted | Yes | 114 days stays as the long figure |
+| 10 | Rice seepage | **Follows the soil:** 4, 6 or 8 mm a day | Yes | Figures read on FAO's page. Test: need rises by exactly 2 mm a day per step |
+| 11 | Days for land preparation | **An option, default 0.** No figure is invented | Yes | Test: rice fits with 91 days held back, not with 92 |
+| 12 | Coordinates that do not match the weather file | **Refused** | Yes | Test: Manila's coordinates stop the model with a plain message |
+| 13 | El Niño index | **NOAA's Oceanic Niño Index** | Yes | Gives the same 13 seasons as the file it replaced |
+| 14 | Sensitivity check | **In the repo** as `model/sensitivity.py` | Yes | Order unchanged in every case; see section 5 |
+| 15 | Soil moisture and a daily water budget | **Not for this submission.** Stated plainly instead | Stated | In the results file, the form's method notes, the narrative and `AGENTS.md` |
+| 16 | Which ground does the weather describe? | **A grid square of 0.5 by 0.625 degrees**, about 55 by 67 km | Stated | From the POWER file's own header. Shown in the form's method notes |
+| 17 | Rainfall trend | **Called a trend in the NASA record**, not a climate trend | Worded | README and narrative |
+| 18 | Dry-year and El Niño counts on the farmer card | **Moved to the advanced view** | Yes | Seven and twelve years are too few for a headline |
+| 19 | Unit for extra water | **Centimetres of water over the field**, with litres and drums in a footnote | Yes | "About 4 cm … Rice needs about 22 times more" |
+| 20 | Growing time for the other three crops | **EcoCrop's shortest, said out loud**, until local figures exist | Stated | `cycle_source` on every row |
+
+Not done, because they need something outside this repo:
+
+- Slides and scripts still have to be updated by hand to the figures below.
+- Local growing times for mungbean, eggplant and tomato.
+- A comparison of POWER rainfall with a PAGASA station.
+- A second town.
+- A Filipino translation of the form; the English wording is final for the submission.
+- The author and year of FAO Training Manual 3 (Brouwer and Heibloem, 1986) were written
+  from memory. FAO's page shows neither. Confirm before citing.
+
+### What the pilot now says
+
+Rainfed field that drains, Science City of Muñoz, shortest growing time.
+
+| Crop | Days | Rain covers | Good years | Likely range | Extra water |
+|---|---|---|---|---|---|
+| Mungbean | 50 | 64% | 22 of 41 | 39%–68% | 44 mm |
+| Eggplant | 70 | 42% | 13 of 41 | 20%–47% | 115 mm |
+| Tomato | 70 | 39% | 13 of 41 | 20%–47% | 127 mm |
+| Rice | 106 | 11% | 0 of 41 | 0%–9% | 964 mm |
+
+Three things follow from the new rule and should be known before the pitch:
+
+- **No crop has a good year in any of the seven dry years.** On rain alone a dry year is a
+  bad year for everything. Mungbean is the crop that asks for the least extra water, not a
+  crop that escapes drought.
+- **On clay, the commonest soil in the SARAI samples, the three alternatives cannot pass at
+  all.** Their sheets only tolerate heavy soil, which scores 0.5, below the pass mark. That
+  0.5 is the team's own figure, and it now carries real weight.
+- **On an irrigated field "overall fit" puts mungbean last.** All four crops pass every
+  year; mungbean's pH score is 0.95 against 1.00 for the others. Under "using less water"
+  it is first. A 0.05 difference from one soil sample 3.4 km away is not much to rank on.
+
+### Judge's scorecard, second review
+
+| Criterion | First | Now | What changed, and what still holds it back |
+|---|---|---|---|
+| Validity | 3 | **4** | "Good year" now means rain covered 60% of the need. The leader is the same at every pass mark. The chosen crop values are shown not to change the order. The rice variety is backed by a survey done in Muñoz. Still no check against a real harvest, no soil moisture, and the texture steps are unsourced. |
+| Relevance | 4 | **4** | A local rice variety and NOAA's own El Niño index bring it closer to the field. Irrigation still switches the water score off, in a province that is mostly irrigated. |
+| Impact | 3 | **3** | Unchanged. One town, four crops, no prices. The model now refuses to be pointed at another town without that town's weather, which is honest but does not widen the reach. |
+| Creativity | 3 | **3** | Unchanged. The method is standard; the candour is the distinguishing feature. |
+| Presentation | 4 | **4** | The form now says what the model says. It is still English only. |
+| **Total** | **17** | **18** | |
+
+The honest summary for a judge: the claim got smaller and stronger. "Mungbean passes in 38
+of 41 years" was not true in the sense a listener would take it. "Rain alone covers most of
+mungbean's water need in about half of past years, and it needs about a twentieth of the
+extra water rice would" is true, checked, and still a clear answer to the challenge.
+
+What would move each score: a harvest record, even from ten farmers, for validity; a water
+score that still works on an irrigated field for relevance; a second town for impact.
+
 ## 1. About the brief this audit started from
 
 The Gemini prompt asks for a line-by-line check against `docs/Model-Math-Spec.md` and
@@ -33,9 +120,9 @@ that is here against the intent of each item.
 If a `Model-Math-Spec.md` exists somewhere else, it should be committed, because right now
 the repo has no single document that the code can be checked against.
 
-## 2. Judge's scorecard
+## 2. Judge's scorecard, first review
 
-Scores are 1 to 5 and reflect the branch after this pass.
+Scores are 1 to 5 and reflect the branch at the first review. The second review is at the top.
 
 | Criterion | Score | Why |
 |---|---|---|
@@ -49,7 +136,7 @@ The strongest thing in this repo is that it says what it does not know. Keep tha
 pitch. The weakest is that the headline figure, "38 of 41 years", does not mean what a
 listener will assume.
 
-## 3. What was changed in this pass
+## 3. What was changed
 
 | File | Change |
 |---|---|
@@ -65,10 +152,11 @@ listener will assume.
 | `docs/Audit-and-Decision-Checklist.md` | This file. |
 | `.claude/launch.json` | New, untracked. Lets the form be started from the Claude desktop preview. Delete it if unwanted. |
 
-All 90 tests pass. Nothing was committed.
+After the decisions, also changed: the scoring rule, ranking, rice seepage, the land-preparation option and the place check in `klima_model.py`; `oni.ascii.txt` added; `sensitivity.py` added; `Decision-Engine-Spec.md` given a list of differences. All 98 tests pass.
 
-**Figures that moved.** The middle column is the bug fix alone; the last adds the rice
-growing time. Any slide or script quoting the first column needs updating.
+**Figures that moved before the decisions.** The middle column is the bug fix alone; the last
+adds the rice growing time. The figures after the decisions are in the table at the top, and
+those are the ones to quote.
 
 | Figure | Before | After the fix | Now |
 |---|---|---|---|
@@ -89,7 +177,10 @@ One claim in the narrative no longer applies and was removed: rice's seasons are
 noticeably correlated from one year to the next (0.05, down from 0.23), so its interval
 does not need widening.
 
-## 4. Findings
+## 4. Findings at the first review
+
+Findings 1, 2, 4, 5, 8, 9, 10 and 15 are settled by the decisions at the top. Finding 3 is
+answered by the difference list in the spec. Findings 6, 7, 11, 12, 13 and 14 are stated, not fixed.
 
 ### Must settle before submission
 
@@ -259,11 +350,10 @@ So the model uses **NSIC Rc222 (Tubigan 18): 106 days direct seeded, 114 days
 transplanted**, both from its Pinoy Rice sheet. Rc216 is 104 and 112 days, so the choice
 between the two barely matters. If the team has local knowledge that Mabango is what
 farmers plant, changing two numbers in `crops.csv` switches it; the rice shortfall becomes
-889 mm and nothing else moves.
+1,129 mm and nothing else moves.
 
-The variety sheets were read directly. The planting-share claims were read from search
-summaries, not from the papers themselves. Read the Glover study before citing it on a
-slide.
+The variety sheets were read directly. The Glover study was then read in full: its two survey sites were Muñoz and Zaragoza, and
+it reports Rc222 as the most popular inbred variety in both, followed by Rc216.
 
 Two cautions stay attached to the number. Days are counted from seeding, so for
 transplanted rice 114 includes the seedbed and overstates time in the field. And Rc222 is
@@ -278,7 +368,8 @@ irrigated list, so it would not settle the rainfed question.
 ### How much the chosen values matter
 
 Each value the team had to choose was pushed to the other end of its range, one at a time,
-and the model rerun. Figures are the typical shortfall on rain alone.
+and the model rerun. Figures are the typical shortfall on rain alone, from
+`python model/sensitivity.py` after the decisions above.
 
 | What was changed | Crop | Shortfall moves from | to |
 |---|---|---|---|
@@ -288,23 +379,22 @@ and the model rerun. Figures are the typical shortfall on rain alone.
 | Early-stage Kc 0.60 → 0.50 or 0.70 | Eggplant, 70 days | 115 mm | 106 to 123 mm |
 | Early-stage Kc 0.60 → 0.50 or 0.70 | Tomato, 70 days | 127 mm | 119 to 135 mm |
 | Late-stage Kc 0.90 → 0.70 | Tomato | 127 mm | 122 mm |
-| Late-stage Kc 0.90 → 0.60 | Rice, 80 days | 531 mm | 521 mm |
-| Seepage 4 → 2 or 8 mm a day | Rice, 80 days | 531 mm | 371 to 851 mm |
-| Growing time 80 → 106, 114, 120 days | Rice | 531 mm | 752, 828, 889 mm |
+| Late-stage Kc 0.90 → 0.60 | Rice, 106 days | 964 mm | 949 mm |
+| Seepage by soil: 4 (clay), 6 (medium), 8 (sandy) mm a day | Rice, 106 days | 964 mm | 752 to 1,176 mm |
+| Growing time 104, 112, 114, 120 days | Rice | 964 mm | 941 to 1,129 mm |
 | Growing time, shortest → longest | Mungbean, eggplant, tomato | 44, 115, 127 mm | 239, 297, 445 mm |
 
 What this shows:
 
 - **The values taken from blank or ranged cells hardly matter.** The crop coefficients and
-  stage lengths move a shortfall by 10 mm or less. The 0.1 steps on early-stage Kc, the
-  half-again on stage lengths and the 2 and 8 mm seepage are our own test sizes, not
-  published ranges.
+  stage lengths move a shortfall by 15 mm or less. The 0.1 steps on early-stage Kc and the
+  half-again on stage lengths are our own test sizes, not published ranges.
 - **Two inputs matter a great deal: growing time and rice seepage.** Those are the ones
-  worth chasing. Growing time is now local for rice. Seepage is still the heavy-clay figure
-  on a loam soil (finding 8).
+  worth chasing. Growing time is now local for rice, and seepage now follows the soil.
 - **The order never changes.** In the least favourable case tried, a 120-day mungbean with
-  both its chosen values pushed thirsty needs 269 mm, against 511 mm for a 104-day rice
-  crop with every choice pushed the other way. Mungbean still needs about half.
+  both its chosen values pushed thirsty needs 269 mm, against 719 mm for a 104-day rice
+  crop on heavy clay with its late-stage value pushed the other way. Mungbean still needs
+  well under half.
 
 That last point is the line for the pitch: the gaps in the crop tables are real, they are
 listed, and none of them changes the answer.
@@ -386,38 +476,40 @@ amount of framing.
 Tick or strike each one. Items marked with a name are suggestions for who is closest to it.
 
 **The score**
-- [ ] Keep the geometric mean, or let the weakest condition decide? (finding 2)
-- [ ] If the geometric mean stays, is 0.6 still the pass mark, and how is "passed" worded in the pitch?
+- [x] Weakest condition decides. (decision 1)
+- [x] 0.6 stays; a good year is one where rain covered 60% of the need. (decision 2)
 - [x] Rice growing time: NSIC Rc222 from Pinoy Rice. Confirm, or switch to Mabango 3 if the team knows better. (section 5)
-- [ ] For the other three crops, is the headline the shortest or the longest time until local figures arrive? (finding 5)
-- [ ] Should the form's rating follow the weakest condition, as it now does, or the combined score?
+- [x] Shortest, for figures and rankings. (decision 4)
+- [x] Weakest condition, same as the model. (decision 5)
 
 **The documents**
-- [ ] Which document is the contract: `Decision-Engine-Spec.md`, or a `Model-Math-Spec.md` that is not in the repo? (finding 3)
-- [ ] Update slides and scripts to the corrected figures in section 3.
-- [ ] Fix the Training Manual 3 citation in the narrative.
+- [x] `Decision-Engine-Spec.md`, with its differences listed. (decision 7)
+- [ ] Update slides and scripts to the figures at the top of this file.
+- [x] Training Manual 3 citation fixed in the narrative. Confirm the authors and year.
 
 **The model**
-- [ ] Report ties as ties on an irrigated field. (finding 4)
-- [ ] Add soil moisture at planting and a daily water budget, or state plainly that the model leaves them out. (finding 6)
-- [ ] Make rice seepage depend on soil texture. (finding 8)
-- [ ] Hold back days for land preparation. (finding 9)
-- [ ] Refuse coordinates that do not match the weather file. (finding 10)
+- [x] Ties broken by the smaller water gap. (decision 6)
+- [x] Stated plainly; not built for this submission. (decision 15)
+- [x] Rice seepage follows soil texture. (decision 10)
+- [x] Land-preparation days are an option, default 0. Agree a local figure. (decision 11)
+- [x] Coordinates outside the weather cell are refused. (decision 12)
 - [x] Run the sensitivity check on the chosen crop values. (section 5)
-- [ ] Swap in the ONI file.
+- [x] ONI file in use. (decision 13)
 
 **The data**
-- [ ] Read Glover et al. (2020) and confirm the variety claim before citing it.
-- [ ] Find days in the field for transplanted rice, so the seedbed is not counted.
+- [x] Glover et al. (2020) read: Muñoz was a study site and Rc222 the most popular inbred there.
+- [x] Headline is direct seeded, so no seedbed days are counted. (decision 9)
 - [ ] Local growing times and stage lengths for the other three crops from PhilRice and DA. (Franco)
-- [ ] Confirm which grid cell the POWER point falls in. (finding 11)
+- [x] Grid size confirmed from the POWER header and shown on the form. (decision 16)
 - [ ] Compare POWER rainfall with a PAGASA station before quoting the trend. (finding 12)
 - [ ] One more place, with its own POWER download.
 
 **The form**
-- [ ] Agree the farmer-facing wording, then translate it.
-- [ ] Decide what "extra water" is shown in.
-- [ ] Decide whether dry-year and El Niño counts stay on the farmer card, given seven and twelve years.
+- [x] English wording final for the submission.
+- [ ] Filipino translation.
+- [x] Extra water shown as centimetres over the field. (decision 19)
+- [x] Dry-year and El Niño counts moved to the advanced view. (decision 18)
+- [ ] Source or review the 0.5 texture score for a tolerated soil; it now caps a crop below the pass mark.
 
 ## Sources consulted for sections 5 and 6
 

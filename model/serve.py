@@ -39,8 +39,7 @@ TEXTURE = [("", "Not on my result"), ("light", "Light (sandy)"),
            ("medium", "Medium (loam)"), ("heavy", "Heavy (clay)")]
 PRIORITY = [("balanced", "Overall fit"), ("saving_water", "Using less water"),
             ("healthier_soil", "Healthier soil"), ("finishing_early", "Finishing early")]
-LOCAL_NAME = {"rice": "Palay", "mungbean": "Munggo",
-              "eggplant": "Talong", "tomato": "Kamatis"}
+CROPS_FILE = os.path.join(HERE, "crops.csv")
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 CONDITIONS = (("temp", "Temperature"), ("water", "Water"),
@@ -48,10 +47,38 @@ CONDITIONS = (("temp", "Temperature"), ("water", "Water"),
 # Why a crop was ruled out, in the farmer's words rather than the model's codes.
 EXCLUDED = {
     "does_not_fit_window": "It needs more days than you have between harvest "
-                           "and your next rice planting.",
+                           "and your next planting.",
     "needs_well_drained_soil": "It needs soil that drains, and you said water "
                                "stays on your field after rain.",
 }
+
+
+def excluded_reason(code, seen):
+    """A ruled-out crop's reason in plain words. `seen` holds what was compared for
+    a crop known only from a DA crop guide."""
+    if code in EXCLUDED:
+        return EXCLUDED[code]
+    if seen and code in ("warmer_than_guide_range", "cooler_than_guide_range"):
+        lo, hi = seen["guide_temp_c"]
+        side = "warm" if code.startswith("warmer") else "cool"
+        return (f"Too {side} here. The DA crop guide recommends {lo:g} to {hi:g} °C; "
+                f"this place averages {seen['median_temp_c']:.0f} °C while it grows.")
+    if seen and code == "soil_ph_outside_guide_range":
+        lo, hi = seen["guide_ph"]
+        return (f"The soil pH here ({seen['soil_ph']:g}) is outside the DA crop guide's "
+                f"range for this crop ({lo:g} to {hi:g}).")
+    return code.replace("_", " ")
+
+
+def read_crop_names():
+    """Crop key -> name the farmer knows it by, in the order of crops.csv."""
+    import csv as _csv
+    with open(CROPS_FILE, newline="", encoding="utf-8") as f:
+        return {r["crop"].strip(): (r.get("local_name") or r["crop"]).strip()
+                for r in _csv.DictReader(f) if (r.get("crop") or "").strip()}
+
+
+CROP_NAMES = read_crop_names()
 
 
 def read_places():
@@ -72,10 +99,10 @@ def read_places():
 
 PLACES = read_places()
 
-DEFAULTS = dict(place=next(iter(PLACES)), harvest="2026-11-15",
+DEFAULTS = dict(place=next(iter(PLACES)), main_crop="rice", harvest="2026-11-15",
                 next_planting="2027-05-31", drainage="well_drained",
                 water="rain", priority="balanced", soil_test="", soil_ph="",
-                soil_texture="", advanced="", pass_mark="0.6")
+                soil_texture="", advanced="", pass_mark="0.6", turnaround="0")
 
 CSS = """
 /* Tokens taken from the Klima prototype so the harness sits in the same design
@@ -213,8 +240,8 @@ def to_args(q):
         raise ValueError(f"We do not have weather data for {g('place')!r} yet. "
                          f"Choose a place from the list.")
     dates = {}
-    for key, label in (("harvest", "Rice harvest date"),
-                       ("next_planting", "Next rice planting date")):
+    for key, label in (("harvest", "Harvest date"),
+                       ("next_planting", "Next planting date")):
         try:
             dates[key] = date.fromisoformat(g(key) or DEFAULTS[key])
         except ValueError:
@@ -223,12 +250,15 @@ def to_args(q):
     # the harvest as one a year later and quietly return a 364-day window. A farmer
     # typing two real dates in that order has made a mistake; say so.
     if dates["next_planting"] <= dates["harvest"]:
-        raise ValueError("Your next rice planting date is before your harvest date. "
+        raise ValueError("Your next planting date is before your harvest date. "
                          "Check the two dates.")
     drainage = g("drainage")
     if drainage not in dict(DRAINAGE):
         raise ValueError(f"drainage: {drainage!r} is not one of the three answers")
-    args = [sys.executable, MODEL,
+    main_crop = g("main_crop") or DEFAULTS["main_crop"]
+    if main_crop not in CROP_NAMES:
+        raise ValueError(f"main crop: {main_crop!r} is not a crop we know yet")
+    args = [sys.executable, MODEL, "--main-crop", main_crop,
             "--lat", repr(place["lat"]), "--lon", repr(place["lon"]),
             "--place", f"{place['place']}, {place['province']}",
             "--province", place["province"],
@@ -239,6 +269,10 @@ def to_args(q):
     # what the farmer sees hidden is never quietly used.
     if g("advanced"):
         args += ["--pass-mark", repr(num(g("pass_mark") or "0.6", 0.0, 1.0, "Pass mark"))]
+        days = num(g("turnaround") or "0", 0, 90, "Days to prepare the field")
+        if days != int(days):
+            raise ValueError("Days to prepare the field: give a whole number of days.")
+        args += ["--turnaround-days", str(int(days))]
     if g("soil_test"):
         texture = g("soil_texture")
         if texture and texture not in dict(TEXTURE):
@@ -284,7 +318,7 @@ def mm(v):
     return "not worked out" if v is None else f"{v:,.0f} mm"
 
 
-def water_plain(deficit_mm, days, rice_mm=None, is_rice=False):
+def water_plain(deficit_mm, days, rice_mm=None, is_rice=False, main_name="Rice"):
     """The water gap in words a farmer can picture: a depth of water standing on
     the field, and how it compares with rice. Returns (headline, small print).
     Millimetres to centimetres is only a change of unit, so nothing is assumed."""
@@ -296,7 +330,7 @@ def water_plain(deficit_mm, days, rice_mm=None, is_rice=False):
     depth = f"{cm:.0f} cm" if cm >= 1 else "under 1 cm"
     small = f"of water over the whole field, spread across {days} days."
     if not is_rice and rice_mm and rice_mm / deficit_mm >= 2:
-        small += f" Rice needs about {rice_mm / deficit_mm:.0f} times more."
+        small += f" {main_name} needs about {rice_mm / deficit_mm:.0f} times more."
     return f"About {depth}", small
 
 
@@ -320,12 +354,14 @@ def form_html(q):
   <div class="grid">
     <div><label for="place">Where is your field?</label>
          <select id="place" name="place">{places}</select>
-         <span class="hint">Pilot area. More towns will be added.</span></div>
+         <span class="hint">Places we have weather and a soil sample for.</span></div>
+    <div><label for="main_crop">What do you grow now?</label>
+         <select id="main_crop" name="main_crop">{options(list(CROP_NAMES.items()), answer(q, 'main_crop'))}</select></div>
     <div><label for="priority">What matters most to you?</label>
          <select id="priority" name="priority">{options(PRIORITY, answer(q, 'priority'))}</select></div>
-    <div><label for="harvest">When will you harvest your rice?</label>
+    <div><label for="harvest">When will you harvest it?</label>
          <input type="date" id="harvest" name="harvest" value="{g('harvest')}"></div>
-    <div><label for="next_planting">When will you plant rice again?</label>
+    <div><label for="next_planting">When will you plant it again?</label>
          <input type="date" id="next_planting" name="next_planting" value="{g('next_planting')}"></div>
     <div><label for="drainage">Does water stay on the field for days after rain?</label>
          <select id="drainage" name="drainage">{options(DRAINAGE, answer(q, 'drainage'))}</select></div>
@@ -352,8 +388,13 @@ def form_html(q):
       <div><label for="pass_mark">Pass mark</label>
            <input type="text" id="pass_mark" name="pass_mark" inputmode="decimal"
                   value="{g('pass_mark')}">
-           <span class="hint">The overall score, from 0 to 1, that a past year must
-             reach to count as passed. We use 0.6.</span></div>
+           <span class="hint">How much of its needs, from 0 to 1, a crop&rsquo;s weakest
+             condition must meet for a past year to count as good. We use 0.6.</span></div>
+      <div><label for="turnaround">Days to prepare the field</label>
+           <input type="text" id="turnaround" name="turnaround" inputmode="numeric"
+                  value="{g('turnaround')}">
+           <span class="hint">Days kept free before your next planting. We use 0
+             until a local figure is agreed.</span></div>
     </div>
   </div>
   <button class="go" type="submit">Compare crops</button>
@@ -376,7 +417,7 @@ def details_html(c, opts, kc_source, profile, water, heat_limit):
         f'<td class="n">{(c["median_S"][tag][profile] or 0):.2f}</td>' for tag in ("short", "long"))
     extra = "".join(f'<td class="n">{esc(mm(c["median_deficit_mm"][tag]))}</td>'
                     for tag in ("short", "long"))
-    rows += (f"<tr><td>Overall score</td>{overall}</tr>"
+    rows += (f"<tr><td>Weakest condition</td>{overall}</tr>"
              f"<tr><td>Extra water needed</td>{extra}</tr>")
     years = ""
     for key, title in (("all", "All years"), ("dry", "Dry years"),
@@ -430,13 +471,14 @@ def details_html(c, opts, kc_source, profile, water, heat_limit):
   <h3>Scores, typical year</h3>
   <div class="scroll"><table><tr><th>Condition</th>{head}</tr>{rows}</table></div>
   {water_note}
-  <h3>Years that passed, with likely range</h3>
+  <h3>Good years, with likely range</h3>
   <div class="scroll"><table><tr><th>Years</th>{head}</tr>{years}</table></div>
   <p class="src">The range shows where the long-run share probably lies (95% Wilson
     interval).{skipped_note}</p>
   {plant_html}
   <h3>Sources for this crop</h3>
   {guide_html}{env_html}
+  <p class="src"><strong>Crop limits:</strong> {esc(c.get("limits_source") or 'not recorded')}</p>
   <p class="src"><strong>Growing time:</strong> {esc(c.get("cycle_source") or 'not recorded')}</p>
   <p class="src"><strong>Water use figures:</strong> {esc(kc_source or 'not recorded')}</p>
 </div>"""
@@ -444,11 +486,13 @@ def details_html(c, opts, kc_source, profile, water, heat_limit):
 
 def crop_html(rank, name, c, opts, kc_source, ctx):
     """One crop card: the verdict and four facts, then the detail if asked for."""
-    label = (f'{esc(LOCAL_NAME.get(name, name.title()))} '
-             f'<small>{esc(name.title())}</small>')
+    local = ctx["names"].get(name, name.title())
+    is_main = name == ctx["main"]
+    label = (f'{esc(local)} <small>{esc(name.title())}'
+             f'{" &middot; your crop now" if is_main else ""}</small>')
     why = c.get("excluded")
     if why:
-        reasons = "".join(f'<p class="blocked">{esc(EXCLUDED.get(w, w.replace("_", " ")))}</p>'
+        reasons = "".join(f'<p class="blocked">{esc(excluded_reason(w, c.get("seen")))}</p>'
                           for w in why)
         return (f'<div class="crop"><div class="top"><span class="name">{label}</span>'
                 f'<span class="fit out">Not suited</span></div>{reasons}</div>')
@@ -476,7 +520,7 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
                      f'<small>{"around " + str(int(d)) + " " + m if best["offset_days"] == 0 else "smallest water gap"}</small>')
     extra_label = "Irrigation needed" if ctx["water"] == "irrigation" else "Extra water needed"
     extra, extra_small = water_plain(c["median_deficit_mm"][tag], days_lo,
-                                     ctx.get("rice_mm"), name == "rice")
+                                     ctx.get("main_mm"), is_main, ctx["main_name"])
     if low is None:
         weak = ""
     elif b == "g":
@@ -502,8 +546,8 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
   <dl class="facts">
     <div><dt>Rain covers</dt><dd>{covers}<small>of the water it needs</small></dd></div>
     <div><dt>{extra_label}</dt><dd>{esc(extra)}<small>{esc(extra_small)}</small></dd></div>
-    <div><dt>Past years passed</dt><dd>{passed("all")}<small>dry years {passed("dry")} &middot;
-      El Ni&ntilde;o {passed("el_nino")}</small></dd></div>
+    <div><dt>Good years</dt><dd>{passed("all")}<small>past years that met at least
+      {ctx["pass_mark"]:.0%} of what it needs</small></dd></div>
     <div><dt>Best time to plant</dt><dd>{best_html}</dd></div>
   </dl>
   {weak}{check}{more}
@@ -515,18 +559,26 @@ def results_html(r, water, priority, advanced):
     field = r["fields"][water]
     crops = dict(field["crops"])
     for name, why in field["excluded"].items():
-        crops[name] = {"excluded": why}
+        crops[name] = {"excluded": why, "seen": field.get("screened", {}).get(name)}
     order = [n for n in field["rankings"][priority] if n in crops]
     order += [n for n in crops if n not in order]
-    profile = "saving_water" if priority == "saving_water" else "balanced"
-    rice = field["crops"].get("rice")
+    profile = "balanced"       # one score per season; the priority only reorders
+    names = meta.get("crop_names") or CROP_NAMES
+    main = meta.get("main_crop", "rice")
+    main_row = field["crops"].get(main)
     ctx = dict(profile=profile, water=water, advanced=advanced,
-               heat_limit=meta["heat_limit_c"],
-               rice_mm=rice["median_deficit_mm"]["short"] if rice else None)
-    cards = "".join(
-        crop_html(i, n, crops[n], r["planting_dates"].get(n),
-                  (r["crop_coefficients"].get(n) or {}).get("source"), ctx)
-        for i, n in enumerate(order, 1))
+               heat_limit=meta["heat_limit_c"], pass_mark=meta["pass_mark"],
+               names=names, main=main, main_name=names.get(main, main.title()),
+               main_mm=main_row["median_deficit_mm"]["short"] if main_row else None)
+    def card(i, n):
+        return crop_html(i, n, crops[n], r["planting_dates"].get(n),
+                         (r["crop_coefficients"].get(n) or {}).get("source"), ctx)
+    rated = [n for n in order if not crops[n].get("excluded")]
+    ruled_out = [n for n in order if crops[n].get("excluded")]
+    cards = "".join(card(i, n) for i, n in enumerate(rated, 1))
+    if ruled_out:
+        cards += ('<p class="eyebrow">Not recommended here</p>'
+                  + "".join(card(0, n) for n in ruled_out))
     sample = soil.get("sample") or {}
     own_soil = soil["source"] == "override"
     if own_soil:
@@ -550,8 +602,13 @@ def results_html(r, water, priority, advanced):
         notes = f"""
 <p class="eyebrow">Method notes</p>
 <div class="crop"><ul class="refs">
-  <li>Weather point: {meta['latitude']}, {meta['longitude']}. {meta['seasons']} past
-    years tested. Pass mark {meta['pass_mark']}.</li>
+  <li>Weather point: {meta['latitude']}, {meta['longitude']}. The weather is the average
+    over a NASA grid square about 55 km by 67 km, not a reading at the field.
+    {meta['seasons']} past years tested. Pass mark {meta['pass_mark']}.
+    Days kept to prepare the field: {meta['turnaround_days']}.</li>
+  <li>A year&rsquo;s score is its weakest condition. Nothing is averaged.</li>
+  <li>Not included: water already in the soil at planting, and rain lost to runoff.</li>
+  <li>El Ni&ntilde;o years: {esc(meta['el_nino_source'])}.</li>
   {sample_note}
   <li>Water need: FAO-56 crop coefficients applied to daily reference
     evapotranspiration (Hargreaves, FAO-56 Eq. 52). Water score: rain divided by
@@ -563,7 +620,7 @@ def results_html(r, water, priority, advanced):
 </ul></div>"""
     return f"""
 <div class="window">
-  <strong>{meta['window_days']} days between harvest and your next rice planting</strong>
+  <strong>{meta['window_days']} days between harvest and your next planting</strong>
   {esc(meta['location_name'])} &middot; {day_month(meta['harvest'])} to
   {day_month(meta['next_planting'])} &middot; {answers}
   <p>{soil_line}</p>
@@ -571,16 +628,17 @@ def results_html(r, water, priority, advanced):
 <p class="eyebrow">Crop options <span>Ranked by: {esc(dict(PRIORITY)[priority]).lower()}</span></p>
 {cards}
 <p class="src">Water figures are for a typical year. 1 cm of water over one hectare
-  is 100,000 litres, about 500 drums. A past year passes when
-  the crop&rsquo;s overall score reaches the pass mark{'' if advanced else '; turn on Advanced view for the scores'}.</p>
+  is 100,000 litres, about 500 drums. A crop is rated on its weakest condition{'' if advanced else '; turn on Advanced view for the scores'}.</p>
 {notes}
 <p class="eyebrow">References</p>
 <div class="crop"><ul class="refs">
   <li>NASA POWER daily weather, 1981&ndash;2025</li>
   <li>FAO EcoCrop crop requirements</li>
   <li>FAO Irrigation and Drainage Paper 56, crop water use</li>
+  <li>FAO Irrigation Water Management Training Manual 3, paddy seepage</li>
+  <li>Pinoy Rice Knowledge Bank (PhilRice), rice varieties</li>
   <li>SARAI soil samples</li>
-  <li>NOAA Ni&ntilde;o 3.4 index</li>
+  <li>NOAA Oceanic Ni&ntilde;o Index</li>
   <li>DA regional crop production guides</li>
 </ul></div>"""
 
@@ -589,7 +647,7 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AniNow Klima</title><style>{css}</style></head><body><div class="wrap">
 <header><div class="brand">AniNow <span>Klima</span></div></header>
-<h1>What can I plant after rice?</h1>
+<h1>What can I plant between crops?</h1>
 <div class="notice">Pilot version. Results show how past years went at your place.
 They are not a forecast and not farming advice.</div>
 {form}

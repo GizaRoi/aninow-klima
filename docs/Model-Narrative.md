@@ -2,6 +2,9 @@
 
 Pilot: Muñoz, Nueva Ecija (15.72 N, 120.90 E). 44 seasons, 1981–2024. Model revision: 2026-11-15.
 
+This document describes the pilot field and the four crops it was built on. The model now also
+runs for six more places and six more crops; those results are in [HANDOFF.md](HANDOFF.md).
+
 Every figure and every chart in this document is produced by `model/klima_model.py`,
 `model/diagnostics.py` and `model/charts.py` from the committed inputs. Nothing here is
 an illustration of what a result might look like. To regenerate all of it:
@@ -27,16 +30,18 @@ there is no irrigation:
 
 | Crop | Cycle | Suitability | Seasons passing | 95% interval | Water short by |
 |---|---|---|---|---|---|
-| **Mungbean** (munggo) | 50 d | **0.89** | **38 of 41** | 81%–97% | **44 mm** |
-| Eggplant (talong) | 70 d | 0.80 | 37 of 41 | 77%–96% | 115 mm |
-| Tomato (kamatis) | 70 d | 0.79 | 37 of 41 | 77%–96% | 127 mm |
-| Rice again (palay) | 106 d | 0.60 | 21 of 41 | 36%–66% | 752 mm |
+| **Mungbean** (munggo) | 50 d | **0.64** | **22 of 41** | 39%–68% | **44 mm** |
+| Eggplant (talong) | 70 d | 0.42 | 13 of 41 | 20%–47% | 115 mm |
+| Tomato (kamatis) | 70 d | 0.39 | 13 of 41 | 20%–47% | 127 mm |
+| Rice again (palay) | 106 d | 0.11 | 0 of 41 | 0%–9% | 964 mm |
+
+Suitability is the crop's weakest condition in a typical season. At this field that is always water, so 0.64 means rain covered 64% of what mungbean needed. A season passes at 0.6 or better.
 
 Counts are out of 41, not 44: reference evapotranspiration needs a radiation record that starts in 1984, so the 1981–1983 seasons have no water score and are left out rather than counted as passes.
 
 Rice's growing time is the 106 days of NSIC Rc222 when direct seeded, from the Pinoy Rice Knowledge Bank; the other three crops still use the shortest time on their EcoCrop sheet, which is a global figure. The order holds whichever end of each range is used; see the [audit](Audit-and-Decision-Checklist.md).
 
-Mungbean leads on every farmer priority. It needs roughly **one seventeenth** of the
+Mungbean leads on every farmer priority. It needs roughly **one twenty-second** of the
 supplemental water that planting rice again would need.
 
 Read the caveats in [How far the numbers can be trusted](#how-far-the-numbers-can-be-trusted)
@@ -76,21 +81,22 @@ in this shape is ours.
 
 ### From a score to a verdict
 
-Four conditions — heat, water, soil pH, soil texture — combine as a **weighted geometric
-mean**, which returns zero if any one condition is zero:
+A season's score is **the lowest of the four conditions** — heat, water, soil pH, soil
+texture:
 
 ```
-S = 0                                    if any score is 0
-  = exp( Σ wₖ·ln sₖ / Σ wₖ )             otherwise
+S = min( heat, water, pH, texture )
 ```
 
-A plain average would let good soil hide fatal heat. The geometric mean refuses to average
-a failure away. The farmer's priority changes the weights, never the scores.
+Nothing is averaged, so good soil cannot make up for missing water. This is the rule
+EcoCrop's own model uses, and the limiting-condition method of FAO land evaluation. An
+earlier version used a weighted geometric mean; with three conditions fixed at 1.00 it let a
+season pass with rain covering 14% of the crop's need. The farmer's priority changes the
+order of the crops, never a score.
 
 ![What limits each crop](images/07-what-limits-each-crop.svg)
 
-Rice scores a perfect 1.00 on heat, pH and texture and still ranks last, because water is
-0.13. That is the veto doing its job.
+Rice scores 1.00 on heat, pH and texture and still ranks last, because water is 0.11.
 
 ### From rainfall to water demand
 
@@ -129,8 +135,8 @@ data, which is the most reassuring result in it.
 
 ![Suitability by season](images/02-suitability-by-season.svg)
 
-Medians hide spread. Rice swings widest because water is its binding condition and water is
-what varies between seasons.
+Medians hide spread. Water is the only condition that varies between seasons here, so it
+sets the height of every dot.
 
 ---
 
@@ -142,7 +148,7 @@ This is the section to read before the pitch. `python diagnostics.py` prints all
 
 - **The arithmetic is verified, not asserted.** Reference ET reproduces an independent hand
   calculation to the decimal across seven months. The Kc curve holds flat at `Kc_ini`, holds
-  `Kc_mid`, and preserves its mean under cycle scaling. 90 tests cover the farmer-facing
+  `Kc_mid`, and preserves its mean under cycle scaling. 106 tests cover the farmer-facing
   inputs and the statistics.
 - **Crop water demand agrees with FAO's own published figures**, which is independent
   corroboration rather than internal consistency: mungbean over 120 days comes to 360 mm
@@ -156,9 +162,11 @@ This is the section to read before the pitch. `python diagnostics.py` prints all
 ![Early versus late half](images/03-early-versus-late-half.svg)
 
 Window rainfall rises **+70.5 mm per decade (t = 4.14)**, and the trend holds in every slice
-of the window. Splitting the record in half, rice clears the pass mark in 7 of the first 20
-scored seasons and 14 of the last 21. **Quoting "21 of 41" to a farmer deciding for 2026 understates
-how rice has done recently.**
+of the window. Splitting the record in half, mungbean clears the pass mark in 6 of the first
+20 scored seasons and 16 of the last 21. **Quoting "22 of 41" to a farmer deciding for 2026
+understates how mungbean has done recently.** This is a trend in the NASA record. It has not
+been checked against a rain gauge, and records of this kind can drift when the satellites
+feeding them change.
 
 A caution on temperature specifically: the first 50 days after harvest warm at
 +0.293 °C/decade (t = 4.66), but across the whole window the trend is +0.020 °C/decade
@@ -182,16 +190,17 @@ known to run wet in the tropics, which matches the sign.
 
 ![Pass share with intervals](images/04-pass-share-with-intervals.svg)
 
-For the alternatives the lag-1 autocorrelation of the pass indicator is slightly negative,
-so their intervals are fine, even mildly conservative. Rice is +0.048, close to
-none, so its interval stands as well.
+For eggplant and tomato the lag-1 autocorrelation of the pass indicator is close to zero,
+so their intervals are fine. Mungbean is +0.142, giving it an effective sample of 31 rather
+than 41, so its interval is a little too narrow.
 
-**The pass mark is load-bearing.**
+**The pass mark does not decide the leader.**
 
 ![Pass mark sensitivity](images/05-pass-mark-sensitivity.svg)
 
-At 0.4 every crop clears it and there is no order at all. At 0.5 the three alternatives tie.
-Mungbean only leads from 0.6 upward. The 0.6 is a team choice and has to be defended as one.
+Mungbean leads at every pass mark from 0.4 to 0.8. The mark changes how many seasons count
+as good (30 of 41 at 0.4, 15 of 41 at 0.8), not which crop comes first. The 0.6 is still a
+team choice.
 
 **No uncertainty propagates.** POWER describes a grid cell roughly 50 km across, not a
 one-hectare field. The soil sample is 3.44 km away. Two known biases both inflate demand —
@@ -217,7 +226,8 @@ a variable the model needs is dropped from that statistic rather than filled.
 | Source | What it supplies | How it is used |
 |---|---|---|
 | **NASA POWER** daily, AG community | `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `GWETROOT`, `TOA_SW_DWN`, 1981–2025 | Temperature and rainfall scores; reference ET; root-zone wetness as reported evidence |
-| **NOAA CPC** Niño 3.4 | Monthly anomaly | El Niño season flag. **Currently the detrended Niño 3.4 file, not the ONI the specification names** |
+| **NOAA CPC** Oceanic Niño Index | Three-month running mean of the Niño 3.4 anomaly | El Niño season flag: a window averaging +0.5 or more |
+| **Pinoy Rice Knowledge Bank** (PhilRice) | Days to maturity by rice variety | Rice's growing time: NSIC Rc222, 106 days direct seeded, 114 transplanted |
 | **FAO EcoCrop** | Temperature, rainfall, pH, texture limits and cycle lengths | The four scored conditions. Rainfall limits used **only** as an annual regional screen |
 | **FAO-56**, FAO Training Manual 3 | `Kc`, stage lengths, paddy percolation | Crop water demand. Mungbean uses FAO-56's own "Green gram and cowpeas" entry, not a proxy |
 | **SARAI** soil samples | 120 measured samples: pH, texture, organic matter | Nearest sample to the field supplies soil pH and texture |
@@ -300,9 +310,10 @@ python klima_model.py                 # the pilot's answers
 python klima_model.py --drainage poorly_drained
 python klima_model.py --soil-ph 4.8 --soil-texture heavy
 python diagnostics.py                 # the checks in this document
+python sensitivity.py                 # how far the chosen crop values move the answer
 python charts.py --out ../docs/images # the charts in this document
 python serve.py                       # a local form at 127.0.0.1:8000
-python -m unittest discover . -v      # 90 tests
+python -m unittest discover . -v      # 106 tests
 ```
 
 `serve.py` runs the real model as a subprocess per submission, so the browser exercises the
@@ -328,27 +339,31 @@ make 24 combinations, all cheap to precompute and serve as JSON.
    length for any of the three alternatives is tropical — all are Mediterranean, arid or
    Californian.
 3. Rice's water demand is **understated** by roughly 300 mm: Training Manual 3's 200 mm
-   saturation and 100 mm water layer are not included.
+   saturation and 100 mm water layer are not included. Seepage does follow the soil: 4 mm a
+   day on heavy clay, 6 on medium soils, 8 on sandy ones.
 4. Drainage comes from the farmer alone. No drainage map is used.
 5. `Kc` is not climate-adjusted (FAO-56 Eq. 62/65), which needs RHmin and wind that this
    POWER download does not include.
-6. The El Niño flag uses the detrended Niño 3.4 file rather than ONI, with a different
-   averaging rule from the one specified.
+6. Water already in the soil at planting is not counted, and every millimetre of rain in
+   the cycle is treated as usable. The first understates a crop planted straight after rice;
+   the second flatters any season whose rain came in one storm.
 7. Dry years are defined from the same record they are scored against, and the 20% cut-off
    is a team choice.
 8. Pests, seed supply, buyers and prices are outside the model.
 
-Items 5 and 6 are the cheapest to close: both are a data download away.
+Item 5 is the cheapest to close: it is a data download away.
 
 ---
 
 ## Sources
 
 - NASA POWER, Prediction Of Worldwide Energy Resources, daily AG community. https://power.larc.nasa.gov/
-- NOAA Climate Prediction Center, Niño 3.4 index. https://www.cpc.ncep.noaa.gov/data/indices/
+- NOAA Climate Prediction Center, Oceanic Niño Index. https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt
+- PhilRice, Pinoy Rice Knowledge Bank, rice varieties. https://www.pinoyrice.com/rice-varieties/
+- Glover, Kim & Stone (2020). Golden Rice and technology adoption theory: a study of seed choice dynamics among rice growers in the Philippines. *Technology in Society* 60, 101227.
 - FAO EcoCrop database. https://www.fao.org/land-water/land/land-governance/land-resources-planning-toolbox/category/details/en/c/1027491/
 - Allen, Pereira, Raes & Smith (1998). *Crop evapotranspiration*. FAO Irrigation and Drainage Paper 56. https://www.fao.org/4/x0490e/x0490e00.htm
-- Brouwer, Prins & Heibloem (1989). *Irrigation Water Needs*. FAO Irrigation Water Management Training Manual 3. https://www.fao.org/4/s2022e/s2022e08.htm
+- Brouwer & Heibloem (1986). *Irrigation Water Needs*. FAO Irrigation Water Management Training Manual 3. https://www.fao.org/4/s2022e/s2022e08.htm
 - Doorenbos & Kassam (1979). *Yield response to water*. FAO Irrigation and Drainage Paper 33.
 - SARAI, Smarter Approaches to Reinvigorate Agriculture through Science-Based Inventions, soil sample database.
 - Philippine Department of Agriculture regional crop production guides.
