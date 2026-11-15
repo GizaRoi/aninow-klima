@@ -11,7 +11,11 @@ Elmer Domingo in both languages. It then reveals a compact headline and the star
 without scrolling. The catalogue request runs during the welcome; slow or failed
 requests keep their own visible status afterward. The welcome does not run again
 on form submission or language changes. Background controls stay inert until it
-finishes, and reduced-motion preferences disable the zoom and fade. Form labels,
+finishes, and reduced-motion preferences disable the zoom and fade. The page
+reserves the browser's measured stable scrollbar gutter while the fullscreen intro
+releases the root gutter, then hands that space back when scrolling unlocks.
+Header, headline and form positions stay fixed throughout the fade, including
+when native scrollbars take layout space. Form labels,
 controls, and explanatory copy use larger type on both desktop and phones.
 The headline asks what can be planted after harvest, and the supporting copy
 refers to the next main crop so it covers every crop in the selector.

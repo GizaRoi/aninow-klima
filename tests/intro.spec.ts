@@ -1,6 +1,37 @@
 import { test, expect } from '@playwright/test';
 import catalog from './fixtures/catalog.json';
 
+test('the page stays aligned throughout the intro fade when native scrollbars take space', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.clock.install({ time: new Date('2026-11-15T08:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-11-15T08:00:00Z'));
+  // Overlay scrollbars can hide this regression; force a measurable native gutter.
+  await page.route('**/*.css', async route => {
+    const response = await route.fetch();
+    await route.fulfill({ response, body: `${await response.text()}\nhtml { scrollbar-color: auto; } ::-webkit-scrollbar { width: 18px; height: 18px; }` });
+  });
+  await page.route('**/api/v1/catalog', route => route.fulfill({ json: catalog }));
+  await page.goto('/');
+  await expect(page.locator('#location')).toBeEnabled();
+  const positions = () => page.locator('.site-header, #hero-title, #planner, #location, #main-crop').evaluateAll(elements => elements.map(el => {
+    const box = el.getBoundingClientRect();
+    return { x: box.x, y: box.y, width: box.width, height: box.height };
+  }));
+  const before = await positions();
+  const intro = await page.locator('.app-intro').boundingBox();
+  expect(intro?.width).toBe(1366);
+  await page.clock.runFor(1900);
+  await expect(page.locator('.app-intro')).toHaveClass(/is-leaving/);
+  const fading = await positions();
+  await page.clock.runFor(300);
+  await expect(page.locator('.app-intro')).toHaveCount(0);
+  const after = await positions();
+  expect(await page.evaluate(() => innerWidth - document.documentElement.getBoundingClientRect().width)).toBe(18);
+  expect(fading).toEqual(before);
+  expect(after).toEqual(before);
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+});
+
 test('welcome finishes in about two seconds even when the catalogue is still loading', async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.clock.install({ time: new Date('2026-11-15T08:00:00Z') });
