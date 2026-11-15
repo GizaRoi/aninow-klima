@@ -4,7 +4,7 @@ AniNow Klima helps Filipino rice farmers decide what to consider planting after 
 
 ## Status and delivery boundary
 
-Planning revision: 2026-11-14. This repository contains documentation and a license. The app, database migrations, data integrations, and predictive models are not implemented. Contracts describe intended behavior, not deployed services.
+Planning revision: 2026-11-14. Model revision: 2026-11-15. The decision model in `model/` is implemented and runs against 44 seasons of NASA POWER data for the Muñoz, Nueva Ecija pilot; see the [model narrative](Model-Narrative.md). The app, database migrations and predictive models are not implemented. Contracts below describe intended behavior, not deployed services.
 
 The first release is a **decision prototype** for one Philippine pilot area, with rice as the baseline and one or two alternatives. It checks feasibility, compares calendar/water/soil considerations, and calculates finances only from supported or explicitly simulated assumptions. A later **predictive MVP** requires validated yield estimates for rice and at least one alternative. Finishing the prototype does not complete that model milestone.
 
@@ -14,6 +14,7 @@ The pilot location, alternative crop/variety profiles, numerical agronomic thres
 
 | Document | Purpose |
 |---|---|
+| [Model narrative](Model-Narrative.md) | What the model does, what it says for the pilot, how far the numbers can be trusted, and what it refuses to do |
 | [Product requirements](AniNow-Klima-PRD.md) | Target user, next-planting scope, user value and acceptance |
 | [Decision engine specification](Decision-Engine-Spec.md) | Canonical inputs, feasibility, priorities, calendar and financial semantics |
 | [User flows](User-Flows.md) | Screens, farmer questions, comparisons and recovery behavior |
