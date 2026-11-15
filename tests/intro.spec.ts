@@ -26,7 +26,7 @@ test('welcome finishes in about two seconds even when the catalogue is still loa
   await expect(page.locator('.skip-link')).toBeFocused();
   releaseCatalog();
   await expect(page.locator('#location')).toBeEnabled();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What can you plant after rice?');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What can you plant after harvest?');
   await expect(page.locator('#location')).toBeInViewport({ ratio: 1 });
   await expect(page.locator('#main-crop')).toBeInViewport({ ratio: 1 });
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
@@ -52,7 +52,7 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 390, height: 844 
     expect(await page.evaluate(() => window.scrollY === 0 && document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `test-results/mobile-opening-${viewport.width}.png` });
     await page.getByRole('button', { name: 'Tagalog', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('pagkatapos ng palay?');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('pagkatapos ng ani?');
     await expect(page.locator('#location')).toBeInViewport({ ratio: 1 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
