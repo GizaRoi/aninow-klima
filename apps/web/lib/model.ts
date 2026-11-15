@@ -91,7 +91,7 @@ export function parseCatalog(value: unknown): Catalog {
 export function parseComparison(value: unknown): Comparison {
   if (!record(value) || value.contract_version !== CONTRACT || value.mode !== 'rules_model' ||
     typeof value.model_version !== 'string' || typeof value.request_id !== 'string' || !strings(value.ranking) || !strings(value.warnings) ||
-    !record(value.inputs) || !['rain', 'irrigation'].includes(value.inputs.water) || !priorities.includes(value.inputs.priority) ||
+    !record(value.inputs) || !['rain', 'irrigation'].includes(value.inputs.water) || !['well_drained', 'poorly_drained', 'unknown'].includes(value.inputs.drainage) || !priorities.includes(value.inputs.priority) ||
     !numeric(value.inputs.pass_mark) || !Number.isInteger(value.inputs.turnaround_days) || typeof value.inputs.main_crop !== 'string' || !record(value.results) ||
     !record(value.results.meta) || !numeric(value.results.meta.window_days) || value.results.meta.window_days <= 0 || !record(value.results.soil) ||
     !nullableNumber(value.results.soil.ph) || !(value.results.soil.texture === null || ['light', 'medium', 'heavy'].includes(value.results.soil.texture)) ||
