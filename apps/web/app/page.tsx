@@ -97,13 +97,12 @@ export default function Home() {
 
     <main>
       <section className="landscape-hero" aria-labelledby="hero-title">
+        <img className="landscape-image" src="/images/farm-diorama.png" alt="" fetchPriority="high"/>
+        <div className="landscape-shade"/>
         <div className="hero-copy"><span className="scene-kicker"><span className="lime-dot"/>{m.kicker}</span><h1 id="hero-title">{language === 'en' ? <>What can you plant <em>after rice?</em></> : <>Ano ang puwedeng itanim <em>pagkatapos ng palay?</em></>}</h1><p>{m.heroCopy}</p><button className="button lime" onClick={showForm}>{m.start}<ArrowUpRight size={19}/></button></div>
-        <div className="hero-visual">
-          <img className="landscape-image" src="/images/farm-diorama.png" alt="" fetchPriority="high" width={1536} height={1024}/>
-          <div className="hero-location"><MapPin size={15}/><span>Muñoz, Nueva Ecija<small>{m.pilot}</small></span></div>
-          <div className="field-panel"><div className="field-panel-heading"><Sprout size={22}/><ArrowUpRight size={17}/></div><h2>{m.fieldCard}</h2><p>{m.fieldCopy}</p><div className="field-metrics"><div><strong>04</strong><span>{m.cropOptions}</span></div><div><strong>02</strong><span>{m.languages}</span></div></div><div className="field-panel-foot"><span className="lime-dot"/>{m.preview}<span className="artwork-label">{m.artwork}</span></div></div>
-        </div>
-        <div className="hero-footer"><span><Leaf size={15}/>{m.tagline}</span><a href="#planner" onClick={event => { event.preventDefault(); showForm(); }}>{m.explore}<ArrowDown size={16}/></a></div>
+        <div className="hero-location"><MapPin size={15}/><span>Muñoz, Nueva Ecija<small>{m.pilot}</small></span></div>
+        <div className="glass-panel"><div className="glass-heading"><Sprout size={22}/><ArrowUpRight size={17}/></div><h2>{m.fieldCard}</h2><p>{m.fieldCopy}</p><div className="glass-metrics"><div><strong>04</strong><span>{m.cropOptions}</span></div><div><strong>02</strong><span>{m.languages}</span></div></div><div className="glass-foot"><span className="lime-dot"/>{m.preview}</div></div>
+        <div className="hero-footer"><span><Leaf size={15}/>{m.tagline}</span><a href="#planner" onClick={event => { event.preventDefault(); showForm(); }}>{m.explore}<ArrowDown size={16}/></a></div><span className="artwork-label">{m.artwork}</span>
       </section>
 
       <section className="planner-section" id="planner" aria-labelledby="planner-title">
