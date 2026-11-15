@@ -2,7 +2,7 @@
 export const modelCopy = {
   en: {
     modelLabel: 'Historical model',
-    heroTitle: 'What can you plant', heroEmphasis: 'after harvest?',
+    heroTitle: 'What comes next', heroEmphasis: 'after harvest?',
     heroCopy: 'Make room for what comes next. Explore crops that fit your field, your water, and the time before your next main-crop planting.',
     openingPlanner: 'Opening your planting planner',
     calendarSub: 'Start after harvest, or when a resting field is available.', available: 'days in your planting window',
@@ -17,7 +17,7 @@ export const modelCopy = {
     sourceTwoCopy: 'Compare counts from all, normal, dry, and El Niño historical seasons. Season views do not change the ranking.',
     sourceFoot: 'Calculations use committed NASA POWER weather history and sourced crop limits. Historical fit is not a yield or profit prediction.',
     savedLocally: 'These field answers are sent to the model for calculation; they are not saved.',
-    formNote: 'Without measured soil overrides, the model uses a nearby SARAI sample. It may differ from your field.',
+    formNote: 'Without measured soil overrides, the model uses a nearby SARAI sample. It may differ from your field. Confirm field conditions and crop choices with your agriculturist.',
     calendarNote: 'Preparation, growing, picking and clearing must all fit before the next main-crop planting.',
     downloaded: 'Model comparison downloaded.', hist: 'Met the pass mark in {a} of {b} past {s}.',
     hs: { all: 'seasons', normal: 'normal seasons', dry: 'dry seasons', el_nino: 'El Niño seasons' },
@@ -67,7 +67,7 @@ export const modelCopy = {
   },
   tl: {
     modelLabel: 'Modelo ng nakaraang panahon',
-    heroTitle: 'Ano ang puwedeng itanim', heroEmphasis: 'pagkatapos ng ani?',
+    heroTitle: 'Ano ang susunod', heroEmphasis: 'pagkatapos ng ani?',
     heroCopy: 'Maglaan ng puwang para sa susunod na tanim. Tingnan ang mga pananim na bagay sa iyong bukid, tubig, at oras bago muling itanim ang pangunahing pananim.',
     openingPlanner: 'Binubuksan ang tagaplano ng tanim',
     calendarSub: 'Magsimula pagkatapos ng ani, o kapag magagamit na ang nakapahingang bukid.', available: 'araw bago ang susunod na pangunahing tanim',
@@ -82,7 +82,7 @@ export const modelCopy = {
     sourceTwoCopy: 'Ihambing ang bilang sa lahat, karaniwan, tuyo, at El Niño na nakaraang panahon. Hindi nito binabago ang ayos ng mga pananim.',
     sourceFoot: 'Gamit ang nakatalang kasaysayan ng panahon ng NASA POWER at mga sanggunian ng pananim. Hindi ito hula ng ani o kita.',
     savedLocally: 'Ipinapadala sa modelo ang mga sagot para sa pagkukuwenta; hindi ito sine-save.',
-    formNote: 'Kung walang soil test, gagamit ang modelo ng kalapit na SARAI sample. Maaaring iba ito sa iyong bukid.',
+    formNote: 'Kung walang soil test, gagamit ang modelo ng kalapit na SARAI sample. Maaaring iba ito sa iyong bukid. Kumpirmahin ang kondisyon ng bukid at pagpili ng pananim sa inyong agriculturist.',
     calendarNote: 'Dapat magkasya ang paghahanda, paglaki, pamimitas at paglilinis bago ang susunod na pangunahing tanim.',
     downloaded: 'Na-download ang paghahambing ng modelo.', hist: 'Umabot sa pass mark ang {a} sa {b} nakaraang {s}.',
     hs: { all: 'taniman', normal: 'karaniwang taniman', dry: 'tuyong taniman', el_nino: 'taniman sa El Niño' },
