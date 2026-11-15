@@ -1,2 +1,8 @@
-place,province,latitude,longitude,note
-Science City of Muñoz,Nueva Ecija,15.72,120.90,"Pilot. Matches POWER_Point_Daily_*_015d72N_120d90E. Add a row only together with a POWER download for that point: the model reads one weather file, so a new place without its own file would silently reuse Muñoz weather."
+place,province,latitude,longitude,soil_sample,note
+Science City of Muñoz,Nueva Ecija,15.72,120.90,SARAI_098,"Pilot. Central Luzon rice plain."
+Batac,Ilocos Norte,18.0636,120.549,SARAI_112,"North-west Luzon, long dry season."
+Echague,Isabela,16.7294,121.6883,SARAI_011,"Cagayan Valley."
+Los Baños,Laguna,14.1666,121.2511,SARAI_002,"Southern Luzon."
+Ligao,Albay,13.2334,123.5537,SARAI_042,"Bicol, rain most of the year."
+Lambunao,Iloilo,11.1066,122.4143,SARAI_050,"Western Visayas."
+Maramag,Bukidnon,7.8542,125.0578,SARAI_044,"Mindanao upland; the weather cell averages 889 m."

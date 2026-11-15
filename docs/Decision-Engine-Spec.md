@@ -1,6 +1,6 @@
 # AniNow Klima — Decision Engine Specification
 
-Status: implementation contract for the first decision prototype, agreed planning direction as of 2026-11-14. No engine, crop profiles, or predictive model has been implemented. This document owns decision semantics; the [API](API-Contract.md) owns transport and the [schema](Database-Schema.md) owns persistence.
+Status: implementation contract for the first decision prototype, agreed planning direction as of 2026-11-14. A first rules model now exists in `model/`; it covers the agronomic, calendar and water parts only, and where it differs from this document is listed under [What the pilot model does differently](#what-the-pilot-model-does-differently). No predictive model has been implemented. This document owns decision semantics; the [API](API-Contract.md) owns transport and the [schema](Database-Schema.md) owns persistence.
 
 ## Decision boundary
 
@@ -111,6 +111,22 @@ Return supported `upfront_cost_php` alongside total cost. Full intra-season cash
 - `requested_outputs`: nonempty subset of `suitability`, `calendar`, `water`, `rotation`, `yield`, `finance`; default all six. Feasibility checks always run. Unknown outputs remain explicitly missing even if not requested, but only requested domains determine completeness.
 - Assumptions are visible. Use evaluated prediction intervals or labeled scenario ranges; never manufacture confidence percentages.
 - Observed conditions, historical analogs, and user scenarios are different. The first prototype does not claim to forecast next season's weather.
+
+## What the pilot model does differently
+
+`model/klima_model.py` was built before the application around it. This document stays the
+contract for the application. The differences below are known and deliberate for the pilot.
+
+| This document says | The pilot model does | Why, and what closes it |
+|---|---|---|
+| No weighted universal score | Rates each crop by its weakest condition (0 to 1). Nothing is weighted or averaged | A limiting-condition rating is a suitability class in number form, not a blend. The application can map it to `suitable` / `conditional` / `unsuitable` |
+| No percentage probability of success | Reports how many past seasons reached the pass mark, with a 95% interval | Labelled as a historical count, never as a chance of success |
+| Do not simply subtract raw rainfall from demand; include effective rainfall and soil assumptions | Subtracts raw rainfall, and takes the soil as empty at planting | Needs sourced rooting depth and soil water-holding figures for a daily water budget. Stated in the results file and on the form |
+| Drainage `waterlogging_reported` | Uses the name `poorly_drained` | Rename at the API boundary |
+| Priorities `water_security`, `upfront_affordability`, `calendar_fit`, `soil_care`, `income` | `saving_water`, `finishing_early`, `healthier_soil`, plus `balanced` | No cost or income data exists yet, so those two priorities are not offered |
+| `soil_care`: no scalar score or winner | `healthier_soil` lists legumes first | A yes/no fact about the crop, not a soil-health score. Should become a note, not a ranking, in the application |
+| Turnaround days sourced in the crop profile | An option, `--turnaround-days`, default 0 | No local figure has been sourced; none is assumed |
+| Mungbean is a research candidate, not an approved recommendation | Mungbean ranks first for the pilot field | Still not an approved recommendation: nothing has been checked against a real harvest |
 
 ## Acceptance examples
 

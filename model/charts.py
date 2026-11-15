@@ -301,8 +301,8 @@ def chart_seasons(out):
                 c.add(f'<circle cx="{c.px(yr):.1f}" cy="{c.py(v):.1f}" r="5.6" '
                       f'fill="none" stroke="{colour}" stroke-width="1"/>')
     c.legend([(k, v) for k, v in CROP_COLOUR.items() if k in K.fields["rain"]["crops"]])
-    c.note("Medians hide this spread. Rice swings widest because water is its "
-           "binding condition, and water is what varies between seasons.")
+    c.note("Medians hide this spread. Water is the only condition that changes from "
+           "season to season here, so it sets the height of every dot.")
     return c.save(out, "02-suitability-by-season")
 
 
@@ -404,9 +404,12 @@ def chart_sensitivity(out):
     c.line(c.px(K.PASS_MARK), c.top, c.px(K.PASS_MARK), c.bottom, INK, 1.2, "5 4")
     c.text(c.px(K.PASS_MARK) + 5, c.top + 12, f"the model uses {K.PASS_MARK}", 11, INK)
     c.legend([(k, v) for k, v in CROP_COLOUR.items() if k in sv["of_seasons"]])
-    c.note(f"Same crop on top at every pass mark: {sv['top_is_stable']}. "
-           f"At 0.4 every crop clears it, so assumption A6 is load-bearing and has to "
-           f"be defended as a choice.")
+    if sv["top_is_stable"]:
+        c.note("The same crop leads at every pass mark. The mark changes how many "
+               "seasons count as good, not which crop comes first.")
+    else:
+        c.note("The leading crop changes with the pass mark, so the mark is a choice "
+               "that has to be defended.")
     return c.save(out, "05-pass-mark-sensitivity")
 
 
@@ -445,8 +448,7 @@ def chart_decomposition(out):
     shades = {"temp": LINE, "water": RED, "ph": TINT, "texture": LINE}
     edges = {"temp": SOFT, "water": RED, "ph": SOFT, "texture": SOFT}
     c = Chart("What limits each crop",
-              "Median condition scores. One zero vetoes the whole suitability, so the "
-              "lowest bar is what decides.",
+              "Median condition scores. A crop's score is its lowest bar.",
               eyebrow="The evidence")
     c.scale(0, len(crops), 0, 1.0)
     c.axes([], [0, 0.25, 0.5, 0.75, 1.0], "", "condition score", yfmt=lambda v: f"{v:.2f}")
@@ -465,9 +467,12 @@ def chart_decomposition(out):
                    "650" if k == "water" else "400")
         c.text(c.px(i + 0.5), c.bottom + 20, crop, 12.5, DARK, "middle", "600")
     c.legend([(names[k], edges[k]) for k in keys])
-    c.note("Rice scores a perfect 1.00 on heat, pH and texture and still ranks last, "
-           "because water is 0.15. That is the geometric mean refusing to average "
-           "a failure away.")
+    rice_water = (K.fields["rain"]["crops"].get("rice", {})
+                  .get("median_scores", {}).get("short", {}).get("water"))
+    if rice_water is not None:
+        c.note(f"Rice scores 1.00 on heat, pH and texture and still ranks last, because "
+               f"water is {rice_water:.2f}. A crop is rated on its weakest condition, so "
+               f"good soil cannot make up for missing water.")
     return c.save(out, "07-what-limits-each-crop")
 
 
@@ -599,7 +604,7 @@ def chart_pipeline(out):
     sources = [
         ("NASA POWER daily", ["T2M, T2M_MAX, T2M_MIN", "PRECTOTCORR, GWETROOT",
                               "TOA_SW_DWN  1981-2025"], False),
-        ("NOAA Nino 3.4", ["monthly anomaly", "detrended file, not ONI"], False),
+        ("NOAA ONI", ["Oceanic Nino Index,", "3-month running mean"], False),
         ("FAO EcoCrop", ["temperature, rainfall,", "pH, texture, cycle"], False),
         ("FAO-56 and TM 3", ["Kc, stage lengths,", "paddy percolation"], False),
         ("SARAI soil samples", ["120 measured samples", "pH, texture, organic matter"], False),
@@ -644,7 +649,7 @@ def chart_pipeline(out):
 
     score_boxes = [
         ("Four condition scores", ["heat, water, pH, texture", "each 0 to 1 from", "published limits"]),
-        ("Weighted geometric mean", ["one zero vetoes the lot", "weights follow the", "farmer's priority"]),
+        ("Weakest condition decides", ["the lowest of the four", "is the season's score;", "nothing is averaged"]),
         ("Count across seasons", ["seasons clearing the", "pass mark, with a", "95% Wilson interval"]),
     ]
     score_ports = []

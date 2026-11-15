@@ -53,6 +53,27 @@ class FormToModel(unittest.TestCase):
         args = S.to_args(q(advanced="1", pass_mark="0.7"))
         self.assertEqual(float(option(args, "--pass-mark")), 0.7)
 
+    def test_land_preparation_days_are_sent_from_the_advanced_view(self):
+        self.assertNotIn("--turnaround-days", S.to_args(q(turnaround="20")))
+        args = S.to_args(q(advanced="1", turnaround="20"))
+        self.assertEqual(option(args, "--turnaround-days"), "20")
+        with self.assertRaises(ValueError):
+            S.to_args(q(advanced="1", turnaround="2.5"))
+
+    def test_the_main_crop_is_sent_and_must_be_known(self):
+        self.assertEqual(option(S.to_args(q()), "--main-crop"), "rice")
+        self.assertEqual(option(S.to_args(q(main_crop="tomato")), "--main-crop"), "tomato")
+        with self.assertRaises(ValueError):
+            S.to_args(q(main_crop="durian"))
+
+    def test_every_place_on_the_list_has_weather_and_soil(self):
+        # A place is only offered if the model can actually score it.
+        self.assertGreaterEqual(len(S.PLACES), 7)
+        for name in S.PLACES:
+            page = S.page_html(q(place=name))
+            self.assertIn("Crop options", page, f"{name} could not be scored")
+            self.assertNotIn('class="err"', page)
+
     def test_planting_before_harvest_is_refused(self):
         with self.assertRaises(ValueError):
             S.to_args(q(harvest="2027-05-31", next_planting="2026-11-15"))
@@ -74,7 +95,8 @@ class Page(unittest.TestCase):
     def test_the_farmer_view_leaves_the_detail_out(self):
         page = S.page_html(q())
         self.assertIn("Munggo", page)
-        self.assertIn("38 of 41", page)
+        self.assertIn("22 of 41", page)
+        self.assertNotIn("El Ni&ntilde;o 5 of 12", page)
         self.assertIn("References", page)
         for jargon in ("Kc", "EcoCrop climate envelope", "Wilson", "Method notes",
                        "15.72"):
@@ -83,7 +105,7 @@ class Page(unittest.TestCase):
 
     def test_the_advanced_view_carries_the_detail(self):
         page = S.page_html(q(advanced="1"))
-        for detail in ("Overall score", "Wilson", "Planting dates", "Method notes",
+        for detail in ("Weakest condition", "Wilson", "El Ni&ntilde;o years", "Planting dates", "Method notes",
                        "15.72", "FAO-56 T12"):
             self.assertIn(detail, page)
 
@@ -98,16 +120,34 @@ class Page(unittest.TestCase):
         self.assertIn("About 4 cm", page)
         self.assertNotIn("44 mm", page.split("<footer>")[0].split("</form>")[1])
 
+    def test_another_main_crop_is_the_one_compared_against(self):
+        page = S.page_html(q(main_crop="tomato"))
+        self.assertIn("your crop now",
+                      page.split("</form>")[1].split("Kamatis <small>")[1].split("</span>")[0])
+        self.assertIn("Kamatis needs about", page)
+        self.assertNotIn("Palay needs about", page)
+
+    def test_a_guide_crop_outside_its_range_says_why(self):
+        page = S.page_html(q())
+        out = page.split("Not recommended here")[1]
+        self.assertIn("Repolyo", out)
+        self.assertIn("Too warm here. The DA crop guide recommends 15 to 20", out)
+
     def test_a_field_that_holds_water_leaves_only_rice(self):
         page = S.page_html(q(drainage="poorly_drained"))
-        self.assertEqual(page.count("Not suited"), 3)
+        # Every crop that needs drained soil is ruled out; rice stays.
+        self.assertIn("Not recommended here", page)
+        rated = page.split("Not recommended here")[0]
+        self.assertIn("Palay", rated)
+        for name in ("Munggo", "Talong", "Kamatis", "Kalabasa", "Sitaw"):
+            self.assertNotIn(name, rated.split("</form>")[1])
         self.assertIn("you said water stays on your field", page)
 
     def test_the_rating_follows_the_weakest_condition(self):
         # Rain covers about a sixth of rice's need on a rainfed field, so rice
         # must not be shown as a good or fair fit whatever the combined score is.
         page = S.page_html(q())
-        rice = page.split("Palay")[1].split("</div>")[0]
+        rice = page.split("</form>")[1].split("Palay <small>")[1].split("</div>")[0]
         self.assertIn("Poor fit", rice)
 
 

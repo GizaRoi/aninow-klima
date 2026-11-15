@@ -35,6 +35,9 @@ def parse_args(argv):
                    help="rice harvest date, YYYY-MM-DD (default 2026-11-15)")
     f.add_argument("--next-planting", type=month_day, default="2027-05-31",
                    help="next rice planting date, YYYY-MM-DD (default 2027-05-31)")
+    f.add_argument("--main-crop", default="rice",
+                   help="the crop the farmer grows now; other crops are compared with it "
+                        "(default rice)")
     f.add_argument("--drainage", default="well_drained",
                    choices=["well_drained", "poorly_drained", "unknown"],
                    help='answer to "does water stay on the field for days after rain?"')
@@ -49,6 +52,9 @@ def parse_args(argv):
     s.add_argument("--dry-share", type=float, default=0.20)
     s.add_argument("--heat-limit-c", type=float, default=35.0)
     s.add_argument("--max-soil-sample-km", type=float, default=10.0)
+    s.add_argument("--turnaround-days", type=int, default=0,
+                   help="days held back before the next rice planting to prepare the "
+                        "field (default 0: no sourced figure yet, so none is assumed)")
     s.add_argument("--no-drainage-filter", action="store_true",
                    help="score every crop even on a poorly drained field")
     s.add_argument("--out", default="results.json", help="where to write the results")
@@ -73,6 +79,11 @@ USE_DRAINAGE_FILTER = not ARGS.no_drainage_filter
 SOIL_PH_OVERRIDE = ARGS.soil_ph
 SOIL_TEXTURE_OVERRIDE = ARGS.soil_texture
 MAX_SOIL_SAMPLE_KM = ARGS.max_soil_sample_km   # refuse a sample further away than this
+# Days the field must be clear before the next rice planting. No published local
+# figure has been found, so the default is 0 and the farmer or adviser supplies it.
+TURNAROUND_DAYS = ARGS.turnaround_days
+if TURNAROUND_DAYS < 0:
+    sys.exit("--turnaround-days cannot be negative.")
 PASS_MARK = ARGS.pass_mark
 DRY_SHARE = ARGS.dry_share
 # Candidate planting dates, days after harvest. The window is ~197 days, so the
@@ -85,14 +96,26 @@ PLANTING_OFFSETS = list(range(0, 151, 15))
 # Do not promote it to a score until per-crop values are sourced locally.
 HEAT_LIMIT_C = ARGS.heat_limit_c
 NINO_THRESHOLD = 0.5
+# NOAA's Oceanic Nino Index (3-month running mean of the Nino 3.4 anomaly) is the
+# index the plan names. The monthly detrended Nino 3.4 file is the fallback.
+ONI_FILE = "oni.ascii.txt"
 NINO_FILE = "detrend.nino34.ascii.txt"
+ONI_SEASONS = ["DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "ASO", "SON", "OND", "NDJ"]
 CROPS_FILE = "crops.csv"
 SARAI_FILE = "sarai_soil_samples.csv"           # measured soil samples, SARAI
 CROP_REQ_PH_FILE = "crop_requirements_ph.csv"   # DA crop guides, Philippine conditions
+# Harvest years whose window averages an ONI of +0.5 or more. The ONI file gives the
+# same thirteen seasons as the detrended Nino 3.4 file it replaced.
 EXPECTED_NINO = [1982, 1986, 1991, 1994, 1997, 2002, 2004, 2009, 2014, 2015, 2018, 2019, 2023]
 
-WEIGHTS = {"balanced":     {"temp": 1, "water": 1, "ph": 1, "texture": 1},
-           "saving_water": {"temp": 1, "water": 3, "ph": 1, "texture": 1}}
+# One score per season. The farmer's priority changes the ORDER of the crops, never
+# a score, so there is a single profile. The key is kept so results.json keeps its shape.
+PROFILES = ("balanced",)
+# Seepage through a flooded paddy, mm/day, by soil texture class. FAO Irrigation
+# Water Management Training Manual 3, chapter 4: "for heavy clay: PERC = 4 mm/day",
+# "for sandy soils: PERC = 8 mm/day", "on average: PERC = 6 mm/day". Medium soils
+# take the average; that reading is ours.
+PADDY_PERCOLATION = {"heavy": 4.0, "medium": 6.0, "light": 8.0}
 SCENARIOS = ["all", "normal", "dry", "el_nino"]
 
 # ---------------- READING THE FILES ----------------
@@ -106,11 +129,21 @@ def read_crops():
             if not name or name.startswith("#"):
                 continue
             def nums(*keys):
+                # None when the row leaves the group blank (the DA-guide crops carry
+                # no annual rainfall limits and no EcoCrop sheet).
+                if any((row.get(k) or "").strip() == "" for k in keys):
+                    return None
                 return tuple(float(row[k]) for k in keys)
             def classes(key):
                 return [t.strip() for t in row[key].split("|") if t.strip()]
             out[name] = dict(
-                sheet=int(row["ecocrop_sheet"]),
+                sheet=int(row["ecocrop_sheet"]) if (row.get("ecocrop_sheet") or "").strip() else None,
+                local_name=(row.get("local_name") or "").strip() or name.title(),
+                # "ecocrop": four published limits, scored on a slope.
+                # "da_guide_range": a recommended range only, so the crop is screened.
+                limits=(row.get("limits") or "ecocrop").strip(),
+                limits_source=(row.get("limits_source") or "").strip() or None,
+                guide_id=(row.get("guide_id") or "").strip() or None,
                 scientific_name=(row.get("scientific_name") or "").strip(),
                 temp=nums("temp_abs_min", "temp_opt_min", "temp_opt_max", "temp_abs_max"),
                 rain=nums("rain_abs_min", "rain_opt_min", "rain_opt_max", "rain_abs_max"),
@@ -232,13 +265,16 @@ def read_crop_requirements_ph():
                 sci = sci.strip().lower()
                 if sci:
                     out[sci] = row
+            if (row.get("crop_id") or "").strip():
+                out[row["crop_id"].strip().lower()] = row
     return out
 
 def ph_guide_for(c):
     """Philippine crop guide row for this crop, as labelled evidence. Returns None
     when the crop is not in the guide, which is the case for rice and mungbean:
     the DA file compiled here covers vegetables only."""
-    row = CROP_REQ_PH.get(c["scientific_name"].lower())
+    row = (CROP_REQ_PH.get((c.get("guide_id") or "").lower())
+           or CROP_REQ_PH.get(c["scientific_name"].lower()))
     if not row:
         return None
     def num(key):
@@ -263,36 +299,87 @@ def ph_guide_for(c):
                 "basis, not how long the crop holds the field. Not used as a cycle "
                 "length. Reconcile with a local agriculturist before it is.")
 
-def read_power(pattern):
-    files = sorted(glob.glob(pattern))
-    if not files:
-        sys.exit("Cannot find a file matching " + pattern + " in this folder.")
+def power_point(path):
+    """The latitude and longitude a POWER file was downloaded for, from its header."""
+    with open(path) as f:
+        for _ in range(12):
+            l = f.readline()
+            w = l.split()
+            if l.startswith("Location:") and "latitude" in w and "longitude" in w:
+                return (float(w[w.index("latitude") + 1]), float(w[w.index("longitude") + 1]))
+    return None
+
+def read_power(pattern, lat=None, lon=None, required=True):
+    """Read the POWER file for this field. With several files in the folder, the one
+    whose own point lies nearest the field is used, and only if the field falls in
+    the same weather cell (half a cell either way)."""
+    lat = FIELD_LAT if lat is None else lat
+    lon = FIELD_LON if lon is None else lon
+    near = []
+    for path in sorted(glob.glob(pattern)):
+        pt = power_point(path)
+        if pt and abs(lat - pt[0]) <= 0.25 and abs(lon - pt[1]) <= 0.3125:
+            near.append((haversine_km(lat, lon, pt[0], pt[1]), path))
+    if not near:
+        if not required:
+            return {}, None, None
+        have = sorted({power_point(f) for f in glob.glob(pattern)} - {None})
+        sys.exit(f"No weather data for {lat}, {lon}. The weather files in this folder "
+                 f"are for: {', '.join(f'{a}, {b}' for a, b in have) or 'no place'}. "
+                 f"Download NASA POWER daily data for the new point before scoring it.")
+    files = [min(near)[1]]
     with open(files[0]) as f:
         lines = f.read().splitlines()
     start = next(i for i, l in enumerate(lines) if l.startswith("-END HEADER-")) + 1
+    point = None
+    for l in lines[:start]:
+        w = l.split()
+        if l.startswith("Location:") and "latitude" in w and "longitude" in w:
+            point = (float(w[w.index("latitude") + 1]), float(w[w.index("longitude") + 1]))
     data = {}
     for row in csv.DictReader(lines[start:]):
         d = date(int(row["YEAR"]), 1, 1) + timedelta(days=int(row["DOY"]) - 1)
         data[d] = {k: (None if float(v) == -999 else float(v))
                    for k, v in row.items() if k not in ("YEAR", "DOY")}
-    return data, files[0]
+    return data, files[0], point
 
 def read_nino():
+    """(table, source name). ONI rows are 3-month seasons; each is filed under its
+    centre month, so 'NDJ 1997' is December 1997."""
+    if os.path.exists(ONI_FILE):
+        table = {}
+        with open(ONI_FILE) as f:
+            for line in f:
+                p = line.split()
+                if len(p) >= 4 and p[0] in ONI_SEASONS and p[1].isdigit():
+                    table[(int(p[1]), ONI_SEASONS.index(p[0]) + 1)] = float(p[3])
+        if table:
+            return table, "NOAA CPC Oceanic Nino Index (ONI)"
     if not os.path.exists(NINO_FILE):
-        return None
+        return None, None
     table = {}
     with open(NINO_FILE) as f:
         for line in f:
             p = line.split()
             if len(p) >= 5 and p[0].isdigit():
                 table[(int(p[0]), int(p[1]))] = float(p[4])     # ANOM column
-    return table
+    return table, "NOAA CPC detrended Nino 3.4 monthly anomaly (ONI file not found)"
 
 CROPS = read_crops()
-power_main, main_name = read_power("POWER_Point_Daily_*_LST.csv")
-imerg, imerg_name = read_power("POWER_Point_Daily_*_UTC.csv")
+power_main, main_name, WEATHER_POINT = read_power("POWER_Point_Daily_*_LST.csv")
+# The second rainfall column is only used for a cross-check, and only the pilot
+# point has it, so its absence is not an error.
+imerg, imerg_name, _ = read_power("POWER_Point_Daily_*_UTC.csv", required=False)
+# POWER's weather is one MERRA-2 grid cell, 0.5 degrees of latitude by 0.625 of
+# longitude. A field more than half a cell from the file's point is in another
+# cell, and scoring it here would label one town's weather with another's name.
+if WEATHER_POINT and (abs(FIELD_LAT - WEATHER_POINT[0]) > 0.25
+                      or abs(FIELD_LON - WEATHER_POINT[1]) > 0.3125):
+    sys.exit(f"No weather data for {FIELD_LAT}, {FIELD_LON}: the weather file in this "
+             f"folder is for {WEATHER_POINT[0]}, {WEATHER_POINT[1]}. Download NASA POWER "
+             f"daily data for the new point before scoring it.")
 daily = {d: {**v, **imerg.get(d, {})} for d, v in power_main.items()}
-nino = read_nino()
+nino, NINO_SOURCE = read_nino()
 SOIL = read_soil_sample()
 CROP_REQ_PH = read_crop_requirements_ph()
 
@@ -340,18 +427,19 @@ def score(x, lim):
     return 1.0
 
 def texture_score(c):     # STAND-IN: 1 if optimal, 0.5 if only tolerated, 0 otherwise
+    if c.get("limits", "ecocrop") != "ecocrop":
+        # A crop guide names the soils it recommends and says nothing about the
+        # rest, so a soil it does not name is left unscored instead of failed.
+        return 1.0 if SOIL_TEXTURE in c["tex_opt"] else None
     return 1.0 if SOIL_TEXTURE in c["tex_opt"] else 0.5 if SOIL_TEXTURE in c["tex_abs"] else 0.0
 
-def suitability(sc, w):   # weighted geometric mean, zero if any condition is zero
-    num = den = 0.0
-    for k, v in sc.items():
-        if v is None:
-            continue
-        if v == 0:
-            return 0.0
-        num += w[k] * math.log(v)
-        den += w[k]
-    return math.exp(num / den) if den else None
+def suitability(sc):
+    """The weakest scored condition. A crop is only as well served as the thing it
+    is shortest of, so good soil cannot make up for missing water. This is the rule
+    EcoCrop's own model uses, and the limiting-condition method of FAO land
+    evaluation. None when nothing could be scored."""
+    v = [x for x in sc.values() if x is not None]
+    return min(v) if v else None
 
 def wilson(k, n, z=1.96):
     if n == 0:
@@ -442,7 +530,8 @@ def water_balance(c, start, n):
     if rain is None or any(e is None for e in eto):
         return None
     etc = sum(k * e for k, e in zip(kc_curve(c["kc"], n), eto))
-    etc += c["kc"]["percolation"] * n          # paddy percolation; 0 for upland crops
+    if c["kc"]["percolation"]:                 # a paddy crop; 0 marks an upland crop
+        etc += PADDY_PERCOLATION[SOIL_TEXTURE] * n
     return dict(etc_mm=etc, rain_mm=rain,
                 deficit_mm=max(0.0, etc - rain),
                 rws=(rain / etc) if etc > 0 else None)
@@ -538,17 +627,18 @@ WINDOW_DAYS = min(s["n_days"] for s in SEASONS)
 # ---------------- SCORING ----------------
 DRAINAGE_ANSWERS = ("well_drained", "poorly_drained", "unknown")
 
-def hard_filters(c, window_days=None, drainage=None, apply_drainage=None):
+def hard_filters(c, window_days=None, drainage=None, apply_drainage=None, turnaround=None):
     """Spec section 5. Returns (reasons_to_exclude, flags). A crop with any reason
     is reported as excluded and never scored. 'unknown' drainage does not exclude
     anything but flags the result, because the farmer has not answered yet."""
     window_days = WINDOW_DAYS if window_days is None else window_days
     drainage = DRAINAGE if drainage is None else drainage
     apply_drainage = USE_DRAINAGE_FILTER if apply_drainage is None else apply_drainage
+    turnaround = TURNAROUND_DAYS if turnaround is None else turnaround
     if drainage not in DRAINAGE_ANSWERS:
         raise ValueError(f"drainage must be one of {DRAINAGE_ANSWERS}, got {drainage!r}")
     why, flags = [], []
-    if c["cycle_min"] > window_days:                               # F1 window fit
+    if c["cycle_min"] + turnaround > window_days:                  # F1 window fit
         why.append("does_not_fit_window")
     if apply_drainage and drainage == "poorly_drained" \
             and c["drainage"].startswith("well"):                  # F2 drainage
@@ -557,14 +647,39 @@ def hard_filters(c, window_days=None, drainage=None, apply_drainage=None):
         flags.append("drainage_unconfirmed")
     return why, flags
 
+def guide_screen(c):
+    """For a crop known only by a crop guide's recommended range: is this field
+    inside it? Returns (reasons_to_exclude, what_was_compared). A guide gives no
+    survival limits, so outside the range the honest answer is 'not recommended
+    here', not a score of zero."""
+    if c.get("limits", "ecocrop") == "ecocrop":
+        return [], None
+    temps = [mean(days(s["start"], c["cycle_min"]), "T2M") for s in SEASONS]
+    t = med(temps)
+    why = []
+    if t is not None and t > c["temp"][2]:
+        why.append("warmer_than_guide_range")
+    if t is not None and t < c["temp"][1]:
+        why.append("cooler_than_guide_range")
+    if SOIL_PH > c["ph"][2] or SOIL_PH < c["ph"][1]:
+        why.append("soil_ph_outside_guide_range")
+    return why, dict(median_temp_c=t, guide_temp_c=[c["temp"][1], c["temp"][2]],
+                     soil_ph=SOIL_PH, guide_ph=[c["ph"][1], c["ph"][2]])
+
 def evaluate(water):
-    out, excluded = {}, {}
+    out, excluded, screened = {}, {}, {}
     for name, c in CROPS.items():
         why, flags = hard_filters(c)
+        more, compared = guide_screen(c)
+        why = why + more
+        if compared:
+            screened[name] = compared
         if why:
             excluded[name] = why
             continue
-        lengths = {"short": c["cycle_min"], "long": min(c["cycle_max"], WINDOW_DAYS)}
+        lengths = {"short": c["cycle_min"],
+                   "long": max(c["cycle_min"],
+                               min(c["cycle_max"], WINDOW_DAYS - TURNAROUND_DAYS))}
         rows = []
         for s in SEASONS:
             row = dict(season=s["year"], by_length={})
@@ -590,15 +705,15 @@ def evaluate(water):
                 unscored = water == "rain" and c["kc"] and sc["water"] is None
                 row["by_length"][tag] = dict(days=n, temp_c=t, rain_mm=r, scores=sc,
                                              water_balance=wb,
-                                             S={p: None if unscored else suitability(sc, w)
-                                                for p, w in WEIGHTS.items()})
+                                             S={p: None if unscored else suitability(sc)
+                                                for p in PROFILES})
             period = days(s["start"], lengths["long"])
             row["gwetroot"] = mean(period, "GWETROOT")
             row["imerg_mm"] = total(period, "IMERG_PRECTOT", True)
             row["toa"] = mean(period, "TOA_SW_DWN", True)
             rows.append(row)
         counts = {}
-        for p in WEIGHTS:
+        for p in PROFILES:
             counts[p] = {}
             for scen in SCENARIOS:
                 sel = [r for r, s in zip(rows, SEASONS) if s[scen]]
@@ -620,15 +735,16 @@ def evaluate(water):
             cycle_days=[c["cycle_min"], c["cycle_max"]],
             cycle_source=c["cycle_source"],
             scored_days=lengths, legume=c["legume"], drainage_requirement=c["drainage"],
+            local_name=c["local_name"], limits=c["limits"], limits_source=c["limits_source"],
             median_scores={tag: {k: med(r["by_length"][tag]["scores"].get(k) for r in rows)
                                  for k in ("temp", "water", "ph", "texture")} for tag in lengths},
             climate_envelope=dict(
                 annual_rain_mm=ANNUAL_RAIN,
-                ecocrop_annual_score=score(ANNUAL_RAIN, c["rain"]),
+                ecocrop_annual_score=score(ANNUAL_RAIN, c["rain"]) if c["rain"] else None,
                 note="EcoCrop rainfall limits scored against MEDIAN ANNUAL rainfall, "
                      "their documented basis. A regional climate screen only: it does "
                      "not say whether this planting window has enough water."),
-            median_S={tag: {p: med(r["by_length"][tag]["S"][p] for r in rows) for p in WEIGHTS}
+            median_S={tag: {p: med(r["by_length"][tag]["S"][p] for r in rows) for p in PROFILES}
                       for tag in lengths},
             counts=counts,
             water_zero_seasons={tag: sum(1 for r in rows
@@ -646,24 +762,31 @@ def evaluate(water):
                                                              for r in both)),
             seasons=rows)
 
-    def ms(n, p, tag="long"):
-        return out[n]["median_S"][tag][p] or 0.0
+    # Every ranking is on the crop's shortest cycle, the one the headline figures
+    # and the planting-date search use. Ties are broken by the smaller water gap, so
+    # the order never falls back to the row order of crops.csv.
+    TAG = "short"
+    def passes(n):
+        return out[n]["counts"]["balanced"]["all"][TAG]["pass"]
+    def ms(n):
+        return out[n]["median_S"][TAG]["balanced"] or 0.0
+    def thrift(n):
+        d = out[n]["median_deficit_mm"][TAG]
+        return -(d if d is not None else float("inf"))
     keys = {
-        "balanced":        lambda n: (out[n]["counts"]["balanced"]["all"]["long"]["pass"],
-                                      ms(n, "balanced")),
-        # Saving water means needing less of it. Rank on how many seasons clear the
-        # pass mark, then on the smallest irrigation requirement. Without this second
-        # term the profile was a no-op on an irrigated field, where nothing else
-        # distinguishes the crops and rice came out on top despite using the most.
-        "saving_water":    lambda n: (out[n]["counts"]["saving_water"]["all"]["long"]["pass"],
-                                      -(out[n]["median_deficit_mm"]["long"]
-                                        if out[n]["median_deficit_mm"]["long"] is not None
-                                        else float("inf"))),
-        "healthier_soil":  lambda n: (1 if out[n]["legume"] else 0, ms(n, "balanced")),
-        "finishing_early": lambda n: (-CROPS[n]["cycle_min"], ms(n, "balanced")),
+        "balanced":        lambda n: (passes(n), ms(n), thrift(n)),
+        # Saving water means needing less of it: years passed, then the smallest gap.
+        "saving_water":    lambda n: (passes(n), thrift(n)),
+        "healthier_soil":  lambda n: (1 if out[n]["legume"] else 0, ms(n), thrift(n)),
+        "finishing_early": lambda n: (-CROPS[n]["cycle_min"], ms(n), thrift(n)),
     }
-    return dict(crops=out, excluded=excluded,
+    return dict(crops=out, excluded=excluded, screened=screened,
                 rankings={p: sorted(out, key=k, reverse=True) for p, k in keys.items()})
+
+MAIN_CROP = ARGS.main_crop
+if MAIN_CROP not in CROPS:
+    sys.exit(f"--main-crop {MAIN_CROP!r} is not in {CROPS_FILE}. Choose from: "
+             + ", ".join(CROPS) + ".")
 
 fields = {w: evaluate(w) for w in ("rain", "irrigation")}
 WINDOW_OPTIONS = {n: window_options(c) for n, c in CROPS.items() if c["kc"]}
@@ -674,7 +797,7 @@ def report():
     def f(v):
         return "    n/a" if v is None else f"{v:7.2f}"
 
-    print("Files:", main_name, "|", imerg_name)
+    print("Files:", main_name, "|", imerg_name or "no second rainfall file for this point")
     print("Crops read from", CROPS_FILE + ":", ", ".join(CROPS))
     print("Days read:", len(daily), "from", min(daily), "to", max(daily))
     print("Satellite rain (IMERG) starts:", first_valid("IMERG_PRECTOT"))
@@ -727,7 +850,7 @@ def report():
                       f"{f(c['climate_envelope']['ecocrop_annual_score']):>10}")
         for n, why in res["excluded"].items():
             print(f"{n:10} excluded: {', '.join(why)}")
-        if res["crops"] and all((c["median_S"]["long"]["balanced"] or 0) == 0
+        if res["crops"] and all((c["median_S"]["short"]["balanced"] or 0) == 0
                                 for c in res["crops"].values()):
             print("  no crop reaches the pass mark: the order below is not meaningful")
         for p, order in res["rankings"].items():
@@ -803,6 +926,13 @@ def report():
                   drainage=DRAINAGE, drainage_source=DRAINAGE_SOURCE, soil_texture=SOIL_TEXTURE,
                   scored_lengths="EcoCrop cycle minimum and maximum, capped at the window",
                   planting_offsets=PLANTING_OFFSETS, heat_limit_c=HEAT_LIMIT_C,
+                  turnaround_days=TURNAROUND_DAYS, main_crop=MAIN_CROP,
+                  crop_names={n: c["local_name"] for n, c in CROPS.items()},
+                  weather_point=WEATHER_POINT,
+                  weather_grid="MERRA-2 cell, 0.5 x 0.625 degrees: the weather is the "
+                               "average over that cell, not a reading at the field",
+                  el_nino_source=NINO_SOURCE,
+                  ranked_on="shortest cycle; ties broken by the smaller water gap",
                   # soil_texture has left this list: it is measured now, from the
                   # nearest SARAI sample. texture_score stays, because mapping a
                   # class onto 1 / 0.5 / 0 is our choice, not a source's.
@@ -813,6 +943,11 @@ def report():
             eto_from=first_valid("TOA_SW_DWN"),
             etc="FAO-56 single crop coefficient curve, stage lengths scaled to the cycle",
             water_score="relative water supply, rain divided by ETc, capped at 1",
+            suitability="the weakest scored condition (limiting factor), not an average",
+            paddy_percolation_mm_day=PADDY_PERCOLATION,
+            not_modelled="water already in the soil at planting, and rain lost to runoff "
+                         "or drainage: every mm of rain in the cycle counts as usable and "
+                         "the soil is taken as empty at planting",
             heat="days over heat_limit_c, reported as evidence only, not scored",
             gwetroot="reported as a 0-1 wetness fraction, deliberately not converted to mm, "
                      "which would need rooting depth and available water capacity",
@@ -828,10 +963,12 @@ def report():
                             "km wide, so it cannot identify the soil series at a point. The "
                             "official BSWM shapefile is needed before drainage can come from "
                             "a map rather than from the farmer."),
-        nino34_latest=dict(year=latest[0], month=latest[1], anom=nino[latest]) if latest else None,
+        nino34_latest=dict(year=latest[0], month=latest[1], anom=nino[latest],
+                           source=NINO_SOURCE) if latest else None,
         data_limits=dict(imerg_from=first_valid("IMERG_PRECTOT"), toa_from=first_valid("TOA_SW_DWN"),
                          imerg_time="UTC", main_time="LST",
-                         imerg_note="POWER header labels IMERG_PRECTOT as MERRA-2; treated as IMERG"),
+                         imerg_note="POWER header labels IMERG_PRECTOT as MERRA-2, so the "
+                                    "second rainfall column is not an independent check"),
         seasons=[{k: s[k] for k in ("year", "start", "end", "window_rain", "nino_mean",
                                     "dry", "el_nino", "normal")} for s in SEASONS],
         fields=fields,

@@ -19,12 +19,12 @@ After the rice harvest, a field in Muñoz sits unused for about 197 days until t
 planting. The model asks what could be grown in that time. It compares four crops (rice
 again, mungbean, eggplant, tomato) against the past 44 years of NASA weather data and one
 measured soil sample. For each crop and each past year it works out four scores between 0
-and 1, for temperature, water, soil pH and soil texture, and combines them into one
-suitability score. It then counts how many past years reached a set mark.
+and 1, for temperature, water, soil pH and soil texture, and takes the lowest as the
+crop's score for that year. It then counts how many past years reached a set mark.
 
 On a rainfed field that drains well, mungbean comes first. Planted right after harvest, a
 50-day mungbean crop needed about 44 mm of water beyond rainfall in a typical year, against
-752 mm for a 106-day rice crop. The model describes how past years went. It does not
+964 mm for a 106-day rice crop. The model describes how past years went. It does not
 forecast next season, and it has not been checked against real harvests.
 
 ---
@@ -52,7 +52,8 @@ will do next year.
 | Rice growing time | Pinoy Rice Knowledge Bank (PhilRice) | Days to maturity of NSIC Rc222, a variety widely planted in Nueva Ecija: 106 days direct seeded, 114 transplanted |
 | Crop water use | FAO Irrigation and Drainage Paper 56 ("FAO-56") | How much water each crop uses at each growth stage |
 | Soil | SARAI soil samples | pH and texture from the nearest measured sample (3.44 km from the pilot field) |
-| El Niño record | NOAA Niño 3.4 index | Which past years were El Niño years |
+| Paddy seepage | FAO Irrigation Water Management Training Manual 3 | Water lost downward through a flooded rice field, by soil type |
+| El Niño record | NOAA Oceanic Niño Index | Which past years were El Niño years |
 | The farmer | The form | Harvest date, next planting date, whether water stays on the field, whether there is irrigation, what matters most |
 
 Missing weather values are stored in the NASA file as `-999`. The model reads these as
@@ -68,7 +69,7 @@ flowchart TD
     C -- Yes --> D{Does water stay on the field,<br/>and does the crop need drained soil?}
     D -- Yes to both --> X
     D -- Otherwise --> E[For each past year, score four things from 0 to 1:<br/>temperature, water, soil pH, soil texture]
-    E --> F[Combine the four scores<br/>into one suitability score]
+    E --> F[Take the lowest of the four<br/>as the year's score]
     F --> G[Count the years that reached<br/>the pass mark of 0.6]
     G --> H[Rank the crops by<br/>what the farmer cares about]
 ```
@@ -295,8 +296,9 @@ days it is called ETc, the crop's water need:
 ETc = Kc(day 1) × ETo(day 1) + Kc(day 2) × ETo(day 2) + … + Kc(last day) × ETo(last day)
 ```
 
-For rice only, 4 mm is added for every day to cover water that drains down through a
-flooded paddy.
+For rice only, water that drains down through a flooded paddy is added for every day:
+4 mm on heavy clay, 8 mm on sandy soil and 6 mm on soils in between (FAO Training Manual
+3). The pilot soil is loam, so rice is charged 6 mm a day.
 
 ### 7.3 Rain against need
 
@@ -332,14 +334,14 @@ hectare.
 **The same year for rice**, 106 days from the same date:
 
 ```
-ETc  = 830.1 mm        rain = 149.2 mm
-water score = 149.2 ÷ 830.1 = 0.18
-shortfall   = 830.1 − 149.2 = 680.8 mm
+ETc  = 1042.1 mm       rain = 149.2 mm
+water score = 149.2 ÷ 1042.1 = 0.14
+shortfall   = 1042.1 − 149.2 = 892.9 mm
 ```
 
-Rice needed more than seven times as much water. It is in the field twice as long, and
-about half of its need is the 4 mm a day that drains through the paddy. Rain covered less
-than a fifth of it.
+Rice needed more than nine times as much water. It is in the field twice as long, and
+more than half of its need (636 mm) is the 6 mm a day that drains through the paddy. Rain
+covered about a seventh of it.
 
 ### 7.4 If the field is irrigated
 
@@ -349,60 +351,49 @@ irrigation the crop will ask for.
 
 ## 8. Step 5: one score from four
 
-The four scores are combined with a **geometric mean**: multiply them together and take
-the fourth root.
+The year's score is simply **the lowest of the four scores**.
 
 ```
-suitability = (temperature × water × pH × texture) ^ (1/4)
+suitability = the smallest of (temperature, water, pH, texture)
 ```
 
-If any one score is zero, the result is zero. This is deliberate. With an ordinary
-average, a crop that cannot survive the heat could still score 0.75 because the soil suits
-it.
+A crop is only as well served as the thing it is shortest of. Perfect soil does not help a
+crop that has no water. Agronomists call this the limiting factor, and it is the rule that
+EcoCrop's own model and FAO's land evaluation method use. If any one score is zero, the
+result is zero.
 
 **Worked example (real).** Mungbean, 2010 season:
 
 ```
 temperature = 1.00    water = 0.83    pH = 0.95    texture = 1.00
 
-product     = 1.00 × 0.83 × 0.95 × 1.00 = 0.788
-suitability = 0.788 ^ (1/4)             = 0.94
+suitability = the smallest of these = 0.83
 ```
 
 **Three real seasons side by side** (planted 15 November, shortest growing time):
 
 | Season | Crop | Rain | Need | Water score | Suitability |
 |---|---|---|---|---|---|
-| 2015 | Mungbean | 317 mm | 124 mm | 1.00 | 0.99 |
-| 2010 | Mungbean | 94 mm | 113 mm | 0.83 | 0.94 |
-| 1997 | Mungbean | 20 mm | 146 mm | 0.14 | 0.60 |
-| 2015 | Rice | 336 mm | 869 mm | 0.39 | 0.79 |
-| 2010 | Rice | 149 mm | 830 mm | 0.18 | 0.65 |
-| 1997 | Rice | 29 mm | 947 mm | 0.03 | 0.42 |
+| 2015 | Mungbean | 317 mm | 124 mm | 1.00 | 0.95 |
+| 2010 | Mungbean | 94 mm | 113 mm | 0.83 | 0.83 |
+| 1997 | Mungbean | 20 mm | 146 mm | 0.14 | 0.14 |
+| 2015 | Rice | 336 mm | 1,081 mm | 0.31 | 0.31 |
+| 2010 | Rice | 149 mm | 1,042 mm | 0.14 | 0.14 |
+| 1997 | Rice | 29 mm | 1,159 mm | 0.03 | 0.03 |
 
-Notice how the fourth root softens a low water score. In 1997 rain covered only 14% of
-mungbean's need, yet suitability came out at 0.60, because the other three scores were all
-at or near 1. This matters for the next step and is discussed in
-[section 12](#12-what-to-keep-in-mind).
+In 2015 mungbean had all the water it needed, so its weakest point was soil pH at 0.95. In
+every other row water is the lowest score, and so water is the result.
+
+**Why not an average?** An earlier version of the model multiplied the four scores and took
+the fourth root. With three scores fixed at 1.00, that turned a water score of 0.14 into
+0.60, and the 1997 season counted as a pass although rain covered a seventh of what the crop
+needed. Taking the lowest score removes that.
 
 ### 8.1 Farmer priorities
 
-The farmer can say what matters most. Only one of the four choices changes the score
-itself: **saving water** counts the water score three times.
-
-```
-suitability (saving water) = (temperature × water³ × pH × texture) ^ (1/6)
-```
-
-**Worked example (real).** Rice, 2010 season. Temperature, pH and texture are all 1.00, so
-only water remains:
-
-```
-balanced:      0.18 ^ (1/4) = 0.65
-saving water:  0.18 ^ (3/6) = 0.42
-```
-
-The same season drops from 0.65 to 0.42 once water is given more weight.
+The farmer can say what matters most: overall fit, using less water, healthier soil, or
+finishing early. The answer changes the **order** the crops are shown in (see step 7). It
+never changes a score.
 
 ## 9. Step 6: counting the years
 
@@ -410,14 +401,16 @@ One year's score says little. The useful figure is how often the crop did well o
 years.
 
 A year **passes** if its suitability is 0.6 or more. The 0.6 is called the pass mark. It
-is the team's choice, not a published figure.
+is the team's choice, not a published figure. Since the score is the weakest condition, and
+at this field that is water, a passing year is one where rain covered at least 60% of what
+the crop needed.
 
 | Crop | Shortest growing time | Typical suitability | Years passed | Typical shortfall |
 |---|---|---|---|---|
-| Mungbean | 50 days | 0.89 | 38 of 41 | 44 mm |
-| Eggplant | 70 days | 0.80 | 37 of 41 | 115 mm |
-| Tomato | 70 days | 0.79 | 37 of 41 | 127 mm |
-| Rice | 106 days | 0.60 | 21 of 41 | 752 mm |
+| Mungbean | 50 days | 0.64 | 22 of 41 | 44 mm |
+| Eggplant | 70 days | 0.42 | 13 of 41 | 115 mm |
+| Tomato | 70 days | 0.39 | 13 of 41 | 127 mm |
+| Rice | 106 days | 0.11 | 0 of 41 | 964 mm |
 
 "Typical" here means the median: the middle value when all the years are lined up in
 order.
@@ -429,22 +422,23 @@ The same count is repeated for two harder groups of years.
 - **Dry years** are the nine years with the least rain in the window (the driest fifth of
   44). They are 1982, 1983, 1984, 1986, 1990, 1991, 1992, 1994 and 2009. Two of them, 1982
   and 1983, have no water score, which leaves seven.
-- **El Niño years** are those where the Niño 3.4 sea-temperature reading, averaged over the
-  months of the window, is 0.5 °C or more above normal. There are 13; one of them, 1982,
+- **El Niño years** are those where NOAA's Oceanic Niño Index, a three-month average of
+  Pacific sea temperature, averages 0.5 °C or more above normal over the months of the window. There are 13; one of them, 1982,
   has no water score, which leaves 12.
 
 | Crop | All years | Dry years | El Niño years |
 |---|---|---|---|
-| Mungbean | 38 of 41 | 5 of 7 | 11 of 12 |
-| Eggplant | 37 of 41 | 4 of 7 | 10 of 12 |
-| Tomato | 37 of 41 | 4 of 7 | 10 of 12 |
-| Rice | 21 of 41 | 0 of 7 | 4 of 12 |
+| Mungbean | 22 of 41 | 0 of 7 | 5 of 12 |
+| Eggplant | 13 of 41 | 0 of 7 | 2 of 12 |
+| Tomato | 13 of 41 | 0 of 7 | 2 of 12 |
+| Rice | 0 of 41 | 0 of 7 | 0 of 12 |
 
-Rice did not pass in any dry year.
+No crop passed in any of the seven dry years. On rain alone, a dry year is a bad year
+for everything; mungbean is simply the crop that asks for the least extra water.
 
 ### 9.2 How sure the count is
 
-Thirty-eight out of 41 is 93%. But 41 years is a small sample, and a different set of 41
+Twenty-two out of 41 is 54%. But 41 years is a small sample, and a different set of 41
 years would give a slightly different answer. The **Wilson interval** gives a range that
 the long-run share probably lies in.
 
@@ -457,30 +451,31 @@ range  = centre − spread   to   centre + spread
 
 with `n` the number of years and `z = 1.96` for a 95% range.
 
-**Worked example (real).** Mungbean, 38 passes in 41 years:
+**Worked example (real).** Mungbean, 22 passes in 41 years:
 
 ```
-p      = 38 ÷ 41                          = 0.9268
+p      = 22 ÷ 41                          = 0.5366
 z²     = 1.96²                            = 3.8416
 z²/n   = 3.8416 ÷ 41                      = 0.0937
 
-centre = (0.9268 + 0.0937/2) ÷ 1.0937
-       = 0.9737 ÷ 1.0937                  = 0.890
+centre = (0.5366 + 0.0937/2) ÷ 1.0937
+       = 0.5834 ÷ 1.0937                  = 0.533
 
 inside the root:
-  p(1 − p)/n = 0.9268 × 0.0732 ÷ 41       = 0.001655
+  p(1 − p)/n = 0.5366 × 0.4634 ÷ 41       = 0.006065
   z²/4n²     = 3.8416 ÷ (4 × 1681)        = 0.000571
-  sum                                     = 0.002226
-  root                                    = 0.0472
+  sum                                     = 0.006636
+  root                                    = 0.0815
 
-spread = 1.96 × 0.0472 ÷ 1.0937           = 0.085
+spread = 1.96 × 0.0815 ÷ 1.0937           = 0.146
 
-range  = 0.890 − 0.085  to  0.890 + 0.085 = 0.81 to 0.97
+range  = 0.533 − 0.146  to  0.533 + 0.146 = 0.39 to 0.68
 ```
 
-So the honest way to state the result is "38 of 41 years, likely somewhere between 81% and
-97% in the long run". For rice, 21 of 41 gives 36% to 66%. For the dry years the samples
-are tiny (seven years), so the ranges are very wide: mungbean's 5 of 7 gives 36% to 92%.
+So the honest way to state the result is "22 of 41 years, likely somewhere between 39% and
+68% in the long run". For eggplant and tomato, 13 of 41 gives 20% to 47%. For rice, 0 of 41
+gives 0% to 9%. The dry-year and El Niño groups are small (seven and twelve years), so
+their ranges are wide: mungbean's 5 of 12 El Niño years gives 19% to 68%.
 
 ## 10. Step 7: ranking
 
@@ -488,12 +483,14 @@ The order shown to the farmer depends on the priority they picked.
 
 | Priority | Crops are ordered by | Ties are broken by |
 |---|---|---|
-| Overall fit | Most years passed | Higher typical suitability |
-| Saving water | Most years passed, with water counted three times | Smaller typical shortfall |
-| Healthier soil | Legumes first (mungbean is the only one) | Higher typical suitability |
-| Finishing early | Shortest growing time | Higher typical suitability |
+| Overall fit | Most years passed | Higher typical suitability, then smaller typical shortfall |
+| Saving water | Most years passed | Smaller typical shortfall |
+| Healthier soil | Legumes first (mungbean is the only one) | Higher typical suitability, then smaller shortfall |
+| Finishing early | Shortest growing time | Higher typical suitability, then smaller shortfall |
 
-Crops ruled out in Step 2 are listed last with the reason and are never ranked.
+Crops ruled out in Step 2 are listed last with the reason and are never ranked. Every
+ranking uses the crop's shortest growing time. The priority changes the order only; it
+never changes a score.
 
 At the pilot field all four priorities give the same order: mungbean, eggplant, tomato,
 rice. That is because three of the four scores never change here (see below), so water
@@ -519,10 +516,12 @@ weeks of the year.
 **The model has not been checked against real harvests.** No yield records exist for this
 field. So there is no accuracy figure, and none should be quoted.
 
-**"Passed" is a low bar for water.** Because the fourth root softens a low water score, a
-year can pass with rain covering as little as 13% to 14% of the crop's need, as mungbean
-did in 1997. The count of years passed should be read as "years that were not a disaster",
-not "years with enough rain". The water score and the shortfall in millimetres say more.
+**A good year still needs some extra water.** A year passes when rain covered 60% of the
+crop's need. The other 40% has to come from somewhere, and the model does not say where.
+
+**The texture steps matter more than they look.** A soil the crop only tolerates scores
+0.5, which is below the pass mark, so such a crop cannot have a good year on that soil
+however much it rains. The 0.5 is the team's own figure.
 
 **Rain is not all usable, and the soil is not empty at the start.** The model counts every
 millimetre of rain as available to the crop and assumes no water is stored in the soil at
@@ -542,6 +541,7 @@ gives a range for several values. The model records each choice in `crops.csv`:
 | Mungbean late-stage Kc | A range, 0.35 to 0.60 | 0.35, the value for a crop harvested dry |
 | Stage lengths, all but rice | Mediterranean, arid or Californian plantings only | Those lengths, scaled to the growing time |
 | Growing time, all but rice | No local figure found yet | The span on the EcoCrop sheet, which covers every variety worldwide |
+| Rice seepage on medium soils | The manual gives heavy clay 4, sandy 8, and 6 on average | 6 mm a day |
 | Texture score steps | Not in any source | 1.0, 0.5, 0 |
 | Pass mark | Not in any source | 0.6 |
 | Dry-year share | Not in any source | Driest 20% |
@@ -551,7 +551,7 @@ km across, and the soil is one sample. The results describe the pilot field. Oth
 need their own weather download, and other crops need their own rows of sourced limits.
 
 **The climate has shifted.** Window rainfall has risen by about 70 mm per decade over the
-record. Rice passed in 7 of the first 20 scored years and 14 of the last 21. A single
+record. Mungbean passed in 6 of the first 20 scored years and 16 of the last 21. A single
 count for the whole record mixes two different periods.
 
 ## Glossary
@@ -564,7 +564,7 @@ count for the whole record mixes two different periods.
 | Kc | A crop's multiplier on ETo; changes with growth stage |
 | ETc | Water the crop needs over its growing days, in millimetres |
 | Shortfall | ETc minus rain; water that must come from somewhere else |
-| Suitability | The combined score from 0 to 1 |
+| Suitability | The crop's lowest condition score in a year, from 0 to 1 |
 | Pass mark | The suitability a year must reach to count as passed; 0.6 |
 | Median | The middle value when a list is put in order |
 | Wilson interval | A range showing how uncertain a count from a small sample is |
@@ -577,8 +577,9 @@ count for the whole record mixes two different periods.
 3. Brouwer, C., & Heibloem, M. (1986). *Irrigation water needs.* FAO Irrigation Water Management Training Manual 3. https://www.fao.org/4/s2022e/s2022e08.htm
 4. FAO. EcoCrop database of crop environmental requirements.
 5. Hijmans, R. J., Guarino, L., Cruz, M., & Rojas, E. (2001). Computer tools for spatial analysis of plant genetic resources data: 1. DIVA-GIS. *Plant Genetic Resources Newsletter*, 127, 15–19.
-6. NOAA Climate Prediction Center. Niño 3.4 monthly index. https://www.cpc.ncep.noaa.gov/data/indices/
+6. NOAA Climate Prediction Center. Oceanic Niño Index. https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt
 7. SARAI Project. Philippine soil sample database.
-8. Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. *Journal of the American Statistical Association*, 22(158), 209–212.
+8. PhilRice. Pinoy Rice Knowledge Bank, rice varieties. https://www.pinoyrice.com/rice-varieties/
+9. Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. *Journal of the American Statistical Association*, 22(158), 209–212.
 
 Use of NASA data does not imply NASA endorsement.
