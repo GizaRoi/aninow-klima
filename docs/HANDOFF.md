@@ -7,7 +7,8 @@ The stateless comparison API in `model/api.py` wraps this same model, with catal
 discovery, validated JSON inputs, isolated calculations and `/health`. See
 [Model-API.md](Model-API.md) for the contract and Render deployment settings. The API does
 not change the scoring method; it reads `places.csv` and `crops.csv`, so it now serves 22
-places and 29 crops. It does not yet accept `fallow`, `--prep-days` or `--picking-days`.
+places and 29 crops. It also accepts `fallow`, `prep_days` and `picking_days`; `turnaround_days` retains
+its API name for clearing time. The catalogue advertises these capabilities.
 
 This is the state of the model for whoever picks it up next. For the method read
 [Model-Narrative.md](Model-Narrative.md) (it describes the pilot and its first four crops);

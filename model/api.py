@@ -80,6 +80,8 @@ class ComparisonRequest(BaseModel):
     priority: Priority = "balanced"
     soil_ph: float | None = Field(default=None, ge=3, le=10, strict=True)
     soil_texture: Literal["light", "medium", "heavy"] | None = None
+    prep_days: int = Field(default=0, ge=0, le=180, strict=True)
+    picking_days: int = Field(default=0, ge=0, le=180, strict=True)
     turnaround_days: int = Field(default=0, ge=0, le=90, strict=True)
     pass_mark: float = Field(default=0.6, ge=0, le=1, strict=True)
 
@@ -93,7 +95,7 @@ class ComparisonRequest(BaseModel):
     @field_validator("main_crop")
     @classmethod
     def supported_crop(cls, value: str) -> str:
-        if value not in CROPS:
+        if value != "fallow" and value not in CROPS:
             raise ValueError("Choose a supported crop from /api/v1/catalog.")
         return value
 
@@ -126,6 +128,7 @@ class ComparisonRequest(BaseModel):
                 "--harvest", self.harvest.isoformat(),
                 "--next-planting", self.next_planting.isoformat(),
                 "--main-crop", self.main_crop, "--drainage", self.drainage,
+                "--prep-days", str(self.prep_days), "--picking-days", str(self.picking_days),
                 "--turnaround-days", str(self.turnaround_days),
                 "--pass-mark", str(self.pass_mark)]
         if self.soil_ph is not None:
@@ -231,6 +234,7 @@ def create_app(origins: list[str] | None = None) -> FastAPI:
                            for key, row in PLACES.items()],
                 "crops": [{"id": key, "name": row["english_name"], "local_name": row["local_name"],
                            "limits_basis": row["limits"]} for key, row in CROPS.items()],
+                "capabilities": ["fallow", "whole_schedule"],
                 "drainage": ["well_drained", "poorly_drained", "unknown"],
                 "soil_texture": ["light", "medium", "heavy"],
                 "water": ["rain", "irrigation"],

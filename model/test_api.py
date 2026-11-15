@@ -34,6 +34,7 @@ class HttpBoundary(unittest.TestCase):
             catalog = self.client.get("/api/v1/catalog").json()
             self.assertEqual(len(catalog["places"]), 22)
             self.assertEqual(len(catalog["crops"]), 29)
+            self.assertEqual(catalog["capabilities"], ["fallow", "whole_schedule"])
             self.assertIn(PAYLOAD["place"], [p["id"] for p in catalog["places"]])
             self.assertIn("da_guide_range", [c["limits_basis"] for c in catalog["crops"]])
             self.assertEqual(catalog["model_version"], response.json()["model_version"])
@@ -49,6 +50,8 @@ class HttpBoundary(unittest.TestCase):
             {"soil_ph": 14}, {"soil_ph": "NaN"}, {"soil_ph": "Infinity"},
             {"soil_texture": "clayloam"}, {"water": "irrig"},
             {"drainage": "maybe"}, {"priority": "invented"},
+            {"prep_days": -1}, {"prep_days": 181}, {"prep_days": 0.5}, {"prep_days": True},
+            {"picking_days": -1}, {"picking_days": 181}, {"picking_days": 0.5}, {"picking_days": True},
             {"turnaround_days": -1}, {"turnaround_days": 91},
             {"turnaround_days": 2.5}, {"turnaround_days": True},
             {"pass_mark": 1.1}, {"pass_mark": "NaN"}, {"pass_mark": True},
@@ -62,6 +65,19 @@ class HttpBoundary(unittest.TestCase):
                     self.assertEqual(response.json()["error"]["code"], "invalid_inputs")
                     self.assertTrue(response.json()["error"]["field_errors"])
             calculate.assert_not_called()
+
+    def test_schedule_and_fallow_are_validated_and_forwarded(self):
+        with patch.object(api, "run_comparison", return_value=FAKE_RESULTS) as calculate:
+            response = self.client.post("/api/v1/compare", json=PAYLOAD | dict(
+                main_crop="fallow", prep_days=14, picking_days=21, turnaround_days=7))
+        self.assertEqual(response.status_code, 200, response.text)
+        payload = calculate.call_args.args[0]
+        args = payload.cli_args()
+        for flag, expected in (("--main-crop", "fallow"), ("--prep-days", "14"),
+                               ("--picking-days", "21"), ("--turnaround-days", "7")):
+            self.assertEqual(args[args.index(flag) + 1], expected)
+        defaults = api.ComparisonRequest.model_validate(PAYLOAD)
+        self.assertEqual((defaults.prep_days, defaults.picking_days, defaults.turnaround_days), (0, 0, 0))
 
     def test_required_field_and_malformed_json_errors_have_request_ids(self):
         for options in ({"json": {}}, {"content": "{", "headers": {"Content-Type": "application/json"}}):
@@ -187,6 +203,24 @@ class RealComparisons(unittest.TestCase):
         # Response contains the complete JSON result, with both water scenarios.
         self.assertIn("irrigation", results["fields"])
         json.dumps(body, allow_nan=False)
+
+    def test_real_fallow_and_whole_schedule(self):
+        response = self.client.post("/api/v1/compare", json=PAYLOAD | dict(
+            main_crop="fallow", prep_days=14, picking_days=21, turnaround_days=7))
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        meta = body["results"]["meta"]
+        self.assertEqual((meta["main_crop"], meta["prep_days"], meta["picking_days"], meta["turnaround_days"]),
+                         ("fallow", 14, 21, 7))
+        for field in body["results"]["fields"].values():
+            self.assertEqual(field["same_family_as_main"], [])
+            for plan in field["schedule"].values():
+                self.assertEqual(plan["total_days"], 14 + plan["growing_days"] + 21 + 7)
+                self.assertEqual(plan["spare_days"], plan["window_days"] - plan["total_days"])
+            for crop in field["recommendation"]["suitable"]:
+                self.assertFalse(field["crops"][crop]["not_scored"])
+                self.assertTrue(field["schedule"][crop]["fits"])
+        self.assertEqual(body["results"]["planting_dates"]["mungbean"][0]["offset_days"], 14)
 
     def test_overrides_another_place_and_then_a_fresh_pilot_request(self):
         custom = PAYLOAD | dict(place="Batac, Ilocos Norte", main_crop="tomato",

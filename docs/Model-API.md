@@ -93,6 +93,8 @@ Example request:
   "priority": "balanced",
   "soil_ph": null,
   "soil_texture": null,
+  "prep_days": 0,
+  "picking_days": 0,
   "turnaround_days": 0,
   "pass_mark": 0.6
 }
@@ -106,8 +108,12 @@ texture class from the prototype's soil label without a reviewed mapping.
 Dates must be ISO calendar dates, next planting must follow harvest, and the window
 must fit within one annual cycle. February 29 is rejected because the model replays
 month/day pairs over non-leap historical years. Soil pH is bounded to 3–10, pass
-mark to 0–1, and land preparation to an integer from 0–90 days, matching the local
-form. Unknown fields, unsupported places/crops, and nonfinite numbers are rejected.
+mark to 0–1, preparation (`prep_days`) and picking (`picking_days`) to integers
+from 0–180 days, and clearing (`turnaround_days`) to an integer from 0–90 days,
+matching the local form. Preparation shifts the planting/weather window; picking
+and clearing reserve time before the next main planting. All default to zero.
+`main_crop` also accepts `fallow`, meaning no main-crop baseline. The catalogue
+advertises `capabilities: ["fallow", "whole_schedule"]`; fallow is not a crop candidate. Unknown fields, unsupported places/crops, and nonfinite numbers are rejected.
 Clients cannot choose output paths, model versions, thresholds other than the
 explicit pass mark, or arbitrary subprocess arguments.
 
@@ -182,3 +188,19 @@ processes. Health and catalogue requests remain available during calculations.
 The subprocess timeout is 120 seconds. This is not a distributed rate limit,
 authentication system, job queue, or persistent history store. Add those when
 moving to an authenticated production application.
+
+## Expanded result fields
+
+Use `fields[inputs.water].recommendation.status` and `.suitable` for the model's
+recommendation verdict. A first-ranked crop is not necessarily suitable. Display
+`none` explicitly; `partly_checked` crops cannot be recommendations. The verdict
+uses all seasons at the submitted pass mark, regardless of a displayed season group.
+`held_back_by` lists common weakest conditions, not crop-specific rejection reasons.
+
+Each field's `schedule[crop]` reports preparation, growing, picking and clearing
+days, total, window, spare days and whether the whole plan fits. Use these returned
+values rather than subtracting only growing and clearing days. `not_scored`,
+`same_family_as_main` and `guide_check` are reported evidence: missing conditions
+prevent recommendations; family membership and guide cautions do not change scores.
+`planting_dates` reports alternative historical planting offsets, not forecasts.
+The separate plot-history CLI has no HTTP upload endpoint.
