@@ -330,8 +330,13 @@ def chart_halves(out):
     early = h[crops[0]]["early"]["years"]
     late = h[crops[0]]["late"]["years"]
     c.legend([(f"{early[0]}-{early[1]}", SOFT), (f"{late[0]}-{late[1]}", GREEN)])
-    c.note("Rice nearly doubles. Quoting one figure for all 44 seasons averages two "
-           "different climates, and understates how rice has done recently.")
+    note = "One figure for the whole record averages two different climates."
+    if "rice" in h:
+        e, l = h["rice"]["early"], h["rice"]["late"]
+        note = (f"Rice passes {e['passed']} of {e['of']} early seasons and "
+                f"{l['passed']} of {l['of']} late ones. One figure for the whole "
+                f"record averages two different climates.")
+    c.note(note)
     return c.save(out, "03-early-versus-late-half")
 
 
@@ -340,8 +345,8 @@ def chart_wilson(out):
     ind = D.check_independence()
     crops = [c for c in CROP_COLOUR if c in ind]
     c = Chart("How often past seasons passed, with 95% intervals",
-              "Wilson intervals at the full 44 seasons, and at the effective sample "
-              "size once season-to-season correlation is allowed for.",
+              "Wilson intervals over every scored season, and at the effective "
+              "sample size once season-to-season correlation is allowed for.",
               eyebrow="How far to trust it")
     c.scale(0, 1.0, -0.5, len(crops) - 0.5)
     c.axes([0, 0.25, 0.5, 0.75, 1.0], [], "share of seasons passing", "",
@@ -367,10 +372,14 @@ def chart_wilson(out):
         c.text(c.right + 12, c.py(y) + 4,
                f"n_eff {a['n_eff']:.0f}", 11.5,
                RED if a["n_eff"] < a["n"] * 0.9 else SOFT)
-    c.legend([("interval at n = 44", GREEN), ("at effective n", SOFT)],
+    n_all = max(ind[crop]["n"] for crop in crops)
+    c.legend([(f"interval at n = {n_all}", GREEN), ("at effective n", SOFT)],
              y=c.bottom - 34)
-    c.note("Rice's seasons are positively correlated (lag-1 r = +0.23), so its "
-           "effective sample is 27, not 44, and the plain interval is too narrow.")
+    if "rice" in ind and ind["rice"].get("r1") is not None:
+        a = ind["rice"]
+        c.note(f"Rice's seasons are correlated (lag-1 r = {a['r1']:+.2f}), so its "
+               f"effective sample is {a['n_eff']:.0f}, not {a['n']}, and the plain "
+               f"interval is too narrow.")
     return c.save(out, "04-pass-share-with-intervals")
 
 

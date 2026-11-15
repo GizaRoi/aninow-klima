@@ -1,0 +1,2 @@
+place,province,latitude,longitude,note
+Science City of Muñoz,Nueva Ecija,15.72,120.90,"Pilot. Matches POWER_Point_Daily_*_015d72N_120d90E. Add a row only together with a POWER download for that point: the model reads one weather file, so a new place without its own file would silently reuse Muñoz weather."
