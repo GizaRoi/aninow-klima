@@ -2,9 +2,14 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowUpRight, Menu, Sprout, X } from 'lucide-react';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { messages } from '../../lib/messages';
 import type { Language } from '../../lib/preview';
+
+function BrandLogo() {
+  // Display the supplied PNG at its artwork bounds; the original file is unchanged.
+  return <svg className="brand-logo" viewBox="199 414 1635 1128" role="img" aria-label="AniNow Klima" width="1635" height="1128"><image href="/images/aninow-logo.png" width="2000" height="2000"/></svg>;
+}
 
 export function SiteHeader({ language, ready, onLanguageChange, onPlan, activePage = 'field' }: {
   language: Language;
@@ -17,7 +22,7 @@ export function SiteHeader({ language, ready, onLanguageChange, onPlan, activePa
   const m = messages(language);
   function closeMenu() { setMobileMenu(false); }
   return <header className="site-header">
-    <Link className="brand" href="/" aria-label="AniNow Klima"><span className="brand-symbol"><Sprout size={25}/></span><span>AniNow<span className="brand-sub">K L I M A</span></span></Link>
+    <Link className="brand" href="/" aria-label="AniNow Klima"><BrandLogo/></Link>
     <nav aria-label={language === 'en' ? 'Main navigation' : 'Pangunahing menu'} className={mobileMenu ? 'nav-open' : ''}>
       <Link href="/#top" onClick={closeMenu}>{m.navField}</Link>
       {onPlan ? <button onClick={() => { closeMenu(); onPlan(); }}>{m.navPlan}</button> : <Link href="/#planner" onClick={closeMenu}>{m.navPlan}</Link>}
@@ -30,5 +35,5 @@ export function SiteHeader({ language, ready, onLanguageChange, onPlan, activePa
 
 export function SiteFooter({ language }: { language: Language }) {
   const m = messages(language);
-  return <footer className="site-footer"><Link href="/" className="footer-brand"><Sprout size={23}/>AniNow Klima</Link><p>{m.foot}</p><a href="#top">{m.backTop}<ArrowUpRight size={15}/></a></footer>;
+  return <footer className="site-footer"><Link href="/" className="footer-brand" aria-label="AniNow Klima"><BrandLogo/></Link><p>{m.foot}</p><a href="#top">{m.backTop}<ArrowUpRight size={15}/></a></footer>;
 }

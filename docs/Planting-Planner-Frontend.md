@@ -2,6 +2,8 @@
 
 The Next.js application lives in `apps/web` on `feat/planting-planner`. It follows the existing visual prototype's forest green palette, farm artwork, glass panels, and lime accents. The model remains separate in `model/`.
 
+The header and footer use the supplied `Version 2.png`, copied unchanged to `public/images/aninow-logo.png`. A shared SVG viewport excludes empty transparent margins when displaying it, preserving the complete leaf and wordmark. A light background gives the original dark green lettering contrast on the app's forest green shell. Logo dimensions adapt to desktop and phone widths without stretching the artwork.
+
 ## Run and verify
 
 From the checkout root, run `npm install`, then `npm run dev`. On Windows PowerShell use `npm.cmd`. The dev server runs at `http://127.0.0.1:3000`.
