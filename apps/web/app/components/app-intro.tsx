@@ -32,7 +32,7 @@ export function AppIntro({ language, children }: { language: Language; children:
       <div className="intro-shade"/>
       <div className="intro-content">
         <BrandLogo/>
-        <p className="intro-tagline">{m.tagline}</p>
+        <p className="intro-tagline" lang="en">{m.tagline}</p>
         <div className="intro-status" role="status"><span className="intro-track" aria-hidden="true"><span/></span><span>{m.openingPlanner}</span></div>
       </div>
       <span className="intro-credit">{m.photoCredit}</span>
