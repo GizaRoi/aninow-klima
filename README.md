@@ -114,9 +114,9 @@ AI tools were used throughout this project, directed and reviewed by the team.
 | Data tables | The crop and site tables were compiled from the cited sources with AI assistance; `crops.csv` is checked against the archived FAO sheets by a test. NASA POWER and NOAA files are unmodified downloads |
 | Research | AI-assisted search for sources; the FAO pages used are archived in `model/sources/` |
 | Idea and approach | Brainstormed with AI tools |
-| Web app front end | Built with AI assistance (`ADD TOOL`) |
-| Logo | AI-generated (`ADD TOOL`) |
-| Slides and demo | Prepared with AI assistance (`ADD TOOL`) |
+| Web app front end | Built with AI assistance (`ChatGPT Codex`) |
+| Logo | AI-generated (`Gemini`) |
+| Slides and demo | Prepared with AI assistance (`Claude Code`) |
 
 Not AI: the model has no machine learning, the app has no AI feature, and the figures
 are plots drawn by code from the model's output, not generated images.
