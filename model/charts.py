@@ -440,7 +440,11 @@ def chart_rainfall_check(out):
 
 def chart_decomposition(out):
     """Which condition is actually limiting each crop."""
-    crops = list(K.fields["rain"]["crops"])
+    # The pilot chart keeps to the ten crops it was drawn for; analysis.py covers
+    # all of them, for every place, as tables.
+    pilot = ("rice", "mungbean", "eggplant", "tomato", "squash", "sitaw", "snapbean",
+             "cabbage", "lettuce", "potato")
+    crops = [c for c in K.fields["rain"]["crops"] if c in pilot]
     keys = ("temp", "water", "ph", "texture")
     names = {"temp": "heat", "water": "water", "ph": "soil pH", "texture": "soil texture"}
     # Water is the condition that decides, so it is the one that carries colour;

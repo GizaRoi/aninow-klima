@@ -357,7 +357,11 @@ class PilotRegression(unittest.TestCase):
     def test_mungbean_needs_least_water_and_rice_most(self):
         rain = K.fields["rain"]["crops"]
         short = {n: c["median_deficit_mm"]["short"] for n, c in rain.items()}
-        self.assertEqual(min(short, key=lambda n: short[n]), "mungbean")
+        # Among the four crops the pilot was built on, mungbean needs least. Across
+        # all the crops now rated only the 35-day radish needs less; rice needs most.
+        pilot = ("rice", "mungbean", "eggplant", "tomato")
+        self.assertEqual(min(pilot, key=lambda n: short[n]), "mungbean")
+        self.assertEqual(sorted(short, key=lambda n: short[n])[:2], ["radish", "mungbean"])
         self.assertEqual(max(short, key=lambda n: short[n]), "rice")
         self.assertAlmostEqual(short["mungbean"], 44, delta=2)
         self.assertAlmostEqual(short["rice"], 964, delta=2)
@@ -410,7 +414,8 @@ class PilotRegression(unittest.TestCase):
         # first row of crops.csv and needs by far the most water, so it must not lead.
         res = K.fields["irrigation"]
         order = res["rankings"]["balanced"]
-        self.assertEqual(order[0], "eggplant")
+        self.assertNotEqual(order[0], "rice")
+        self.assertLess(order.index("eggplant"), order.index("rice"))
         self.assertLess(order.index("tomato"), order.index("rice"))
         # Among crops that tie on years passed and on score, less water comes first.
         key = lambda n: (res["crops"][n]["counts"]["balanced"]["all"]["short"]["pass"],
@@ -482,18 +487,27 @@ class PilotRegression(unittest.TestCase):
             self.assertIn(name, rain["crops"])
             self.assertEqual(rain["crops"][name]["median_scores"]["short"]["temp"], 1.0)
 
-    def test_a_soil_the_guide_does_not_name_is_left_unscored(self):
-        sitaw, squash = K.CROPS["sitaw"], K.CROPS["squash"]
+    def test_soil_texture_follows_one_rule_for_every_crop(self):
+        # A guide crop's soil texture comes from its EcoCrop sheet, like any other
+        # crop's: 1 where the sheet calls the soil optimal, 0.5 where it only
+        # tolerates it. Before, a soil the guide did not name went unscored, which
+        # passed clay for snap bean while capping it for mungbean.
         kept = K.SOIL_TEXTURE
         try:
             K.SOIL_TEXTURE = "heavy"
-            self.assertIsNone(K.texture_score(squash))     # guide names light and medium
-            self.assertIsNone(K.texture_score(sitaw))      # guide names no soil at all
-            self.assertEqual(K.texture_score(K.CROPS["mungbean"]), 0.5)   # EcoCrop: tolerated
+            self.assertEqual(K.texture_score(K.CROPS["snapbean"]), 0.5)
+            self.assertEqual(K.texture_score(K.CROPS["mungbean"]), 0.5)
+            self.assertEqual(K.texture_score(K.CROPS["sitaw"]), 1.0)   # sheet: heavy, medium
+            self.assertEqual(K.texture_score(K.CROPS["squash"]), 1.0)  # sheet: all three
             K.SOIL_TEXTURE = "medium"
-            self.assertEqual(K.texture_score(squash), 1.0)
+            self.assertEqual(K.texture_score(K.CROPS["snapbean"]), 1.0)
+            K.SOIL_TEXTURE = "light"
+            self.assertEqual(K.texture_score(K.CROPS["sitaw"]), 0.5)
         finally:
             K.SOIL_TEXTURE = kept
+        for name, c in K.CROPS.items():
+            if name not in ("maize", "sweetpotato"):      # their sheets print no texture
+                self.assertTrue(c["tex_abs"], name)
 
     def test_each_place_reads_its_own_weather_file(self):
         import csv as _csv
@@ -507,7 +521,7 @@ class PilotRegression(unittest.TestCase):
                 self.assertLessEqual(abs(point[1] - lon), 0.3125)
                 seen.add(name)
                 self.assertIsNotNone(K.read_soil_sample(lat, lon), row["place"])
-        self.assertEqual(len(seen), 7)       # seven places, seven different files
+        self.assertEqual(len(seen), 22)      # every place has a file of its own
 
     def test_an_unknown_main_crop_is_refused(self):
         import subprocess, sys
@@ -520,8 +534,13 @@ class PilotRegression(unittest.TestCase):
     def test_saving_water_does_not_rank_rice_first(self):
         for water in ("rain", "irrigation"):
             order = K.fields[water]["rankings"]["saving_water"]
-            self.assertEqual(order[0], "mungbean")
-            self.assertEqual(order[-1], "rice")
+            # The two shortest crops need the least water; rice needs the most.
+            self.assertEqual(order[:2], ["radish", "mungbean"])
+            # ...among crops scored on every condition. Maize and sweet potato, whose
+            # sheets print no soil texture, are listed after them.
+            crops = K.fields[water]["crops"]
+            full = [n for n in order if not crops[n]["not_scored"]]
+            self.assertEqual(full[-1], "rice")
 
     def test_every_crop_has_a_sourced_kc(self):
         for name, c in K.CROPS.items():

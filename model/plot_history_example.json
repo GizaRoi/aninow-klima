@@ -1,0 +1,36 @@
+{
+  "plot": {
+    "name": "Example plot (made up, to show the record's shape)",
+    "place": "Science City of Muñoz, Nueva Ecija",
+    "drainage": "well_drained",
+    "irrigation": "no"
+  },
+  "seasons": [
+    {
+      "crop": "rice",
+      "planted": "2025-06-20",
+      "harvested": "2025-10-28",
+      "pests_diseases": "stem borer, light",
+      "fertilizer": "N/A"
+    },
+    {
+      "crop": "fallow",
+      "planted": "N/A",
+      "harvested": "2026-06-10",
+      "pests_diseases": "N/A",
+      "fertilizer": "N/A"
+    },
+    {
+      "crop": "rice",
+      "planted": "2026-07-01",
+      "harvested": "2026-11-15",
+      "pests_diseases": "N/A",
+      "fertilizer": "14-14-14 at planting, urea at tillering"
+    }
+  ],
+  "soil_tests": [
+    { "date": "2025-03-04", "ph": 6.1, "texture": "N/A", "notes": "N/A" }
+  ],
+  "next_planting": "2027-05-31",
+  "plan": { "prep_days": 10, "picking_days": "N/A", "clearing_days": 7 }
+}

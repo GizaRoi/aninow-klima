@@ -66,6 +66,45 @@ class FormToModel(unittest.TestCase):
         with self.assertRaises(ValueError):
             S.to_args(q(main_crop="durian"))
 
+    def test_a_resting_field_is_a_valid_answer(self):
+        self.assertEqual(option(S.to_args(q(main_crop="fallow")), "--main-crop"), "fallow")
+        page = S.page_html(q(main_crop="fallow"))
+        self.assertIn("Nothing: the field is resting", page)
+        self.assertNotIn("your crop now", page)
+        self.assertNotIn("class=\"err\"", page)
+
+    def test_the_whole_plan_is_only_sent_when_its_switch_is_on(self):
+        args = S.to_args(q(prep="30", picking="14"))
+        self.assertNotIn("--prep-days", args)
+        args = S.to_args(q(plan="1", prep="30", picking="14"))
+        self.assertEqual(option(args, "--prep-days"), "30")
+        self.assertEqual(option(args, "--picking-days"), "14")
+        with self.assertRaises(ValueError):
+            S.to_args(q(plan="1", prep="-3"))
+
+    def test_the_plan_is_shown_in_days_and_can_rule_a_crop_out(self):
+        page = S.page_html(q(plan="1", prep="30", picking="20", advanced="1", turnaround="10"))
+        self.assertIn("30 days before planting, 50 growing, 20 picking, 10 clearing "
+                      "= 110 of your 197 days, 87 to spare", page)
+        self.assertIn("planted\n    30 days after harvest", page)
+        out = page.split("Not recommended here")[1]
+        self.assertIn("Your whole plan for it", out)        # onion: 30+150+20+10 > 197
+
+    def test_cautions_are_shown_and_never_hidden(self):
+        page = S.page_html(q())
+        self.assertIn("Only partly checked: its source gives no soil texture", page)
+        self.assertIn("the DA crop guide recommends 21 to 24", page)      # tomato
+        self.assertIn("Same plant family as Palay", page)                  # maize
+
+    def test_no_suitable_recommendation_is_said_in_words(self):
+        page = S.page_html(q(place="Batac, Ilocos Norte"))
+        self.assertIn("No suitable recommendation", page)
+        self.assertIn("It is not advice to plant the first", page)
+        self.assertNotIn("Suitable here in a typical year", page)
+        pilot = S.page_html(q())
+        self.assertNotIn("No suitable recommendation", pilot)
+        self.assertIn("Suitable here in a typical year:</strong> Labanos, Munggo.", pilot)
+
     def test_every_place_on_the_list_has_weather_and_soil(self):
         # A place is only offered if the model can actually score it.
         self.assertGreaterEqual(len(S.PLACES), 7)

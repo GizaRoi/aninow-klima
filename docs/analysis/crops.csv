@@ -1,0 +1,30 @@
+crop,local_name,places_rated,places_not_rated,places_leading,places_in_top_three,places_good_in_half_the_years,median_suitability,median_extra_water_mm,pooled_good_seasons,pooled_seasons,pooled_share,pooled_low95,pooled_high95,most_common_weakest_condition
+rice,Palay,22,0,3,5,6,0.414,578.01,203,902,0.2251,0.199,0.2534,water
+mungbean,Munggo,22,0,7,17,13,0.656,0,464,902,0.5144,0.4818,0.5469,ph
+eggplant,Talong,22,0,0,16,10,0.5,0,433,902,0.48,0.4476,0.5127,ph
+tomato,Kamatis,22,0,0,0,7,0.411,0,309,902,0.3426,0.3123,0.3742,ph
+squash,Kalabasa,8,14,1,1,5,1.00,0,226,328,0.689,0.637,0.7367,temp
+sitaw,Sitaw,8,14,0,0,4,0.75,0,177,328,0.5396,0.4855,0.5928,temp
+snapbean,Habichuelas,12,10,1,2,6,0.75,0,271,492,0.5508,0.5066,0.5942,temp
+cabbage,Repolyo,0,22,0,0,0,,,0,0,,,,
+lettuce,Letsugas,0,22,0,0,0,,,0,0,,,,
+potato,Patatas,3,19,0,0,2,0.82,0,85,123,0.6911,0.6047,0.7659,temp
+maize,Mais,22,0,0,0,16,1.00,0,634,902,0.7029,0.6722,0.7318,temp
+sweetcorn,Matamis na mais,22,0,0,2,9,0.5,0,389,902,0.4313,0.3993,0.4638,ph
+peanut,Mani,22,0,0,0,9,0.5,0,344,902,0.3814,0.3502,0.4135,ph
+soybean,Soya,22,0,0,0,9,0.5,0,380,902,0.4213,0.3895,0.4538,ph
+sweetpotato,Kamote,22,0,0,0,16,1.00,0,613,902,0.6796,0.6484,0.7092,temp
+cassava,Kamoteng kahoy,0,22,0,0,0,,,0,0,,,,
+onion,Sibuyas,22,0,0,0,7,0.5,0,239,902,0.265,0.2372,0.2947,ph
+sweetpepper,Atsal,22,0,0,0,8,0.5,0,309,902,0.3426,0.3123,0.3742,ph
+watermelon,Pakwan,22,0,0,3,5,0,0,221,902,0.245,0.2181,0.2741,ph
+melon,Melon,22,0,0,1,5,0.311,0,197,902,0.2184,0.1927,0.2465,ph
+carrot,Karot,0,22,0,0,0,,,0,0,,,,
+sesame,Linga,22,0,0,0,9,0.5,0,384,902,0.4257,0.3938,0.4582,ph
+sweetsorghum,Batad,22,0,2,2,6,0.2815,0,220,902,0.2439,0.217,0.273,ph
+broccoli,Brokoli,22,0,0,0,5,0.2,0,179,902,0.1984,0.1737,0.2257,ph
+cucumber,Pipino,22,0,0,0,7,0.4835,0,293,902,0.3248,0.2951,0.3561,ph
+radish,Labanos,22,0,4,11,10,0.585,0,381,902,0.4224,0.3906,0.4549,ph
+gardenpea,Sitsaro,0,22,0,0,0,,,0,0,,,,
+cauliflower,Koliplor,22,0,0,0,5,0.2,0,177,902,0.1962,0.1716,0.2234,ph
+cowpea,Paayap,22,0,4,6,12,0.7,0,498,902,0.5521,0.5195,0.5843,temp

@@ -45,9 +45,13 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 CONDITIONS = (("temp", "Temperature"), ("water", "Water"),
               ("ph", "Soil pH"), ("texture", "Soil texture"))
 # Why a crop was ruled out, in the farmer's words rather than the model's codes.
+FALLOW = ("fallow", "Nothing: the field is resting")
 EXCLUDED = {
-    "does_not_fit_window": "It needs more days than you have between harvest "
-                           "and your next planting.",
+    "does_not_fit_window": "Your whole plan for it (preparing, growing, picking and "
+                           "clearing) needs more days than you have before your "
+                           "next planting.",
+    "drainage_need_not_stated": "Its source does not say whether it can stand wet "
+                                "soil, and you said water stays on your field.",
     "needs_well_drained_soil": "It needs soil that drains, and you said water "
                                "stays on your field after rain.",
 }
@@ -114,7 +118,8 @@ PLACES = read_places()
 DEFAULTS = dict(place=next(iter(PLACES)), main_crop="rice", harvest="2026-11-15",
                 next_planting="2027-05-31", drainage="well_drained",
                 water="rain", priority="balanced", soil_test="", soil_ph="",
-                soil_texture="", advanced="", pass_mark="0.6", turnaround="0")
+                soil_texture="", advanced="", pass_mark="0.6", turnaround="0",
+                plan="", prep="0", picking="0")
 
 CSS = """
 /* Tokens taken from the Klima prototype so the harness sits in the same design
@@ -217,6 +222,10 @@ td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; white-space:no
 .src { font-size:13.5px; color:var(--muted); margin:8px 0 0; line-height:1.5 }
 .refs { margin:0; padding-left:18px; font-size:14px; color:var(--muted) }
 .refs li { margin:3px 0 }
+.none { background:#f0e2dd; color:var(--danger); border-radius:var(--radius);
+        padding:18px 20px; margin-top:14px; font-size:14.5px }
+.none strong { display:block; font:550 21px var(--display); letter-spacing:-0.6px }
+.none p { margin:8px 0 0 }
 .err { background:#f0e2dd; color:var(--danger); padding:14px 16px; border-radius:12px;
        margin-top:20px; white-space:pre-wrap; font-size:14.5px }
 footer { font-size:13px; color:var(--muted); margin-top:34px; padding-top:18px;
@@ -268,7 +277,7 @@ def to_args(q):
     if drainage not in dict(DRAINAGE):
         raise ValueError(f"drainage: {drainage!r} is not one of the three answers")
     main_crop = g("main_crop") or DEFAULTS["main_crop"]
-    if main_crop not in CROP_NAMES:
+    if main_crop != FALLOW[0] and main_crop not in CROP_NAMES:
         raise ValueError(f"main crop: {main_crop!r} is not a crop we know yet")
     args = [sys.executable, MODEL, "--main-crop", main_crop,
             "--lat", repr(place["lat"]), "--lon", repr(place["lon"]),
@@ -285,6 +294,14 @@ def to_args(q):
         if days != int(days):
             raise ValueError("Days to prepare the field: give a whole number of days.")
         args += ["--turnaround-days", str(int(days))]
+    if g("plan"):
+        # The farmer's whole plan for the field, not only the crop's growing time.
+        for key, option, label in (("prep", "--prep-days", "Days before planting"),
+                                   ("picking", "--picking-days", "Days of picking")):
+            days = num(g(key) or "0", 0, 180, label)
+            if days != int(days):
+                raise ValueError(f"{label}: give a whole number of days.")
+            args += [option, str(int(days))]
     if g("soil_test"):
         texture = g("soil_texture")
         if texture and texture not in dict(TEXTURE):
@@ -367,8 +384,8 @@ def form_html(q):
     <div><label for="place">Where is your field?</label>
          <select id="place" name="place">{places}</select>
          <span class="hint">Places we have weather and a soil sample for.</span></div>
-    <div><label for="main_crop">What do you grow now?</label>
-         <select id="main_crop" name="main_crop">{options(list(CROP_NAMES.items()), answer(q, 'main_crop'))}</select></div>
+    <div><label for="main_crop">What is on the field now, or was last?</label>
+         <select id="main_crop" name="main_crop">{options(list(CROP_NAMES.items()) + [FALLOW], answer(q, 'main_crop'))}</select></div>
     <div><label for="priority">What matters most to you?</label>
          <select id="priority" name="priority">{options(PRIORITY, answer(q, 'priority'))}</select></div>
     <div><label for="harvest">When will you harvest it?</label>
@@ -393,6 +410,24 @@ def form_html(q):
     </div>
   </div>
   <div class="opt">
+    <input class="sw" type="checkbox" id="plan" name="plan" value="1"{on('plan')}>
+    <label for="plan"><span>Plan the whole season
+      <small>Count the days before planting and the days of picking, not only the growing time.</small></span></label>
+    <div class="reveal grid">
+      <div><label for="prep">Days before you can plant</label>
+           <input type="text" id="prep" name="prep" inputmode="numeric" value="{g('prep')}">
+           <span class="hint">Land preparation, or a rest you want to give the field
+             after harvest.</span></div>
+      <div><label for="picking">Days of picking you want</label>
+           <input type="text" id="picking" name="picking" inputmode="numeric" value="{g('picking')}">
+           <span class="hint">Extra days you keep the crop for after it first
+             matures. Leave 0 for a crop harvested once.</span></div>
+    </div>
+    <p class="hint">Days to clear the field before your next planting are under
+      Advanced view. A seedling nursery does not use field days: it can start
+      before your harvest.</p>
+  </div>
+  <div class="opt">
     <input class="sw" type="checkbox" id="advanced" name="advanced" value="1"{on('advanced')}>
     <label for="advanced"><span>Advanced view
       <small>Scores, year-by-year counts, planting dates and sources.</small></span></label>
@@ -402,7 +437,7 @@ def form_html(q):
                   value="{g('pass_mark')}">
            <span class="hint">How much of its needs, from 0 to 1, a crop&rsquo;s weakest
              condition must meet for a past year to count as good. We use 0.6.</span></div>
-      <div><label for="turnaround">Days to prepare the field</label>
+      <div><label for="turnaround">Days to clear the field</label>
            <input type="text" id="turnaround" name="turnaround" inputmode="numeric"
                   value="{g('turnaround')}">
            <span class="hint">Days kept free before your next planting. We use 0
@@ -548,13 +583,34 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
             c.get("drainage_requirement", "").startswith("well"):
         check = ('<p class="check">Check first: this crop needs soil that drains, '
                  'and you were not sure about your field.</p>')
+    if c.get("not_scored"):
+        missing = " or ".join(IN_WORDS[k] for k in c["not_scored"])
+        check += (f'<p class="check">Only partly checked: its source gives no {missing}, '
+                  f'so that was not scored and this crop is listed after the others.</p>')
+    seen = c.get("guide_check") or {}
+    if seen.get("outside"):
+        lo, hi = seen["guide_temp_c"]
+        check += (f'<p class="check">Check first: the DA crop guide recommends {lo:g} to '
+                  f'{hi:g} &deg;C for it, and this place averages '
+                  f'{seen["median_temp_c"]:.0f} &deg;C while it grows.</p>')
+    if name in ctx["same_family"]:
+        check += (f'<p class="check">Same plant family as {esc(ctx["main_name"])}. Following a '
+                  f'crop with a relative is what a rotation usually avoids; ask your '
+                  f'agriculturist.</p>')
+    plan = ctx["schedule"].get(name)
+    plan_html = ""
+    if plan and (plan["prep_days"] or plan["picking_days"] or plan["clearing_days"]):
+        plan_html = (f'<p class="sub">Your plan: {plan["prep_days"]} days before planting, '
+                     f'{plan["growing_days"]} growing, {plan["picking_days"]} picking, '
+                     f'{plan["clearing_days"]} clearing = {plan["total_days"]} of your '
+                     f'{plan["window_days"]} days, {plan["spare_days"]} to spare.</p>')
     more = (details_html(c, opts, kc_source, profile, ctx["water"], ctx["heat_limit"])
             if ctx["advanced"] else "")
     return f"""<div class="crop">
   <div class="top"><span class="name"><span class="rank">{rank}</span>{label}</span>
     <span class="fit {FIT_CLASS[b]}">{RATING[b]} fit</span></div>
   <p class="sub">Grows in {grows}. Figures below are for the {days_lo}-day crop, planted
-    right after harvest.</p>
+    {ctx["planted"]}.</p>{plan_html}
   <dl class="facts">
     <div><dt>Rain covers</dt><dd>{covers}<small>of the water it needs</small></dd></div>
     <div><dt>{extra_label}</dt><dd>{esc(extra)}<small>{esc(extra_small)}</small></dd></div>
@@ -578,16 +634,39 @@ def results_html(r, water, priority, advanced):
     names = meta.get("crop_names") or CROP_NAMES
     main = meta.get("main_crop", "rice")
     main_row = field["crops"].get(main)
-    ctx = dict(profile=profile, water=water, advanced=advanced,
+    prep = meta.get("prep_days", 0)
+    ctx = dict(schedule=field.get("schedule", {}),
+               same_family=set(field.get("same_family_as_main", [])),
+               planted=("right after harvest" if not prep else
+                        f"{prep} days after harvest"),
+               profile=profile, water=water, advanced=advanced,
                heat_limit=meta["heat_limit_c"], pass_mark=meta["pass_mark"],
-               names=names, main=main, main_name=names.get(main, main.title()),
+               names=names, main=main,
+               main_name="a resting field" if main == FALLOW[0] else names.get(main, main.title()),
                main_mm=main_row["median_deficit_mm"]["short"] if main_row else None)
     def card(i, n):
         return crop_html(i, n, crops[n], r["planting_dates"].get(n),
                          (r["crop_coefficients"].get(n) or {}).get("source"), ctx)
     rated = [n for n in order if not crops[n].get("excluded")]
     ruled_out = [n for n in order if crops[n].get("excluded")]
-    cards = "".join(card(i, n) for i, n in enumerate(rated, 1))
+    rec = field.get("recommendation") or {}
+    verdict = ""
+    if rec.get("status") == "none":
+        why = " and ".join(IN_WORDS[k] for k in rec.get("held_back_by", [])[:2]) or "the conditions here"
+        verdict = (f'<div class="none"><strong>No suitable recommendation</strong>'
+                   f'<p>None of the {rec["crops_checked"] + rec["crops_ruled_out"]} crops we '
+                   f'checked met at least {meta["pass_mark"]:.0%} of what it needs in a '
+                   f'typical year here. What holds them back most is {why}. The list '
+                   f'below shows what was checked. It is not advice to plant the first '
+                   f'one.</p><p>What can change this: a soil test for your own field, '
+                   f'irrigation if water is the limit, or liming advice from your '
+                   f'agriculturist if soil pH is.</p></div>')
+    elif rec.get("suitable"):
+        names_ok = ", ".join(esc(names.get(n, n.title())) for n in rec["suitable"][:5])
+        more_ok = len(rec["suitable"]) - 5
+        verdict = (f'<p class="src"><strong>Suitable here in a typical year:</strong> '
+                   f'{names_ok}{f" and {more_ok} more" if more_ok > 0 else ""}.</p>')
+    cards = verdict + "".join(card(i, n) for i, n in enumerate(rated, 1))
     if ruled_out:
         cards += ('<p class="eyebrow">Not recommended here</p>'
                   + "".join(card(0, n) for n in ruled_out))

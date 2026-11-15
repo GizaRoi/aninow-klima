@@ -50,7 +50,13 @@ Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonic
 | `serve.py` | A local form at `127.0.0.1:8000`. Runs the real model per submission. A farmer view by default; soil test values and the pass mark sit behind switches, and "Advanced view" adds scores, ranges and sources. |
 | `places.csv` | Seven places the form offers, each at the coordinates of the SARAI soil sample it uses. **Add a row only together with a POWER download for that point**; a test checks every row has weather and soil. |
 | `test_klima_model.py` | 88 tests: farmer inputs, scoring primitives, the water balance, the statistics, crops, places. |
-| `test_serve.py` | 19 tests: what the form sends to the model and what each view shows. |
+| `test_serve.py` | 24 tests: what the form sends to the model and what each view shows. |
+| `test_expansion.py` | Crop numbers against their saved EcoCrop sheets, the schedule, fallow, "no suitable recommendation", the added places. |
+| `test_analysis.py` | Each statistic in `analysis.py` against a hand-worked case, and the plot-history record. |
+| `analysis.py` | Runs every place and writes `docs/analysis/`: four tables and `pitch_stats.md`. Changes nothing. |
+| `plot_history.py` | Reads a plot's record (JSON, `N/A` allowed anywhere) and runs the model on what it supports. Pests, diseases and fertilizer are recorded, **never scored**. |
+| `fetch_power.py` | Downloads NASA POWER for places that lack a file. **The only script that uses the internet**; the model never calls it. |
+| `ecocrop_sheets.py`, `sources/` | The saved FAO EcoCrop sheets and FAO-56 chapter 6, and the reader the tests use to check `crops.csv` against them. |
 | `POWER_Point_Daily_*_LST.csv` | NASA POWER daily, 1981–2025, one file for each of the seven places in `places.csv`. The model picks the file whose header coordinates share the field's weather cell. The `_UTC.csv` file (second rainfall column) exists for the pilot only. |
 | `oni.ascii.txt` | NOAA Oceanic Niño Index. Used for the El Niño flag. |
 | `detrend.nino34.ascii.txt` | Niño 3.4 monthly anomaly. The fallback if the ONI file is missing. |
@@ -71,10 +77,35 @@ python sensitivity.py                 # how far the chosen crop values move the 
 python insights.py                    # every place, side by side
 python charts.py --out ../docs/images # the published charts
 python serve.py                       # the local form
-python -m unittest discover . -v      # 107 tests
+python analysis.py --out ../docs/analysis   # tables and tests for the pitch
+python plot_history.py plot_history_example.json
+python -m unittest discover . -v      # 150 tests, about three minutes
 ```
 
 `results.json` and `model/charts/` are gitignored and rebuilt in about a second. `docs/images/` is committed, because the README has to be able to show its charts.
+
+## State after the fourth round, 2026-11-15
+
+**22 places and 29 crops.** [docs/HANDOFF.md](docs/HANDOFF.md) is current; the table above and
+the sections below were written for seven places and ten crops and are kept for the
+reasoning. What differs now:
+
+- `crops.csv` has 29 rows. The 19 added ones are scored on EcoCrop limits read from sheets
+  saved in `model/sources/ecocrop/`, with growing times from FAO-56 Table 11 totals.
+  **Add a crop only with a saved sheet and an FAO-56 row**; a test compares the two.
+- **Soil texture follows one rule for every crop**: the EcoCrop sheet's optimal and
+  tolerated classes. The six DA-guide crops keep the guide for temperature and pH only.
+- A crop whose sheet prints no texture (maize, sweet potato) is rated but listed after
+  fully scored crops and can never be the recommendation.
+- Carrot and garden pea are scored on EcoCrop **and** screened on the DA guide's temperature.
+- The schedule is `--prep-days` + growing time + `--picking-days` + `--clearing-days`.
+  All default to 0, which is the model as it was. **Do not make a fallow mandatory**: at
+  the pilot a 10-day wait removes the recommendation.
+- `--main-crop fallow` is valid.
+- `results.json` carries `fields[water]["recommendation"]`. **When `status` is `none`, say
+  "no suitable recommendation"; never present the first crop in the order as advice.**
+- Rice, mungbean, eggplant and tomato are byte-identical to the third round at the first
+  seven places. Keep it that way: pin, change one thing, compare.
 
 ## How the model decides
 
