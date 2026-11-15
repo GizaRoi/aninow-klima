@@ -19,10 +19,34 @@ from xml.sax.saxutils import escape
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-INK, SOFT, LINE, PAPER = "#20261f", "#5d655a", "#d9d3c3", "#fffdf8"
-GREEN, AMBER, RED, BLUE = "#1f6a3d", "#8a5a00", "#9a2f1f", "#2d5f7c"
-CROP_COLOUR = {"mungbean": GREEN, "eggplant": BLUE, "tomato": AMBER, "rice": RED}
-FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+# Tokens read straight off the two AniNow front ends rather than picked here, so
+# the charts sit inside the same design language:
+#   aninow-ph.vercel.app ...... --aninow-ink #153522, --aninow-dark #075a32
+#   the Klima prototype ....... --bg #f0f1e9, --ink #26392c, --green #334c37,
+#                               --muted #52614b, --line #d8dfcf, --lime #d5ed8c,
+#                               --amber #8c6928, --red #a05143, --soft #e8eddf
+PAPER = "#f0f1e9"          # the page, a pale sage rather than white
+CARD = "#ffffff"
+INK = "#26392c"            # body text
+DARK = "#223024"           # headings, near-black green
+SOFT = "#52614b"           # secondary text
+LINE = "#d8dfcf"           # hairline rules
+TINT = "#e8eddf"           # faint fills
+GREEN = "#334c37"          # the brand's working green, muted not bright
+DEEP = "#075a32"           # aninow-dark, for emphasis
+LIME = "#d5ed8c"           # pale highlight, never a line colour
+AMBER = "#8c6928"
+RED = "#a05143"            # muted brick: a warning, not an alarm
+
+# Four crops need four readable hues, and the brand is almost entirely green, so
+# these are spaced by lightness as well as hue. Rice, the baseline being compared
+# against, carries the brick; the alternatives run from green to amber.
+CROP_COLOUR = {"mungbean": GREEN, "eggplant": SOFT, "tomato": AMBER, "rice": RED}
+
+# Manrope for display and DM Sans for text, as both front ends use, with a system
+# fallback so the files still look right where those are not installed.
+FONT_DISPLAY = "Manrope, 'DM Sans', -apple-system, 'Segoe UI', sans-serif"
+FONT = "'DM Sans', -apple-system, 'Segoe UI', sans-serif"
 
 
 def load(name):
@@ -46,11 +70,14 @@ class Chart:
     """Draws into a fixed pixel box with a data-to-pixel mapping on each axis."""
 
     def __init__(self, title, subtitle="", width=880, height=480,
-                 pad=(74, 28, 62, 150)):          # left, top, bottom, right
+                 pad=(74, 28, 62, 150), eyebrow=""):   # left, top, bottom, right
         self.w, self.h = width, height
         self.pl, self.pt, self.pb, self.pr = pad
         self.parts = []
         self.title, self.subtitle = title, subtitle
+        # An uppercase label in wide tracking above the title, the same device
+        # both front ends use ("ROOTED IN YOUR REALITY", "A BIGGER PICTURE").
+        self.eyebrow = eyebrow
         self.x0 = self.y0 = 0.0
         self.x1 = self.y1 = 1.0
 
@@ -69,7 +96,8 @@ class Chart:
 
     @property
     def top(self):
-        return self.pt + (34 if self.title else 0) + (18 if self.subtitle else 0)
+        return (self.pt + (14 if self.eyebrow else 0) + (34 if self.title else 0)
+                + (18 if self.subtitle else 0))
 
     @property
     def bottom(self):
@@ -90,11 +118,14 @@ class Chart:
         self.parts.append(s)
         return self
 
-    def text(self, x, y, s, size=13.0, fill=INK, anchor="start", weight="400", rotate=None):
+    def text(self, x, y, s, size=13.0, fill=INK, anchor="start", weight="400", rotate=None,
+             track=None, family=None, upper=False):
         tr = f' transform="rotate({rotate} {x:.1f} {y:.1f})"' if rotate else ""
+        ls = f' letter-spacing="{track}"' if track is not None else ""
+        body = escape(str(s).upper() if upper else str(s))
         return self.add(f'<text x="{x:.1f}" y="{y:.1f}" font-size="{size}" fill="{fill}" '
                         f'text-anchor="{anchor}" font-weight="{weight}" '
-                        f'font-family="{FONT}"{tr}>{escape(str(s))}</text>')
+                        f'font-family="{family or FONT}"{ls}{tr}>{body}</text>')
 
     def line(self, x1, y1, x2, y2, stroke=LINE, width=1.0, dash=None):
         d = f' stroke-dasharray="{dash}"' if dash else ""
@@ -107,13 +138,17 @@ class Chart:
                         f'height="{max(h,0):.1f}" fill="{fill}" '
                         f'fill-opacity="{opacity}"{s}/>')
 
-    def path(self, pts, stroke, width=2.0, dash=None, fill="none"):
+    def path(self, pts, stroke, width=2.0, dash=None, fill="none", fill_opacity=1.0,
+             close=False):
         if not pts:
             return self
         d = "M " + " L ".join(f"{self.px(x):.1f} {self.py(y):.1f}" for x, y in pts)
+        if close:
+            d += " Z"
         da = f' stroke-dasharray="{dash}"' if dash else ""
-        return self.add(f'<path d="{d}" fill="{fill}" stroke="{stroke}" '
-                        f'stroke-width="{width}" stroke-linejoin="round"{da}/>')
+        return self.add(f'<path d="{d}" fill="{fill}" fill-opacity="{fill_opacity}" '
+                        f'stroke="{stroke}" stroke-width="{width}" '
+                        f'stroke-linejoin="round"{da}/>')
 
     def dot(self, x, y, r=3.2, fill=INK, opacity=1.0):
         return self.add(f'<circle cx="{self.px(x):.1f}" cy="{self.py(y):.1f}" r="{r}" '
@@ -121,43 +156,54 @@ class Chart:
 
     # -- furniture
     def axes(self, xticks, yticks, xlab="", ylab="", xfmt=str, yfmt=str, grid=True):
+        # Hairline horizontals only, no frame and no vertical rules: the baseline
+        # does the work and the plot keeps its air.
         if grid:
             for t in yticks:
-                self.line(self.left, self.py(t), self.right, self.py(t))
-        self.line(self.left, self.bottom, self.right, self.bottom, SOFT)
-        self.line(self.left, self.top, self.left, self.bottom, SOFT)
+                self.line(self.left, self.py(t), self.right, self.py(t), LINE, 1.0)
+        self.line(self.left, self.bottom, self.right, self.bottom, LINE, 1.4)
         for t in yticks:
-            self.text(self.left - 9, self.py(t) + 4, yfmt(t), 12, SOFT, "end")
+            self.text(self.left - 10, self.py(t) + 4, yfmt(t), 11.5, SOFT, "end")
         for t in xticks:
-            self.text(self.px(t), self.bottom + 19, xfmt(t), 12, SOFT, "middle")
+            self.text(self.px(t), self.bottom + 20, xfmt(t), 11.5, SOFT, "middle")
         if xlab:
-            self.text((self.left + self.right) / 2, self.h - 14, xlab, 12, SOFT, "middle", "600")
+            self.text((self.left + self.right) / 2, self.h - 15, xlab, 10.5, SOFT,
+                      "middle", "650", track="1.4", upper=True)
         if ylab:
-            self.text(16, (self.top + self.bottom) / 2, ylab, 12, SOFT, "middle", "600",
-                      rotate=-90)
+            self.text(17, (self.top + self.bottom) / 2, ylab, 10.5, SOFT, "middle", "650",
+                      rotate=-90, track="1.4", upper=True)
         return self
 
     def legend(self, items, x=None, y=None):
-        x = self.right + 16 if x is None else x
+        x = self.right + 18 if x is None else x
         y = self.top + 4 if y is None else y
         for i, (label, colour) in enumerate(items):
-            yy = y + i * 19
-            self.rect(x, yy - 9, 11, 11, colour)
-            self.text(x + 17, yy + 1, label, 12, INK)
+            yy = y + i * 20
+            # A short rule reads as a line on a line chart; a swatch reads as a box.
+            self.line(x, yy - 3, x + 14, yy - 3, colour, 2.6)
+            self.text(x + 20, yy + 1, label, 11.5, INK)
         return self
 
     def note(self, s):
-        return self.text(self.left, self.h - 2, s, 11, SOFT)
+        return self.text(self.left, self.h - 4, s, 10.5, SOFT)
 
     def render(self):
         head = []
+        y = self.pt + 12
+        if self.eyebrow:
+            head.append(f'<text x="{self.pl}" y="{y}" font-size="9.5" font-weight="650" '
+                        f'fill="{SOFT}" font-family="{FONT}" letter-spacing="2.6">'
+                        f'{escape(self.eyebrow.upper())}</text>')
+            y += 14
         if self.title:
-            head.append(f'<text x="{self.pl}" y="{self.pt + 20}" font-size="17" '
-                        f'font-weight="700" fill="{INK}" font-family="{FONT}">'
-                        f'{escape(self.title)}</text>')
+            # Manrope at 550 with tight negative tracking, as both front ends set it.
+            head.append(f'<text x="{self.pl}" y="{y + 20}" font-size="19" '
+                        f'font-weight="550" fill="{DARK}" font-family="{FONT_DISPLAY}" '
+                        f'letter-spacing="-0.6">{escape(self.title)}</text>')
         if self.subtitle:
-            head.append(f'<text x="{self.pl}" y="{self.pt + 38}" font-size="12.5" '
-                        f'fill="{SOFT}" font-family="{FONT}">{escape(self.subtitle)}</text>')
+            head.append(f'<text x="{self.pl}" y="{y + 39}" font-size="12.5" '
+                        f'fill="{SOFT}" font-family="{FONT}" letter-spacing="-0.1">'
+                        f'{escape(self.subtitle)}</text>')
         return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{self.w}" '
                 f'height="{self.h}" viewBox="0 0 {self.w} {self.h}">'
                 f'<rect width="{self.w}" height="{self.h}" fill="{PAPER}"/>'
@@ -197,28 +243,32 @@ def chart_water_balance(out):
     top = max(max(v for _, v in etc), max(v for _, v in rain)) * 1.15
     c = Chart(f"Why plant straight after harvest: {crop}",
               f"Median over {len(K.SEASONS)} seasons, {opts[0]['cycle_days']}-day cycle. "
-              f"The gap between the two lines is the water someone must supply.")
+              f"The shaded gap is the water someone must supply.",
+              eyebrow="When to plant")
     c.scale(min(xs), max(xs), 0, top)
     c.axes(xs, nice_ticks(0, top), "planting date", "mm over the cycle",
            xfmt=lambda t: next(o["plant_month_day"] for o in opts if o["offset_days"] == t),
            yfmt=lambda v: f"{v:.0f}")
-    # shade the shortfall
-    for o in opts:
-        x, e, r = o["offset_days"], o["median_etc_mm"], o["median_rain_mm"]
-        if e > r:
-            w = 10
-            c.rect(c.px(x) - w / 2, c.py(e), w, c.py(r) - c.py(e), RED, 0.13)
-    c.path(etc, RED, 2.5)
-    c.path(rain, BLUE, 2.5)
-    # heat days on a second scale, drawn as a faint band
+    # The shortfall is the derived quantity, so it carries the only strong fill;
+    # the two inputs stay as quiet lines. Filled as one band, not a row of bars.
+    gap = list(etc) + list(reversed(rain))
+    c.path(gap, "none", 0, fill=RED, fill_opacity=0.14, close=True)
+    c.path(etc, DARK, 2.2)
+    c.path(rain, GREEN, 2.2)
+    # Heat days on their own scale, as a quiet band along the floor.
     hmax = max(v for _, v in heat) or 1
     for x, v in heat:
-        h = (v / hmax) * (c.bottom - c.top) * 0.22
-        c.rect(c.px(x) - 5, c.bottom - h, 10, h, AMBER, 0.45)
-    c.legend([("water demand (ETc)", RED), ("rainfall", BLUE),
+        h = (v / hmax) * (c.bottom - c.top) * 0.20
+        c.rect(c.px(x) - 4, c.bottom - h, 8, h, AMBER, 0.30)
+    c.legend([("water demand", DARK), ("rainfall", GREEN),
               (f"days over {K.HEAT_LIMIT_C:.0f}C", AMBER)])
     best = min((o for o in opts if o["median_deficit_mm"] is not None),
                key=lambda o: o["median_deficit_mm"])
+    # Label the two ends in plain words on the plot, rather than only in prose.
+    c.text(c.px(xs[0]) + 8, c.py(top * 0.93), "plant now: least to supply, no heat",
+           11, DARK, "start", "600")
+    c.text(c.right - 4, c.py(top * 0.93), "plant late: more rain, but it cooks",
+           11, AMBER, "end", "600")
     c.note(f"Smallest shortfall: plant {best['plant_month_day']}, "
            f"{best['median_deficit_mm']:.0f} mm short with "
            f"{best['median_heat_days'] or 0:.0f} heat days. Late March looks similar on "
@@ -230,7 +280,8 @@ def chart_seasons(out):
     """Every season, not just the median, with the rainfall trend behind it."""
     c = Chart("Suitability season by season",
               f"Each dot is one season's score. Pass mark {K.PASS_MARK}. "
-              f"Open dots are dry seasons, rings are El Nino seasons.")
+              f"Open dots are dry seasons, rings are El Nino seasons.",
+              eyebrow="The evidence")
     years = [s["year"] for s in K.SEASONS]
     c.scale(min(years) - 1, max(years) + 1, 0, 1.0)
     c.axes([y for y in years if y % 5 == 0], [0, 0.25, 0.5, 0.75, 1.0],
@@ -261,7 +312,8 @@ def chart_halves(out):
     crops = [c for c in CROP_COLOUR if c in h]
     c = Chart("The record is not one climate",
               "Seasons clearing the pass mark, first half against second half. "
-              "Window rainfall rises 70 mm per decade (t = 4.1).")
+              "Window rainfall rises 70 mm per decade (t = 4.1).",
+              eyebrow="How far to trust it")
     c.scale(0, len(crops), 0, 1.0)
     c.axes([], [0, 0.25, 0.5, 0.75, 1.0], "", "share of seasons passing",
            yfmt=lambda v: f"{v:.0%}")
@@ -289,7 +341,8 @@ def chart_wilson(out):
     crops = [c for c in CROP_COLOUR if c in ind]
     c = Chart("How often past seasons passed, with 95% intervals",
               "Wilson intervals at the full 44 seasons, and at the effective sample "
-              "size once season-to-season correlation is allowed for.")
+              "size once season-to-season correlation is allowed for.",
+              eyebrow="How far to trust it")
     c.scale(0, 1.0, -0.5, len(crops) - 0.5)
     c.axes([0, 0.25, 0.5, 0.75, 1.0], [], "share of seasons passing", "",
            xfmt=lambda v: f"{v:.0%}", grid=False)
@@ -326,7 +379,8 @@ def chart_sensitivity(out):
     sv = D.check_pass_mark_sensitivity(marks=(0.4, 0.5, 0.6, 0.7, 0.8))
     c = Chart("Does the pass mark decide the answer?",
               "Seasons passing at each pass mark. Where lines touch, the crops tie "
-              "and there is no order to read.")
+              "and there is no order to read.",
+              eyebrow="How far to trust it")
     marks = sv["marks"]
     c.scale(min(marks), max(marks), 0, max(sv["of_seasons"].values()))
     c.axes(marks, nice_ticks(0, max(sv["of_seasons"].values())),
@@ -356,7 +410,8 @@ def chart_rainfall_check(out):
     c = Chart("The two rainfall records disagree",
               f"Whole-window totals, {len(pairs)} overlapping seasons. "
               f"r = {x['correlation']:.3f}, and PRECTOTCORR reads "
-              f"{abs(x['mean_difference_share']):.0%} lower.")
+              f"{abs(x['mean_difference_share']):.0%} lower.",
+              eyebrow="How far to trust it")
     c.scale(0, hi, 0, hi)
     ticks = nice_ticks(0, hi)
     c.axes(ticks, ticks, "other POWER column, mm", "PRECTOTCORR, mm",
@@ -364,7 +419,7 @@ def chart_rainfall_check(out):
     c.path([(0, 0), (hi, hi)], SOFT, 1.3, "6 4")
     c.text(c.px(hi * 0.80), c.py(hi * 0.86), "equal", 11.5, SOFT, "middle")
     for a, b in pairs:
-        c.dot(a, b, 4, BLUE, 0.75)
+        c.dot(a, b, 4.2, GREEN, 0.55)
     c.note("Every shortfall in the model is rainfall subtracted from demand, so this "
            "spread passes straight into it. POWER's header labels that column MERRA-2, "
            "so this is not yet an IMERG check.")
@@ -376,10 +431,14 @@ def chart_decomposition(out):
     crops = list(K.fields["rain"]["crops"])
     keys = ("temp", "water", "ph", "texture")
     names = {"temp": "heat", "water": "water", "ph": "soil pH", "texture": "soil texture"}
-    shades = {"temp": AMBER, "water": BLUE, "ph": GREEN, "texture": SOFT}
+    # Water is the condition that decides, so it is the one that carries colour;
+    # the three that never bind stay quiet.
+    shades = {"temp": LINE, "water": RED, "ph": TINT, "texture": LINE}
+    edges = {"temp": SOFT, "water": RED, "ph": SOFT, "texture": SOFT}
     c = Chart("What limits each crop",
               "Median condition scores. One zero vetoes the whole suitability, so the "
-              "lowest bar is what decides.")
+              "lowest bar is what decides.",
+              eyebrow="The evidence")
     c.scale(0, len(crops), 0, 1.0)
     c.axes([], [0, 0.25, 0.5, 0.75, 1.0], "", "condition score", yfmt=lambda v: f"{v:.2f}")
     bw = (c.right - c.left) / len(crops) / (len(keys) + 1.2)
@@ -390,10 +449,13 @@ def chart_decomposition(out):
             if v is None:
                 continue
             x = c.px(i) + bw * (j + 0.6) + bw * 0.3
-            c.rect(x, c.py(v), bw * 0.86, c.bottom - c.py(v), shades[k])
-            c.text(x + bw * 0.43, c.py(v) - 6, f"{v:.2f}", 10.5, INK, "middle")
-        c.text(c.px(i + 0.5), c.bottom + 19, crop, 12.5, INK, "middle", "600")
-    c.legend([(names[k], shades[k]) for k in keys])
+            c.rect(x, c.py(v), bw * 0.86, c.bottom - c.py(v), shades[k],
+                   stroke=edges[k])
+            c.text(x + bw * 0.43, c.py(v) - 7, f"{v:.2f}", 10.5,
+                   DARK if k == "water" else SOFT, "middle",
+                   "650" if k == "water" else "400")
+        c.text(c.px(i + 0.5), c.bottom + 20, crop, 12.5, DARK, "middle", "600")
+    c.legend([(names[k], edges[k]) for k in keys])
     c.note("Rice scores a perfect 1.00 on heat, pH and texture and still ranks last, "
            "because water is 0.15. That is the geometric mean refusing to average "
            "a failure away.")
@@ -406,7 +468,8 @@ def chart_coverage(out):
     items = list(cov.items())
     c = Chart("What the inputs actually cover",
               "-999 is read as missing, never as zero. Reference ET needs radiation, "
-              "so it cannot start before 1984.")
+              "so it cannot start before 1984.",
+              eyebrow="Data treatment")
     c.scale(0, 1.0, -0.5, len(items) - 0.5)
     c.axes([0, 0.25, 0.5, 0.75, 1.0], [], "share of days present", "",
            xfmt=lambda v: f"{v:.0%}", grid=False)
@@ -432,7 +495,8 @@ def chart_scoring_function(out):
     a, b, cc, d = K.CROPS[crop]["temp"]
     ch = Chart(f"How a condition becomes a score: {crop} temperature",
                "Four limits come from the EcoCrop sheet. The score is 1 between the "
-               "optimal pair and falls straight to 0 at the absolute pair.")
+               "optimal pair and falls straight to 0 at the absolute pair.",
+               eyebrow="Method")
     span = (d - a) * 0.16
     ch.scale(a - span, d + span, 0, 1.08)
     ch.axes([a, b, cc, d], [0, 0.25, 0.5, 0.75, 1.0], "mean temperature over the cycle, C",
@@ -468,7 +532,8 @@ def chart_kc(out):
     curve = K.kc_curve(kc, n)
     c = Chart(f"How water demand is built: {crop}",
               f"FAO-56 single crop coefficient over a {n}-day cycle. Demand is this "
-              f"curve multiplied by reference ET, day by day.")
+              f"curve multiplied by reference ET, day by day.",
+              eyebrow="Method")
     c.scale(0, n, 0, max(curve) * 1.25)
     c.axes(nice_ticks(0, n), nice_ticks(0, max(curve) * 1.25),
            "day of the cycle", "crop coefficient Kc",
@@ -494,7 +559,8 @@ def chart_pipeline(out):
     c = Chart("Where every number comes from",
               "Sources, what was done to them, and what came out. Greyed boxes were "
               "fetched and then NOT used, with the reason given.",
-              width=1120, height=560, pad=(24, 28, 54, 24))
+              width=1120, height=560, pad=(24, 28, 54, 24),
+              eyebrow="Method")
     col_x = [40, 268, 500, 736, 950]
     col_w = [206, 206, 212, 190, 148]
     top = c.top + 10
