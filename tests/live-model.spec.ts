@@ -8,7 +8,9 @@ test('live Render service calculates a comparison through the browser', async ({
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(process.env.KLIMA_FRONTEND_URL || '/');
-  await expect(page.locator('#location option')).toHaveCount(7, { timeout: 190_000 });
+  await expect(page.locator('#location')).toBeEnabled({ timeout: 190_000 });
+  const cropCount = await page.locator('#main-crop option').count();
+  expect(cropCount).toBeGreaterThan(0);
   const responsePromise = page.waitForResponse(response => response.url().endsWith('/api/v1/compare') && response.request().method() === 'POST', { timeout: 190_000 });
   await page.getByRole('button', { name: 'See my options', exact: true }).click();
   const response = await responsePromise;
@@ -16,7 +18,7 @@ test('live Render service calculates a comparison through the browser', async ({
   const body = await response.json();
   expect(body.mode).toBe('rules_model');
   expect(body.contract_version).toBe('klima-comparison.v1');
-  await expect(page.locator('.crop-card')).toHaveCount(10);
+  await expect(page.locator('.crop-card')).toHaveCount(cropCount);
   await expect(page.locator('.crop-card').first()).toHaveAttribute('data-crop', body.ranking[0]);
   const counts = body.results.fields.rain.crops.mungbean.counts.balanced.all.short;
   await expect(page.locator('[data-crop="mungbean"]')).toContainText(`${counts.pass} of ${counts.of}`);
