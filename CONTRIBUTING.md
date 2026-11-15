@@ -40,7 +40,7 @@ Deliver the rules/simulation decision prototype before claiming a predictive MVP
 
 State as of 2026-11-15, on `feat/klima-model` (was `yancey-branch`). [docs/HANDOFF.md](docs/HANDOFF.md) is the current summary of what exists, what changed and what is open. The decision model is **built and running**. A stateless comparison API is implemented in `model/api.py`; see [docs/Model-API.md](docs/Model-API.md) for its contract, tests and Render settings. The frontend lives on separate branches and is not connected yet; database and predictive model work remain pending.
 
-Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonical account of the method, the results, and the problems, with the charts. [docs/Model-Explained.md](docs/Model-Explained.md) works every formula by hand for a newcomer, [docs/Model-Mathematics.md](docs/Model-Mathematics.md) states the whole model as one function with every constant attributed, and [docs/Audit-and-Decision-Checklist.md](docs/Audit-and-Decision-Checklist.md) lists the findings and the decisions still open.
+[docs/Paper.md](docs/Paper.md) is the write-up for readers outside the team: data, methods, results and limitations in research-paper form, with its figures drawn by `notebooks/make_figures.py`. For working on the model, read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonical account of the method, the results, and the problems, with the charts. [docs/Model-Explained.md](docs/Model-Explained.md) works every formula by hand for a newcomer, [docs/Model-Mathematics.md](docs/Model-Mathematics.md) states the whole model as one function with every constant attributed, and [docs/Audit-and-Decision-Checklist.md](docs/Audit-and-Decision-Checklist.md) lists the findings and the decisions still open.
 
 ## Everything in `model/`
 
@@ -58,6 +58,7 @@ Read [docs/Model-Narrative.md](docs/Model-Narrative.md) first: it is the canonic
 | `test_expansion.py` | Crop numbers against their saved EcoCrop sheets, the schedule, fallow, "no suitable recommendation", the added places. |
 | `test_analysis.py` | Each statistic in `analysis.py` against a hand-worked case, and the plot-history record. |
 | `trust_charts.py` | Writes `docs/images/trust/`: eight charts for **how far the model can be trusted**, drawn from `docs/analysis/` so they cannot disagree with `pitch_stats.md`. Run `analysis.py` first. Changes nothing. |
+| `../notebooks/make_figures.py` | Draws the 15 PNG figures in `docs/figures/` with matplotlib, from `docs/analysis/` and `results.json`. Each function returns the figure, so `klima_analysis.ipynb` shows the same plots inline. Needs `notebooks/requirements.txt`; the model does not. |
 | `test_trust_charts.py` | Every count a trust chart prints, against the table it came from; that each renders well-formed SVG with nothing drawn off-canvas; and that **no chart face can contain a performance word**. |
 | `analysis.py` | Runs every place and writes `docs/analysis/`: four tables and `pitch_stats.md`. Changes nothing. |
 | `plot_history.py` | Reads a plot's record (JSON, `N/A` allowed anywhere) and runs the model on what it supports. Pests, diseases and fertilizer are recorded, **never scored**. |

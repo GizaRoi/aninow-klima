@@ -441,8 +441,8 @@ def fig_halves(data):
               label=f"p < 0.05 ({int(sig.sum())} of {len(m)})")
     a.plot([0, 1], [0, 1], color=GREY, linestyle="--", linewidth=1.2)
     a.text(0.62, 0.55, "no change", fontsize=8.4, color=GREY, rotation=38)
-    a.set_xlabel("Good-year share, 1984-2004")
-    a.set_ylabel("Good-year share, 2005-2024")
+    a.set_xlabel("Good-year share, 1984-2003")
+    a.set_ylabel("Good-year share, 2004-2024")
     a.set_title("Good years cluster in the recent half")
     a.legend(fontsize=8.3, loc="upper left")
     a.xaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
@@ -507,9 +507,154 @@ def fig_el_nino(data):
     return fig, "fig10-el-nino"
 
 
-FIGURES = [fig_how_it_decides, fig_the_function, fig_when_to_plant, fig_seasons,
-           fig_what_decides, fig_places, fig_water_saved, fig_pass_mark,
-           fig_halves, fig_el_nino]
+# ---------------- the model in three steps, as an image ----------------
+def fig_formulas(_data):
+    """The three formulas as a picture, so they can be dropped into a slide or a
+    submission form that will not render LaTeX."""
+    fig, axes = plt.subplots(1, 3, figsize=(13.6, 3.6))
+    fig.subplots_adjust(left=0.01, right=0.99, wspace=0.04)
+    panels = [
+        ("1. Score each condition",
+         "Published FAO EcoCrop limits turn a\nmeasurement into a score from 0 to 1.",
+         [r"$s(x)=\frac{x-a}{b-a}$  below the optimum",
+          r"$s(x)=1$  inside it",
+          r"$s(x)=\frac{d-x}{d-c}$  above it"]),
+        ("2. Water: supply over demand",
+         "Rain over the cycle against the crop's\nown FAO-56 water need.",
+         [r"$W=\min\left(1,\ \frac{\mathrm{rain}}{ET_c}\right)$",
+          r"$ET_c=\sum_{d} K_c(d)\,ET_0(d)$",
+          r"$ET_0=0.0023\,(T_{mean}+17.8)\sqrt{T_{max}-T_{min}}\;R_a$"]),
+        ("3. Take the weakest, count good years",
+         "A season is only as good as its\nscarcest condition.",
+         [r"$S=\min(T,\ W,\ \mathrm{pH},\ \mathrm{texture})$",
+          r"good year:  $S\geq 0.6$",
+          r"report $k$ of $N$, with a 95% interval"]),
+    ]
+    for ax, (title, prose, lines) in zip(axes, panels):
+        ax.set_axis_off()
+        ax.add_patch(FancyBboxPatch((0.02, 0.02), 0.96, 0.96, transform=ax.transAxes,
+                                    boxstyle="round,pad=0.0,rounding_size=0.03",
+                                    facecolor="#f6f6f3", edgecolor="#b9b9b9", linewidth=0.9))
+        ax.text(0.07, 0.88, title, transform=ax.transAxes, fontsize=10.8, fontweight="bold")
+        ax.text(0.07, 0.74, prose, transform=ax.transAxes, fontsize=8.8, color=GREY, va="top")
+        for i, line in enumerate(lines):
+            ax.text(0.07, 0.44 - i * 0.155, line, transform=ax.transAxes, fontsize=9.6,
+                    va="center")
+    caption(fig, "Limits: FAO EcoCrop. Crop coefficients and reference ET: FAO Irrigation "
+                 "and Drainage Paper 56. Rain, temperature and radiation: NASA POWER. The "
+                 "0.6 pass mark is the team's own choice.")
+    return fig, "fig00-the-model-in-three-steps"
+
+
+# ---------------- are the seasons independent draws? ----------------
+def fig_independence(data):
+    _, _, _, pairs, _ = data
+    r = pairs[pairs["status"] == "rated"].copy()
+    for c in ("lag1_autocorrelation", "effective_years", "years_scored"):
+        r[c] = pd.to_numeric(r[c], errors="coerce")
+    r = r.dropna(subset=["lag1_autocorrelation", "effective_years", "years_scored"])
+    ratio = r["effective_years"] / r["years_scored"]
+    pos = r["lag1_autocorrelation"] > 0
+
+    fig, ax = plt.subplots(figsize=(9.2, 4.5))
+    ax.axvspan(0, 1, color=RICE, alpha=0.06, linewidth=0)
+    ax.scatter(r["lag1_autocorrelation"][~pos], ratio[~pos], s=22, c=ALT[0], alpha=0.5,
+               label=f"interval is fair ({int((~pos).sum())})")
+    ax.scatter(r["lag1_autocorrelation"][pos], ratio[pos], s=22, c=RICE, alpha=0.5,
+               label=f"interval too narrow ({int(pos.sum())})")
+    ax.axvline(0, color=GREY, linestyle="--", linewidth=1.1)
+    ax.set_xlim(min(-0.4, r["lag1_autocorrelation"].min() - 0.03),
+                max(0.6, r["lag1_autocorrelation"].max() + 0.03))
+    ax.set_ylim(0, 1.08)
+    ax.set_xlabel("Lag-1 autocorrelation of the season score")
+    ax.set_ylabel("Effective seasons / seasons scored")
+    ax.set_title("How much of each 95% interval is real")
+    ax.legend(fontsize=8.6, loc="lower left")
+    caption(fig, f"{len(r)} rated place-crop pairs. The Wilson interval assumes independent "
+                 f"seasons. Where last season predicts this one the effective sample is "
+                 f"N(1-r)/(1+r) and the published interval is too narrow; both N and the "
+                 f"effective N are in crop_by_place.csv.")
+    return fig, "fig11-season-independence"
+
+
+# ---------------- the cost of our own texture score ----------------
+def fig_texture_cost(data):
+    _, _, _, pairs, _ = data
+    r = pairs[pairs["status"] == "rated"].copy()
+    for c in ("score_soil_texture", "good_years", "years_scored",
+              "good_years_if_texture_left_out"):
+        r[c] = pd.to_numeric(r[c], errors="coerce")
+    tol = r[(r["score_soil_texture"] - 0.5).abs() < 1e-9]
+    as_is = int((tol["good_years"] * 2 >= tol["years_scored"]).sum())
+    without = int((tol["good_years_if_texture_left_out"] * 2 >= tol["years_scored"]).sum())
+
+    fig, ax = plt.subplots(figsize=(8.8, 3.2))
+    labels = ["Rated pairs on a soil the\ncrop only tolerates",
+              "Good in half the years,\nas the model stands",
+              "Good in half the years,\ntexture left out"]
+    vals = [len(tol), as_is, without]
+    bars = ax.barh(labels[::-1], vals[::-1], color=[ALT[0], RICE, FAINT], alpha=0.9)
+    for bar, v in zip(bars, vals[::-1]):
+        ax.text(v + len(tol) * 0.015, bar.get_y() + bar.get_height() / 2, str(v),
+                va="center", fontsize=10, fontweight="bold")
+    ax.set_xlim(0, len(tol) * 1.12)
+    ax.set_xlabel("Place-crop pairs")
+    ax.set_title("What one unsourced constant decides")
+    ax.grid(axis="y", visible=False)
+    caption(fig, "A tolerated soil scores 0.5. That figure is the team's, not a source's, "
+                 "and it sits below the 0.6 pass mark, so such a soil fails on its own. "
+                 f"{without - as_is} pairs turn on it.")
+    return fig, "fig12-texture-constant"
+
+
+# ---------------- is the score just rainfall? ----------------
+def fig_follows_rain(data):
+    _, _, _, pairs, _ = data
+    r = pairs[pairs["status"] == "rated"].copy()
+    v = pd.to_numeric(r["score_follows_rain_spearman"], errors="coerce").dropna()
+    fig, ax = plt.subplots(figsize=(8.8, 4.0))
+    ax.hist(v, bins=np.linspace(-1, 1, 21), color=ALT[1], alpha=0.85, edgecolor="white")
+    ax.axvline(v.median(), color=RICE, linestyle="--", linewidth=1.6)
+    ax.text(v.median() - 0.03, ax.get_ylim()[1] * 0.92, f"median {v.median():.2f}",
+            ha="right", fontsize=9, color=RICE)
+    ax.set_xlabel("Spearman's rho: season score against window rainfall")
+    ax.set_ylabel("Place-crop pairs")
+    ax.set_title("Where the score is driven by rain")
+    caption(fig, f"{len(v)} rated pairs whose score varies between seasons. Near 1, water "
+                 f"is the binding condition. Pairs capped every year by soil pH or texture "
+                 f"have no rho and are absent.")
+    return fig, "fig13-score-follows-rain"
+
+
+# ---------------- how close was the limiting call? ----------------
+def fig_margin(data):
+    _, _, _, pairs, _ = data
+    r = pairs[pairs["status"] == "rated"].copy()
+    cols = ["score_temperature", "score_water", "score_soil_ph", "score_soil_texture"]
+    m = r[cols].apply(pd.to_numeric, errors="coerce")
+    srt = np.sort(m.to_numpy(dtype=float), axis=1)          # NaN sorts last
+    gap = srt[:, 1] - srt[:, 0]
+    gap = gap[~np.isnan(gap)]
+    fig, ax = plt.subplots(figsize=(8.8, 4.0))
+    counts, _, patches = ax.hist(gap, bins=np.linspace(0, 1, 21), color=ALT[0],
+                                 alpha=0.8, edgecolor="white")
+    patches[0].set_facecolor(RICE)
+    ax.set_xlabel("Gap between the weakest and second-weakest condition")
+    ax.set_ylabel("Place-crop pairs")
+    ax.set_title("What taking the minimum hides")
+    ax.annotate(f"{int(counts[0])} pairs: two conditions\nwithin 0.05 of each other",
+                xy=(0.025, counts[0]), xytext=(0.2, counts.max() * 0.82), fontsize=9,
+                color=RICE, arrowprops=dict(arrowstyle="->", color=RICE, linewidth=1.1))
+    caption(fig, f"{len(gap)} rated pairs, median season. A wide gap means the limit is "
+                 f"unambiguous. A narrow one means naming a single limiting condition "
+                 f"overstates how separable they are.")
+    return fig, "fig14-limiting-margin"
+
+
+FIGURES = [fig_formulas, fig_how_it_decides, fig_the_function, fig_when_to_plant,
+           fig_seasons, fig_what_decides, fig_places, fig_water_saved, fig_pass_mark,
+           fig_halves, fig_el_nino, fig_independence, fig_texture_cost,
+           fig_follows_rain, fig_margin]
 
 
 def main(argv=None):

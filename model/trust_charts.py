@@ -252,7 +252,7 @@ def chart_halves(cbp, places):
                  eyebrow="Why a pooled count understates")
     ch.scale(-0.03, 1.03, -0.03, 1.03)
     ch.axes([0, 0.25, 0.5, 0.75, 1.0], [0, 0.25, 0.5, 0.75, 1.0],
-            "First half, 1984-2004", "Second half, 2005-2024",
+            "First half, 1984-2003", "Second half, 2004-2024",
             xfmt=lambda v: f"{v:.0%}", yfmt=lambda v: f"{v:.0%}")
 
     ch.path([(0, 0), (1, 1)], C.INK, 1.2, dash="5 4")

@@ -14,6 +14,8 @@ The pilot location, alternative crop/variety profiles, numerical agronomic thres
 
 | Document | Purpose |
 |---|---|
+| **[Paper](Paper.md)** | The full write-up in research-paper form: sites and data, methods, results, statistical appraisal, limitations, references |
+| [Analysis notebook](../notebooks/klima_analysis.ipynb) | The paper's computational companion; draws every figure in `figures/` |
 | [Handoff](HANDOFF.md) | The current state of the model: what exists, what changed, the numbers, the pitch, and what is open |
 | [Pitch statistics](analysis/pitch_stats.md) | Generated: every place and crop, and the statistical treatments, with the tables beside it |
 | [Model mathematics](Model-Mathematics.md) | The whole model as one function: every formula, every absence rule, and every constant we chose rather than sourced |
