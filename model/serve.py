@@ -25,7 +25,7 @@ import tempfile
 import urllib.parse
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from rotation import add_months, compare
+from rotation import add_months, compare, load_profiles
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODEL = os.path.join(HERE, "klima_model.py")
@@ -47,6 +47,8 @@ CONDITIONS = (("temp", "Temperature"), ("water", "Water"),
               ("ph", "Soil pH"), ("texture", "Soil texture"))
 # Why a crop was ruled out, in the farmer's words rather than the model's codes.
 EXCLUDED = {
+    'schedule_overrun': 'The intended picking and clearance schedule extends beyond your next planting.',
+    'not_strictly_under_90_days_to_first_harvest': 'The conservative first-harvest endpoint does not pass the strict under-90-day screen.',
     "does_not_fit_window": "It needs more days than you have between harvest "
                            "and your next planting.",
     "needs_well_drained_soil": "It needs soil that drains, and you said water "
@@ -90,6 +92,9 @@ def read_english_names():
 
 
 CROP_ENGLISH = read_english_names()
+for _profile in load_profiles():
+    CROP_NAMES[_profile.record_id] = _profile.source['local_name'] + ' — ' + _profile.source['cultivar_or_type']
+    CROP_ENGLISH[_profile.record_id] = _profile.source['crop_name']
 # How each condition is named inside a sentence.
 IN_WORDS = {"temp": "temperature", "water": "water", "ph": "soil pH", "texture": "soil texture"}
 
@@ -456,8 +461,8 @@ def details_html(c, opts, kc_source, profile, water, heat_limit):
             cells += ('<td class="n">not scored</td>' if v is None else
                       f'<td class="n"><span class="{band(v)}">{RATING[band(v)]}</span> {v:.2f}</td>')
         rows += f"<tr><td>{title}</td>{cells}</tr>"
-    overall = "".join(
-        f'<td class="n">{(c["median_S"][tag][profile] or 0):.2f}</td>' for tag in ("short", "long"))
+    overall = "".join('<td class="n">not evaluated</td>' if c['median_S'][tag][profile] is None else
+        f'<td class="n">{c["median_S"][tag][profile]:.2f}</td>' for tag in ('short', 'long'))
     extra = "".join(f'<td class="n">{esc(mm(c["median_deficit_mm"][tag]))}</td>'
                     for tag in ("short", "long"))
     rows += (f"<tr><td>Weakest condition</td>{overall}</tr>"
@@ -470,11 +475,12 @@ def details_html(c, opts, kc_source, profile, water, heat_limit):
             k = c["counts"][profile][key][tag]
             lo, hi = k["wilson95"]
             rng = f" ({lo:.0%} to {hi:.0%})" if lo is not None else ""
-            cells += f'<td class="n">{k["pass"]} of {k["of"]}{rng}</td>'
+            cells += (f'<td class="n">{k["pass"]} of {k["of"]}{rng}</td>' if k['of'] else
+                      '<td class="n">not evaluated</td>')
         years += f"<tr><td>{title}</td>{cells}</tr>"
     skipped = c["counts"][profile]["all"]["short"].get("not_scored", 0)
-    skipped_note = (f" {skipped} early years are left out because the sunlight record "
-                    f"needed for the water score starts in 1984." if skipped else "")
+    skipped_note = (f" {skipped} years are not evaluated because required evidence or scheduling "
+                    f"inputs are missing; see the checks for this crop." if skipped else "")
     plant = ""
     for o in opts or []:
         if o["median_deficit_mm"] is None:
@@ -524,6 +530,8 @@ def details_html(c, opts, kc_source, profile, water, heat_limit):
   <p class="src"><strong>Crop limits:</strong> {esc(c.get("limits_source") or 'not recorded')}</p>
   <p class="src"><strong>Growing time:</strong> {esc(c.get("cycle_source") or 'not recorded')}</p>
   <p class="src"><strong>Water use figures:</strong> {esc(kc_source or 'not recorded')}</p>
+  {('<p class="src"><a href="' + esc(c['source_url']) + '">Official FAO EcoCrop data sheet</a></p>') if c.get('source_url') else ''}
+  {('<p class="src">EcoCrop general crop-cycle range (reference only): ' + esc(c['ecocrop_cycle']) + ' days.</p>') if c.get('ecocrop_cycle') else ''}
 </div>"""
 
 
@@ -550,6 +558,8 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
     covers = "not worked out" if rws is None else f"{min(1.0, rws):.0%}"
     k = c["counts"][profile]
     def passed(key):
+        if k[key][tag]['of'] == 0:
+            return 'not evaluated'
         return f'{k[key][tag]["pass"]} of {k[key][tag]["of"]}'
     best = None
     if opts:
@@ -581,9 +591,20 @@ def crop_html(rank, name, c, opts, kc_source, ctx):
                  'and you were not sure about your field.</p>')
     more = (details_html(c, opts, kc_source, profile, ctx["water"], ctx["heat_limit"])
             if ctx["advanced"] else "")
+    rank_html = f'<span class="rank">{rank}</span>' if rank else ''
+    badge = f'{RATING[b]} fit'
+    if c.get('timing_profile'):
+        provisional = bool(c.get('flags')) or c['median_S'][tag][profile] is None
+        if provisional:
+            badge = 'Provisional — checks incomplete'
+            b = 'o'
+        check += '<p class="check">Species-level historical assessment, not cultivar validation. ' + esc(
+            '; '.join(c.get('flags', []))) + '</p>'
+        weak = weak if not provisional else '<p class="weak">Missing checks do not count as passes.</p>'
+        grows += ' (' + esc(c['evaluation_scope']) + ')'
     return f"""<div class="crop">
-  <div class="top"><span class="name"><span class="rank">{rank}</span>{label}</span>
-    <span class="fit {FIT_CLASS[b]}">{RATING[b]} fit</span></div>
+  <div class="top"><span class="name">{rank_html}{label}</span>
+    <span class="fit {FIT_CLASS[b]}">{badge}</span></div>
   <p class="sub">Grows in {grows}. Figures below are for the {days_lo}-day crop, planted
     after fallow and preparation.</p>
   <dl class="facts">
@@ -609,6 +630,9 @@ def results_html(r, water, priority, advanced):
     names = meta.get("crop_names") or CROP_NAMES
     main = meta.get("main_crop", "rice")
     main_row = field["crops"].get(main)
+    if main_row is None:
+        main_row = (r.get('profile_options', {}).get('fields', {}).get(water, {})
+                    .get('crops', {}).get(main))
     ctx = dict(profile=profile, water=water, advanced=advanced,
                heat_limit=meta["heat_limit_c"], pass_mark=meta["pass_mark"],
                names=names, main=main, main_name=names.get(main, main.title()),
@@ -710,16 +734,42 @@ def choice(q, key, allowed):
     return v if v in dict(allowed) else DEFAULTS[key]
 
 
-def rotation_html(report):
+def rotation_html(report, water='rain', priority='balanced', advanced=False):
     policy = report['rotation_policy']
     cards = []
-    for result in report['rotation_profiles']:
+    options = report.get('profile_options')
+    results = report['rotation_profiles']
+    if options:
+        order = options['fields'][water]['rankings'][priority]
+        positions = {key: i for i, key in enumerate(order)}
+        results = sorted(results, key=lambda r: positions.get(r['record_id'], len(order)))
+    for result in results:
         p, s = result['provenance'], result['schedule']
+        option_html = ''
+        gaps = result['critical_gaps']
+        if options:
+            key = result['record_id']
+            field = options['fields'][water]
+            row = field['crops'].get(key) or dict(excluded=field['excluded'].get(key, []))
+            names = report['meta']['crop_names']
+            main = report['meta']['main_crop']
+            baseline = report['fields'][water]['crops'].get(main) or field['crops'].get(main)
+            ctx = dict(names=names, main=main, main_name=names.get(main, main),
+                       main_mm=baseline['median_deficit_mm']['short'] if baseline else None,
+                       profile='balanced', water=water, advanced=advanced,
+                       heat_limit=report['meta']['heat_limit_c'], pass_mark=report['meta']['pass_mark'])
+            option_html = crop_html(0, key, row, options['planting_dates'].get(key),
+                                   options['crop_coefficients'][key]['source'], ctx)
+            requirement = options['requirements'][key]
+            gaps = requirement['critical_gaps']
+            if requirement.get('source_url'):
+                option_html += '<p class="src"><a href="' + esc(requirement['source_url']) + '">FAO EcoCrop requirements</a></p>'
+            ranges = ''.join('<tr><td>' + label + '</td><td>' + esc(requirement.get(key)) + '</td></tr>'
+                             for key, label in [('temp', 'Temperature (°C)'), ('ph', 'Soil pH'),
+                                                ('rain', 'Annual rainfall (mm/year)')])
+            option_html += '<details><summary>Published requirement ranges</summary><p>Order: absolute minimum, optimal minimum, optimal maximum, absolute maximum. Missing = unavailable.</p><table>' + ranges + '</table><p>Optimal textures: ' + esc(requirement['tex_opt']) + '; tolerated: ' + esc(requirement['tex_abs']) + '. Drainage: ' + esc(requirement['drainage']) + '.</p></details>'
         def status(key):
             return s[key].replace('_', ' ')
-        scope = result['suitability_context']
-        context = ('unavailable' if scope['index'] is None else f"{scope['index']:.2f}")
-        coverage = ('unavailable' if scope['coverage'] is None else f"{scope['coverage']:.0%}")
         cards.append(f'''<article class="crop">
           <div class="name">{esc(p['crop_name'])} <small>{esc(p['local_name'])}</small></div>
           <p>{esc(p['cultivar_or_type'])} · {esc(p['harvested_part'])}</p>
@@ -736,13 +786,12 @@ def rotation_html(report):
           <p><strong>{esc(result['status'])}</strong> — {esc(', '.join(result['failures']) or 'site suitability remains unverified')}.</p>
           <details><summary>Sources, derivation and missing evidence</summary>
           <p>{esc(p['timing_conversion'])}</p><p>{esc(p['rotation_notes'])}</p>
-          <p>{esc(p['quality_flags'])}</p><p>Critical gaps: {esc(', '.join(result['critical_gaps']))}</p>
-          <p>Crop-level context index: {context}; evidence coverage: {coverage}.
-          Equal weights for pH, temperature, water and texture. This is not a success probability,
-          and does not validate this cultivar. Missing checks are not zero scores.</p>
-          <pre>{esc(json.dumps(result['evidence'], indent=2))}</pre>
+          <p>{esc(p['quality_flags'])}</p><p>Critical gaps: {esc('; '.join(gaps))}</p>
+          <p>Timing evidence and EcoCrop species limits have separate scopes. Historical comparisons
+          below use the same weakest-condition rule as the existing crop options.
+          Missing checks are unavailable, never zero or a successful pass.</p>
           <p><a href="{esc(p['timing_source_url'])}">{esc(p['timing_source_org'])}: {esc(p['timing_source_title'])}</a>
-          — {esc(p['timing_source_locator'])}</p></details></article>''')
+          — {esc(p['timing_source_locator'])}</p></details>{option_html}</article>''')
     return f'''<p class="eyebrow">New timing profiles · 24 options, including one pulse</p>
     <div class="window"><strong>Crop-free until {esc(policy['crop_free_until'])}</strong>
     Three calendar months after harvest. Propagation starts after fallow; no nursery overlap.
@@ -768,7 +817,8 @@ def page_html(q):
                 return PAGE.format(css=CSS, form=form_html(q), body=rotation_html(report) +
                                    '<p>No historical growing window remains after fallow.</p>')
             report = run_model(args)
-            body = rotation_html(report) + results_html(report, choice(q, "water", WATER),
+            body = rotation_html(report, choice(q, 'water', WATER), choice(q, 'priority', PRIORITY),
+                                 bool(answer(q, 'advanced'))) + results_html(report, choice(q, "water", WATER),
                                 choice(q, "priority", PRIORITY), bool(answer(q, "advanced")))
         except ValueError as e:
             body = f'<div class="err">{esc(e)}</div>'

@@ -9,6 +9,7 @@ import argparse, csv, glob, json, math, os, sys
 from datetime import date, timedelta
 from statistics import median
 from rotation import add_months, compare
+from ecocrop import build_crops
 
 def month_day(text):
     """A farmer gives a real date; the model applies its month and day across all
@@ -429,7 +430,7 @@ def med(items):
     return median(v) if v else None
 
 def score(x, lim):
-    if x is None:
+    if x is None or lim is None:
         return None
     a, b, c, d = lim
     if x < a or x > d:
@@ -441,6 +442,8 @@ def score(x, lim):
     return 1.0
 
 def texture_score(c):     # STAND-IN: 1 if optimal, 0.5 if only tolerated, 0 otherwise
+    if not c['tex_opt'] and not c['tex_abs']:
+        return None
     if c.get("limits", "ecocrop") != "ecocrop":
         # A crop guide names the soils it recommends and says nothing about the
         # rest, so a soil it does not name is left unscored instead of failed.
@@ -565,7 +568,7 @@ def window_options(c):
     n = c["cycle_min"]
     opts = []
     for off in PLANTING_OFFSETS:
-        if off + n > WINDOW_DAYS:
+        if off + n + TURNAROUND_DAYS > WINDOW_DAYS:
             continue
         per_season = []
         for s in SEASONS:
@@ -693,10 +696,14 @@ def guide_screen(c):
     return why, dict(median_temp_c=t, guide_temp_c=[c["temp"][1], c["temp"][2]],
                      soil_ph=SOIL_PH, guide_ph=[c["ph"][1], c["ph"][2]])
 
-def evaluate(water):
+def evaluate(water, crops=None):
+    crops = CROPS if crops is None else crops
     out, excluded, screened = {}, {}, {}
-    for name, c in CROPS.items():
+    for name, c in crops.items():
         why, flags = hard_filters(c)
+        why += c.get('forced_exclusions', [])
+        if c.get('timing_profile'):
+            flags += c['critical_gaps']
         more, compared = guide_screen(c)
         why = why + more
         if compared:
@@ -730,6 +737,8 @@ def evaluate(water):
                 # to the geometric mean, the missing water score would simply be
                 # skipped and the season would pass on heat and soil alone.
                 unscored = water == "rain" and c["kc"] and sc["water"] is None
+                if c.get('timing_profile'):
+                    unscored = unscored or bool(c['critical_gaps']) or DRAINAGE == 'unknown'
                 row["by_length"][tag] = dict(days=n, temp_c=t, rain_mm=r, scores=sc,
                                              water_balance=wb,
                                              S={p: None if unscored else suitability(sc)
@@ -757,6 +766,10 @@ def evaluate(water):
         both = [r for r in rows if r["imerg_mm"] is not None]
         out[name] = dict(
             flags=flags,
+            timing_profile=c.get('timing_profile', False),
+            evaluation_scope='planned occupancy' if c.get('full_schedule') else 'first-harvest exposure only' if c.get('timing_profile') else 'generic crop cycle',
+            source_url=c.get('source_url'),
+            ecocrop_cycle=c.get('ecocrop_cycle'),
             ecocrop_sheet=c["sheet"], scientific_name=c["scientific_name"],
             ph_crop_guide=ph_guide_for(c),
             cycle_days=[c["cycle_min"], c["cycle_max"]],
@@ -805,18 +818,25 @@ def evaluate(water):
         # Saving water means needing less of it: years passed, then the smallest gap.
         "saving_water":    lambda n: (passes(n), thrift(n)),
         "healthier_soil":  lambda n: (1 if out[n]["legume"] else 0, ms(n), thrift(n)),
-        "finishing_early": lambda n: (-CROPS[n]["cycle_min"], ms(n), thrift(n)),
+        "finishing_early": lambda n: (-crops[n]["cycle_min"], ms(n), thrift(n)),
     }
     return dict(crops=out, excluded=excluded, screened=screened,
-                rankings={p: sorted(out, key=k, reverse=True) for p, k in keys.items()})
+                rankings={p: sorted(out, key=lambda n: (out[n]['median_S'][TAG]['balanced'] is not None, k(n)), reverse=True)
+                          for p, k in keys.items()})
 
 MAIN_CROP = ARGS.main_crop
-if MAIN_CROP not in CROPS:
+ROTATION_PROFILES = compare(ARGS.harvest_date, ARGS.next_planting_date,
+                           ARGS.preparation_days, ARGS.picking_days, ARGS.clearance_days,
+                           SOIL_PH, None, DRAINAGE)
+PROFILE_CROPS = build_crops(ROTATION_PROFILES, CROPS)
+if MAIN_CROP not in CROPS and MAIN_CROP not in PROFILE_CROPS:
     sys.exit(f"--main-crop {MAIN_CROP!r} is not in {CROPS_FILE}. Choose from: "
              + ", ".join(CROPS) + ".")
 
 fields = {w: evaluate(w) for w in ("rain", "irrigation")}
 WINDOW_OPTIONS = {n: window_options(c) for n, c in CROPS.items() if c["kc"]}
+PROFILE_FIELDS = {w: evaluate(w, PROFILE_CROPS) for w in ('rain', 'irrigation')}
+PROFILE_DATES = {n: window_options(c) for n, c in PROFILE_CROPS.items() if c['kc']}
 
 def report():
     """Print the full report and write the results file."""
@@ -956,7 +976,7 @@ def report():
                   scored_lengths="EcoCrop cycle minimum and maximum, capped at the window",
                   planting_offsets=PLANTING_OFFSETS, heat_limit_c=HEAT_LIMIT_C,
                   turnaround_days=TURNAROUND_DAYS, main_crop=MAIN_CROP,
-                  crop_names={n: c["local_name"] for n, c in CROPS.items()},
+                  crop_names={n: c["local_name"] for n, c in (CROPS | PROFILE_CROPS).items()},
                   weather_point=WEATHER_POINT,
                   weather_grid="MERRA-2 cell, 0.5 x 0.625 degrees: the weather is the "
                                "average over that cell, not a reading at the field",
@@ -1001,9 +1021,11 @@ def report():
         seasons=[{k: s[k] for k in ("year", "start", "end", "window_rain", "nino_mean",
                                     "dry", "el_nino", "normal")} for s in SEASONS],
         fields=fields,
-        rotation_profiles=compare(ARGS.harvest_date, ARGS.next_planting_date,
-                                  ARGS.preparation_days, ARGS.picking_days, ARGS.clearance_days,
-                                  SOIL_PH, None, DRAINAGE),
+        rotation_profiles=ROTATION_PROFILES,
+        profile_options=dict(fields=PROFILE_FIELDS, planting_dates=PROFILE_DATES,
+                             crop_coefficients={n: dict(kc=c['kc'], source=c['kc_source'])
+                                                for n, c in PROFILE_CROPS.items()},
+                             requirements=PROFILE_CROPS),
         rotation_policy=dict(version='rotation-timing-v1',
                              harvest=ARGS.harvest_date.isoformat(),
                              next_rice=ARGS.next_planting_date.isoformat(),

@@ -1,5 +1,35 @@
 # Rotation timing and mandatory fallow
 
+## EcoCrop crop-option integration
+
+All 24 new profiles now use the existing crop-option renderer and scorer, and
+are available in the current-crop selector. Farmer priorities reorder supported
+profiles; incomplete profiles follow evaluated ones. Advanced view shows
+condition scores, actual historical pass denominators and Wilson intervals,
+planting-date comparisons, provenance and the annual climate envelope.
+The same fixed fallow and clearance constraints apply to these comparisons.
+
+`model/ecocrop.py` parses 21 official FAO sheet snapshots with explicit taxon and
+profile joins. See `model/sources/README.md` for primary URLs and limitations.
+Eleven profiles additionally have sourced FAO-56 coefficients and stage lengths.
+The others retain rain-coverage, extra-water and best-planting fields as unavailable
+until suitable water-demand inputs exist. EcoCrop annual rainfall never replaces
+crop-cycle water demand. Amaranth with no species identification, leaf lettuce
+and saluyot have no verified match and retain unavailable condition scores.
+
+New profiles reuse the historical weakest-condition method, not the earlier
+separate DA weighted context index. Species-level limits do not validate named
+cultivars. Profiles with incomplete scheduling, missing water data, missing
+limits, unknown drainage, or explicitly provisional taxon/production matches
+have no combined score or historical pass denominator. Component evidence is
+still shown. A completed timing plan is evaluated over its first-harvest upper
+endpoint plus the chosen/sourced picking period, with a separate clearance
+buffer. With an unresolved picking period, exposure through first harvest may
+be displayed, clearly labeled; it does not establish a full rotation fit.
+
+The sections below describe the initial timing implementation; this integration
+supersedes its earlier statement that no profiles have climate/water checks.
+
 This implementation extends the existing standard-library Python model and form;
 it does not create a new web stack or train a predictor. The supplied timing CSV
 is committed unchanged in `model/fast_growing_vegetables_ph_under_90_days.csv`.
