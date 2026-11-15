@@ -143,16 +143,25 @@ python serve.py                       # a local form at 127.0.0.1:8000
 python klima_model.py --main-crop fallow --prep-days 14 --picking-days 21 --clearing-days 7
 python plot_history.py plot_history_example.json   # a plot's record, N/A allowed
 python analysis.py --out ../docs/analysis          # tables and tests for the pitch
-python -m unittest discover . -v      # 150 tests
+python -m unittest test_klima_model test_serve test_expansion test_analysis -v # 150 standard-library tests
 ```
 
-Standard library only: no NumPy, no matplotlib, no internet at run time. `serve.py` runs the real model as a subprocess per submission, so the browser exercises the same code path as the command line.
+The core model and local form use the standard library only: no NumPy, matplotlib,
+or internet at run time. `serve.py` runs the real model as a subprocess per submission.
+
+The HTTP comparison API adds FastAPI and Uvicorn. From `model/`, using a virtual
+environment, install `pip install -r requirements-dev.txt`, then run
+`python -m uvicorn api:app --host 127.0.0.1 --port 8000 --workers 1`. Open `/docs`
+to try the endpoints. `python -m unittest discover . -v` runs both model and API
+tests. See [the API and Render deployment guide](docs/Model-API.md) for setup,
+request/response shapes, browser access and frontend integration.
 
 ## Start here
 
 - **[Handoff](docs/HANDOFF.md)** — what exists now, what changed, the numbers, and what is open
 - **[Pitch statistics](docs/analysis/pitch_stats.md)** — every place and crop, with the statistical treatments
 - [Review of Romano's rotation branch](docs/Romano-Branch-Review.md) — what was tested, taken and left
+- [Model comparison API and Render deployment](docs/Model-API.md) — real model JSON, supported inputs and HTTP setup
 - **[How the model works, and how far it can be trusted](docs/Model-Narrative.md)** — the method, the results, the charts, and the problems
 - [The model explained step by step](docs/Model-Explained.md) — every formula worked by hand, for a reader new to it
 - [Audit and decision checklist](docs/Audit-and-Decision-Checklist.md) — findings, what changed, and what the team still has to decide

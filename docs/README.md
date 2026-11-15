@@ -17,6 +17,7 @@ The pilot location, alternative crop/variety profiles, numerical agronomic thres
 | [Handoff](HANDOFF.md) | The current state of the model: what exists, what changed, the numbers, the pitch, and what is open |
 | [Pitch statistics](analysis/pitch_stats.md) | Generated: every place and crop, and the statistical treatments, with the tables beside it |
 | [Review of Romano's branch](Romano-Branch-Review.md) | `feat/rotation-timing-fallow` judged, compared, and what was taken from it |
+| [Model comparison API](Model-API.md) | Implemented HTTP endpoints, validated inputs, model results and Render deployment |
 | [Model narrative](Model-Narrative.md) | What the model does, what it says for the pilot, how far the numbers can be trusted, and what it refuses to do |
 | [Model explained](Model-Explained.md) | Each step of the model in plain words, with the formula and a worked example |
 | [Audit and decision checklist](Audit-and-Decision-Checklist.md) | Review findings, changes made, and the decisions still open |

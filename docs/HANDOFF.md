@@ -3,6 +3,12 @@
 Branch: `feat/klima-model`. Date: 2026-11-15, fourth round. Committed on this branch; not
 yet reviewed by an agriculturist.
 
+The stateless comparison API in `model/api.py` wraps this same model, with catalogue
+discovery, validated JSON inputs, isolated calculations and `/health`. See
+[Model-API.md](Model-API.md) for the contract and Render deployment settings. The API does
+not change the scoring method; it reads `places.csv` and `crops.csv`, so it now serves 22
+places and 29 crops. It does not yet accept `fallow`, `--prep-days` or `--picking-days`.
+
 This is the state of the model for whoever picks it up next. For the method read
 [Model-Narrative.md](Model-Narrative.md) (it describes the pilot and its first four crops);
 for the maths worked by hand read [Model-Explained.md](Model-Explained.md); for this round's
@@ -30,7 +36,7 @@ To check everything works:
 
 ```bash
 cd model
-python -m unittest discover .          # 150 tests, about three minutes
+python -m unittest test_klima_model test_serve test_expansion test_analysis   # 150 standard-library tests, about three minutes
 python klima_model.py                  # the pilot field
 python klima_model.py --prep-days 14 --picking-days 21 --clearing-days 7
 python klima_model.py --main-crop fallow
