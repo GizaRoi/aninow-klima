@@ -12,10 +12,8 @@ method read [Model-Narrative.md](Model-Narrative.md); for the maths worked by ha
 
 ## 1. Where things stand
 
-Everything described here is committed on `feat/klima-model`. The commit that holds the
-scoring rule, the new places and the new crops (sections 3.3 and 3.4) is **local only and
-has not been pushed**; GitHub still ends at `2113a63`. `.claude/launch.json` is a local
-preview setting and is left out on purpose.
+Everything described here is committed and pushed on `feat/klima-model`.
+`.claude/launch.json` is a local preview setting and is left out on purpose.
 
 To check everything works:
 
@@ -46,13 +44,13 @@ All of these ran clean on 2026-11-15. Standard library only; no internet is need
 
 ## 3. What changed, in order
 
-### 3.1 A counting bug (committed)
+### 3.1 A counting bug
 
 The 1981 to 1983 seasons have no water score, because the sunlight record starts in 1984.
 They were being passed on temperature and soil alone. They are now left out, so counts are
 out of 41, not 44.
 
-### 3.2 The form and a local rice variety (committed)
+### 3.2 The form and a local rice variety
 
 - The form asks for a place, not coordinates. Soil test values and model settings sit
   behind switches. There is a farmer view and an advanced view.
@@ -60,7 +58,7 @@ out of 41, not 44.
   seeded, 114 transplanted). A survey of farmers in Muñoz found it the most planted inbred
   variety there.
 
-### 3.3 The scoring rule (committed, not pushed)
+### 3.3 The scoring rule
 
 - **A year's score is its weakest condition**, not an average. Before, three perfect scores
   could lift a water score of 0.14 to a pass.
@@ -72,7 +70,7 @@ out of 41, not 44.
   weather.
 - Days for land preparation can be held back (default 0).
 
-### 3.4 More places, more crops, any main crop (committed, not pushed)
+### 3.4 More places, more crops, any main crop
 
 - **Seven places** instead of one, each with its own NASA POWER download and its own
   measured soil sample: Muñoz, Batac, Echague, Los Baños, Ligao, Lambunao and Maramag.
@@ -267,7 +265,6 @@ Add a row to `model/crops.csv`. Every number needs a source in `limits_source`,
 
 In rough order of value:
 
-1. Push this round after testing the form.
 2. One rule for soil texture across both kinds of crop (7.2).
 3. Local growing times for the nine crops that lack them.
 4. A harvest record, even a small one, to check the model against.
