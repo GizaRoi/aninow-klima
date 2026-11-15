@@ -31,7 +31,8 @@ The SARAI sample note also asks farmers to confirm field conditions and crop
 choices with their agriculturist; the separate orange notice has been removed.
 
 Submitting scrolls the planner into view and shows an animated calculation panel
-until the service responds. It identifies the submitted location and dates, keeps
+until the service responds, with the service wait-time message and a plain
+reassurance sentence without dots. It identifies the submitted location and dates, keeps
 the form mounted with answers preserved, and restores it on failure for retry.
 Reduced-motion preferences disable the animation. The `/team/` page is labelled
 About us and includes the team's introduction and Laguna/university background

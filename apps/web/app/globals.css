@@ -372,13 +372,8 @@ input[aria-invalid=true] { border-color: #a85336; }
 .calculation-inputs { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px 26px; margin-top: 26px; font-size: 15px; color: #3d5836; }
 .calculation-inputs > span { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 100%; }
 .calculation-inputs svg { flex-shrink: 0; }
-.calculation-wait { display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 14px; line-height: 1.7; color: #64725b; max-width: 590px; margin-top: 32px; }
-.calculation-dots { display: inline-flex; gap: 5px; flex-shrink: 0; }
-.calculation-dots i { width: 5px; height: 5px; border-radius: 50%; background: #65844d; animation: calculation-pulse 1.6s ease-in-out infinite; }
-.calculation-dots i:nth-child(2) { animation-delay: .2s; }
-.calculation-dots i:nth-child(3) { animation-delay: .4s; }
+.calculation-wait { font-size: 14px; line-height: 1.7; color: #64725b; max-width: 590px; margin-top: 32px; }
 @keyframes calculation-orbit { to { transform: rotate(360deg); } }
-@keyframes calculation-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
 .team-intro { display: grid; grid-template-columns: minmax(0, 1fr) 275px; gap: 44px; align-items: center; padding: 32px; margin-bottom: 38px; border: 1px solid #b9cba740; border-radius: 14px; background: linear-gradient(125deg, #d4e5bb0d, #162d2324); color: #edf2e2; }
 .team-intro > p { font-size: 18px; line-height: 1.85; text-wrap: pretty; }
 .team-location { border-left: 1px solid #b9cba756; padding-left: 30px; color: #dfebc9; font-size: 17px; line-height: 1.8; }
@@ -392,7 +387,7 @@ input[aria-invalid=true] { border-color: #a85336; }
   .calculation-panel h2 { font-size: 28px; margin-top: 24px; }
   .calculation-inputs { font-size: 14px; gap: 15px; }
   .calculation-inputs > span { flex-wrap: wrap; }
-  .calculation-wait { flex-direction: column; gap: 12px; margin-top: 26px; }
+  .calculation-wait { margin-top: 26px; }
   .team-intro { padding: 23px; margin-bottom: 28px; }
   .team-intro > p { font-size: 17px; line-height: 1.8; }
   .team-location { font-size: 16px; }

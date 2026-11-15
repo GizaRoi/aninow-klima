@@ -109,7 +109,7 @@ test('calculation panel comes into view during the request and becomes real resu
     await expect(panel).toBeVisible();
     await expect(panel).toBeInViewport({ ratio: 1 });
     await expect(panel.getByRole('heading', { name: 'Comparing crops for your field', exact: true })).toBeFocused();
-    await expect(panel.getByRole('status')).toContainText('Calculating your comparison');
+    await expect(panel.getByRole('status')).toHaveText('The service may need up to three minutes to wake up and run.');
     await expect(panel).toContainText('Science City of Muñoz, Nueva Ecija');
     await expect(page.locator('form')).not.toBeVisible();
     await expect(page.locator('#location')).toBeDisabled();

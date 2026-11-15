@@ -20,6 +20,6 @@ export function CalculationLoading({ inputs, language, headingRef }: {
       <span><MapPin size={18}/>{inputs.place}</span>
       <span><CalendarDays size={18}/>{dateLabel(inputs.harvest, language)} <span aria-hidden="true">→</span> {dateLabel(inputs.next_planting, language)}</span>
     </div>
-    <div className="calculation-wait"><span className="calculation-dots" aria-hidden="true"><i/><i/><i/></span><p>{m.calculationWait}</p></div>
+    <p className="calculation-wait">{m.calculationWait}</p>
   </div>;
 }
